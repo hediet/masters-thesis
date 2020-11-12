@@ -64,10 +64,15 @@ begin
     funext env,
     unfold Φ_eval, simp,
     cases (Φ_eval ty1 env),
+
+    case option.none {
         unfold Φ_eval._match_3,
         unfold Φ_eval._match_2,
+    },
 
+    case option.some {
         unfold Φ_eval._match_3,
+    }
 end
 
 lemma rw_right_or (ty1: Φ) (ty2: Φ) (ty3: Φ):
@@ -87,35 +92,35 @@ lemma 𝒰_𝒰'_equiv' (acc: Φ) (gdt: Gdt) :
 begin
     funext env,
     induction gdt generalizing acc,
-
-    -- case leaf
-    unfold 𝒰_acc,
-    unfold 𝒰',
-    rw Φ_false_and,
-
-    -- case branch
     
-    unfold 𝒰_acc,
-    rw gdt_ih_a_1,
-    rw Φ_eval,
-    rw gdt_ih_a,
-    rw← Φ_eval,
-    unfold 𝒰',
-    rw Φ_and_assoc,
+    case Gdt.leaf {
+        unfold 𝒰_acc,
+        unfold 𝒰',
+        rw Φ_false_and,
+    },
 
-    -- case grd
-    rw 𝒰',
+    case Gdt.branch {
+        unfold 𝒰_acc,
+        rw gdt_ih_a_1,
+        rw Φ_eval,
+        rw gdt_ih_a,
+        rw← Φ_eval,
+        unfold 𝒰',
+        rw Φ_and_assoc,
+    },
 
-    rw 𝒰_acc,
-    
-    rw Φ_eval,
-    rw Φ_eval,
-    rw gdt_ih,
-    rw ←Φ_eval,
-    rw ←Φ_eval,
-    rw rw_right_or,
-    rw Φ_and_or_distrib,
-    rw Φ_and_assoc,
+    case Gdt.grd {
+        rw 𝒰',
+        rw 𝒰_acc,
+        rw Φ_eval,
+        rw Φ_eval,
+        rw gdt_ih,
+        rw ←Φ_eval,
+        rw ←Φ_eval,
+        rw rw_right_or,
+        rw Φ_and_or_distrib,
+        rw Φ_and_assoc,
+    },
 end
 
 
