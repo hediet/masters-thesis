@@ -23,14 +23,12 @@ lemma Φ_and_assoc (ty1: Φ) (ty2: Φ) (ty3: Φ):
 begin
     funext env,
     rw Φ_eval,
-    
+    conv in ( Φ_eval (ty1.and (ty2.and ty3)) env) { rw Φ_eval },
     simp,
-    cases h: (Φ_eval (ty1.and ty2) env),
+    cases h1: (Φ_eval (ty1.and ty2) env),
     repeat {
-        rw Φ_eval,
-        simp,
-        rw Φ_eval at h,
-        simp at h,
+        rw Φ_eval at h1,
+        simp at h1,
         cases h2: (Φ_eval ty1 env),
         repeat {
             rw Φ_eval._match_3,
@@ -38,13 +36,13 @@ begin
     },
     
     repeat {
-        rw h2 at h,
-        rw Φ_eval._match_3 at h,
+        rw h2 at h1,
+        rw Φ_eval._match_3 at h1,
     },
 
     case option.none option.some {
         rw Φ_eval, simp,
-        rw h,
+        rw h1,
         rw Φ_eval._match_3, 
     },
     
@@ -53,7 +51,9 @@ begin
     },
 
     case option.some option.some {
-        rw Φ_eval, simp, rw h,
+        rw Φ_eval,
+        simp,
+        rw h1,
         rw Φ_eval._match_3,
     }
 end
@@ -83,7 +83,7 @@ end
 
 
 lemma 𝒰_𝒰'_equiv' (acc: Φ) (gdt: Gdt) :
-    Φ_eval (𝒰_acc acc gdt) = Φ_eval (Φ.and acc (𝒰' gdt)) :=
+    Φ_eval (𝒰_acc acc gdt) = Φ_eval (acc.and (𝒰' gdt)) :=
 begin
     funext env,
     induction gdt generalizing acc,

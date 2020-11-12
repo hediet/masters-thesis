@@ -3,6 +3,10 @@
 
 class GuardModule :=
     -- Represents the type of all guards.
+    -- A guard resembles an if-condition that can fail or pass.
+    -- If it passes, it can modify the environment.
+    -- The semantic of guards is defined in a way that allows for direct reuse in
+    -- so called refinement types.
     (Grd : Type)
 
     -- Represents the result type of evaluating a guard tree.
@@ -20,17 +24,18 @@ class GuardModule :=
 variable [GuardModule]
 open GuardModule
 
--- ## Guard Trees
+-- ## Syntax
 
 -- A guard tree is a tree of leaves, protected by (abstract) guards.
 -- Every execution terminates with a leave. Guards "guard" sub-trees in a non-leathal way!
--- See non-strict guards for how a bang guard can be transformed to terminate execution.
+-- See non-strict guard trees for how a bang "guard" can be transformed to terminate execution.
 inductive Gdt
 | leaf : Leaf → Gdt
 | branch : Gdt → Gdt → Gdt
 | grd : Grd → Gdt → Gdt
 
--- Semantics of Guard Trees. Uses the semantic of guards.
+-- ## Semantic
+
 def gdt_eval : Gdt → Env → (option (Env × Leaf))
 | (Gdt.leaf leaf) env := some (env, leaf)
 | (Gdt.branch tr1 tr2) env :=
@@ -95,8 +100,8 @@ def 𝒰_acc : Φ → Gdt → Φ
 
 | acc (Gdt.grd grd tree) :=
         Φ.or
-            (Φ.and acc $ Φ.negGrd grd)
-            (𝒰_acc (Φ.and acc (Φ.grd grd)) tree)
+            (acc.and $ Φ.negGrd grd)
+            (𝒰_acc (acc.and (Φ.grd grd)) tree)
 
 def 𝒰 : Gdt → Φ := 𝒰_acc Φ.true
 
@@ -104,10 +109,11 @@ def 𝒰 : Gdt → Φ := 𝒰_acc Φ.true
 -- Alternative definition without accumulator
 def 𝒰' : Gdt → Φ
 | (Gdt.leaf _) := Φ.false
-| (Gdt.branch tr1 tr2) := Φ.and (𝒰' tr1) (𝒰' tr2)
-| (Gdt.grd grd tree) := Φ.or
-            (Φ.negGrd grd)
-            (Φ.and (Φ.grd grd) (𝒰' tree))
+| (Gdt.branch tr1 tr2) := (𝒰' tr1).and (𝒰' tr2)
+| (Gdt.grd grd tree) :=
+                (Φ.negGrd grd)
+            .or
+                ((Φ.grd grd).and (𝒰' tree))
 
 -- ## Annotate
 
@@ -118,7 +124,7 @@ inductive Ant
 def 𝒜_acc : Φ → Gdt → Ant
 | acc (Gdt.leaf leaf) := Ant.leaf acc leaf
 | acc (Gdt.branch tr1 tr2) := Ant.branch (𝒜_acc acc tr1) (𝒜_acc (𝒰_acc acc tr1) tr2)
-| acc (Gdt.grd grd tr) := (𝒜_acc (Φ.and acc $ Φ.grd grd) tr)
+| acc (Gdt.grd grd tr) := (𝒜_acc (acc.and $ Φ.grd grd) tr)
 
 def 𝒜 : Gdt → Ant := 𝒜_acc Φ.true
 

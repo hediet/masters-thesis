@@ -7,50 +7,50 @@ import ..gdt.defs
 -- can make the entire computation diverge.
 
 class NGuardModule :=
--- Represents the type of all guards.
-(Grd Leaf Env Var : Type)
--- None is returned if the guard fails. Guards can modify the environment.
--- This abstraction allows for "let x = expr", "x == 1" or "let (Cons x:xs) = list" guards.
-(grd_eval : Grd → Env → option Env)
-(is_bottom : Var → Env → bool)
+    -- Represents the type of all guards.
+    (Grd : Type)
+
+    -- Represents the result type of evaluating a guard tree.
+    (Leaf : Type)
+
+    -- Represents an environment type that is used to define a semantic for a guard tree.
+    (Env : Type)
+
+    -- Represents the type of variables that can be compared against bottom.
+    (Var : Type)
+
+    -- None is returned if the guard fails. Guards can modify the environment.
+    -- This abstraction allows for "let x = expr", "x == 1" or "let (Cons x:xs) = list" guards.
+    (grd_eval : Grd → Env → option Env)
+
+    -- Checks whether a given var in env is bottom
+    (is_bottom : Var → Env → bool)
 
 variable [NGuardModule]
 open NGuardModule
 
+-- ## Syntax
+
 inductive NGrd
 | grd: Grd → NGrd
+-- Non-Strict Guard Trees can use the bang guard.
 | bang: Var → NGrd
 
--- Non-Strict Guard Trees can diverge early with "bottom", so `Leaf` must be extended.
-inductive NLeaf
-| bottom: NLeaf
-| leaf: Leaf → NLeaf
-
--- Non-Strict Guard Trees need a semantic for `Grd` and for an is-bottom predicate.
--- This can be achieved by asserting a semantic for `XGrd`:
-inductive XGrd
-| grd: Grd → XGrd
-| is_bottom: Var → XGrd
-
-instance GuardModuleInstance : GuardModule := {
-    Grd := XGrd,
-    Leaf := NLeaf,
-    Env := Env,
-    grd_eval := λ grd, match grd with
-    | XGrd.grd grd := grd_eval grd
-    | XGrd.is_bottom var := λ env, if is_bottom var env then some env else none
-    end
-}
-
--- Non-Strict Guard Trees can use the bang guard.
-
--- ## Semantics of Non-Strict Guard Trees
-
+-- We cannot define non-strict guard tree as direct specialization of guard trees,
+-- as we need to provide a semantic for that.
+-- However, we cannot provide a semantic for the `bang` guard directly.
+-- (Such a semantic would not really work with refinement types)
 inductive NGdt
 | leaf : Leaf → NGdt
 | branch : NGdt → NGdt → NGdt
 | grd : NGrd → NGdt → NGdt
 
+-- ## Semantic
+
+-- Non-Strict Guard Trees can diverge early with "bottom", so `Leaf` must be extended.
+inductive NLeaf
+| bottom: NLeaf
+| leaf: Leaf → NLeaf
 
 def ngdt_eval : NGdt → Env → (option (Env × NLeaf))
 | (NGdt.leaf leaf) env := some (env, NLeaf.leaf leaf)
@@ -74,17 +74,31 @@ def ngdt_eval : NGdt → Env → (option (Env × NLeaf))
 
 -- ## Reduction To Abstract Guard Trees
 
--- There is no `GuardSemantic` that can describe the effect of the bang guard!
--- This is because bang guards can diverge and terminate the entire computation.
--- We need to transform the guard tree to describe the semantic.
+-- Non-strict guard trees can be reduced to guard trees
+-- which allows to apply theorems on guard trees to non-strict guard trees.
 
--- This transforms a non-strict guard tree to a guard tree with the `is_bottom` guard.
--- The new guard tree can diverge early.
+-- For this reduction, we need an `is_bottom` guard instead of a `bang` guard.
+-- The `is_bottom` guard has a different semantic.
+inductive XGrd
+| grd: Grd → XGrd
+| is_bottom: Var → XGrd
+
+instance GuardModuleInstance : GuardModule := {
+    Grd := XGrd,
+    Leaf := NLeaf,
+    Env := Env,
+    grd_eval := λ grd, match grd with
+    | XGrd.grd grd := grd_eval grd
+    | XGrd.is_bottom var := λ env, if is_bottom var env then some env else none
+    end
+}
+
+-- This transforms a non-strict guard tree to a guard tree.
 def ngdt_to_gdt : NGdt → Gdt
 | (NGdt.leaf leaf) := (Gdt.leaf (NLeaf.leaf leaf))
 | (NGdt.branch tr1 tr2) := Gdt.branch (ngdt_to_gdt tr1) (ngdt_to_gdt tr2)
 | (NGdt.grd (NGrd.bang var) tr) := Gdt.branch
-        -- If `var` is bottom, the we diverge with the bottom leaf.
+        -- If `var` is bottom, we diverge with a bottom leaf.
         (Gdt.grd (XGrd.is_bottom var) (Gdt.leaf (NLeaf.bottom)))
         -- Otherwise, we continue.
         (ngdt_to_gdt tr)
@@ -139,7 +153,7 @@ def remove_leaves [decidable_eq Leaf] : list Leaf → NGdt → option NGdt
     end
 
 -- Like `ngdt_eval` in the `some` case, but never accepts anything in the `none` case.
--- Catches the semantic of an empty guard tree.
+-- This accounts for empty guard trees.
 def ngdt_eval_option : option NGdt → Env → (option (Env × NLeaf))
 | (some gdt) env := ngdt_eval gdt env
 | none env := none

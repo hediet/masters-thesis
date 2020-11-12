@@ -3,6 +3,8 @@ variable [NGuardModule]
 open NGuardModule
 
 -- Reduction to Guard Trees maintains semantic.
+-- This is a very important statement, as it allows to use the theory of refinement types
+-- to understand non-strict guard trees.
 theorem ngdt_eval_eq_gdt_eval :
         ngdt_eval = gdt_eval ∘ ngdt_to_gdt := sorry
 
@@ -14,7 +16,10 @@ theorem main [decidable_eq Leaf] : ∀ ngdt: NGdt, ∀ is_empty: Gs,
     (
         let ⟨ a, i, r ⟩ := ℛ is_empty.val $ 𝒜 $ ngdt_to_gdt ngdt
         in
-                -- leaves that are redundant and neither accessible nor inaccessible can be removed without changing semantics
+                -- Leaves that are redundant and neither accessible nor inaccessible can be removed without changing semantics.
+                -- If all leaves are unique, a, i and r are disjoint.
+                -- In that case, `((r.remove_all i).remove_all a` = `r`.
+                -- If all leaves are equal, `((r.remove_all i).remove_all a` usually is the empty list.
                 ngdt_eval_option (remove_leaves ((r.remove_all i).remove_all a) ngdt)
                 = ngdt_eval ngdt
             ∧ 
