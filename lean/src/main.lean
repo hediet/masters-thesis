@@ -80,7 +80,7 @@ def Φ_eval: Φ → Env → option Env
     | none := Φ_eval t2 env
     end
 | (Φ.and t1 t2) env :=
-    match Φ_eval t1 env with
+    match (Φ_eval t1 env) with
     -- It is important here to continue with the environment after processing t1!
     | some env' := Φ_eval t2 env'
     | none := none
@@ -89,7 +89,7 @@ def Φ_eval: Φ → Env → option Env
 
 
 -- ## Uncovered Refinement Types
-
+ 
 def 𝒰_acc : Φ → Gdt → Φ
 | acc (Gdt.leaf _) := Φ.false
 | acc (Gdt.branch tr1 tr2) := (𝒰_acc (𝒰_acc acc tr1) tr2)
@@ -113,7 +113,125 @@ def 𝒰' : Gdt → Φ
             (Φ.and (Φ.grd grd) (𝒰' tree))
 
 
-lemma 𝒰_𝒰'_equiv : Φ_eval ∘ 𝒰 = Φ_eval ∘ 𝒰' := sorry
+lemma Φ_true_and (ty: Φ): Φ_eval (Φ.true.and ty) = Φ_eval ty :=
+begin
+    funext env,
+    unfold Φ_eval
+end
+
+
+lemma Φ_false_and (ty: Φ): Φ_eval Φ.false = Φ_eval (ty.and Φ.false) :=
+begin
+    funext env,
+    unfold Φ_eval,
+    cases (Φ_eval ty env),
+    unfold Φ_eval._match_3,
+    unfold Φ_eval._match_3
+end
+
+lemma Φ_and_assoc (ty1: Φ) (ty2: Φ) (ty3: Φ):
+    Φ_eval ((ty1.and ty2).and ty3) = Φ_eval (ty1.and (ty2.and ty3)) :=
+begin
+    funext env,
+    rw Φ_eval,
+    simp,
+    cases h: (Φ_eval (ty1.and ty2) env),
+        rw Φ_eval._match_3,
+        rw Φ_eval, simp,
+        rw Φ_eval at h, simp at h,
+        cases h2: (Φ_eval ty1 env),
+            rw Φ_eval._match_3, 
+
+            rw Φ_eval._match_3, 
+            rw h2 at h,
+            rw Φ_eval._match_3 at h,
+            rw Φ_eval, simp,
+            rw h,
+            rw Φ_eval._match_3, 
+
+        rw Φ_eval._match_3,
+        rw Φ_eval, simp,
+        cases h2: (Φ_eval ty1 env),
+            rw Φ_eval at h, simp at h,
+            rw h2 at h, rw Φ_eval._match_3 at h,
+            cc,
+
+            rw Φ_eval at h, simp at h,
+            rw h2 at h, rw Φ_eval._match_3 at h,
+            rw Φ_eval._match_3,
+            rw Φ_eval, simp, rw h,
+            rw Φ_eval._match_3,
+end
+
+lemma Φ_and_or_distrib (ty1: Φ) (ty2: Φ) (ty3: Φ):
+    Φ_eval ((ty1.and ty2).or (ty1.and ty3)) = Φ_eval (ty1.and (ty2.or ty3)) :=
+begin
+    funext env,
+    unfold Φ_eval, simp,
+    cases (Φ_eval ty1 env),
+        unfold Φ_eval._match_3,
+        unfold Φ_eval._match_2,
+
+        unfold Φ_eval._match_3,
+end
+
+lemma rw_right_or (ty1: Φ) (ty2: Φ) (ty3: Φ):
+    (Φ_eval ty2 = Φ_eval ty3)
+    → (Φ_eval (ty1.or ty2) = Φ_eval (ty1.or ty3)) :=
+begin
+    assume h,
+    funext env,
+    rw Φ_eval,
+    rw Φ_eval,
+    rw h,
+end
+
+
+lemma 𝒰_𝒰'_equiv' (acc: Φ) (gdt: Gdt) :
+    Φ_eval (𝒰_acc acc gdt) = Φ_eval (Φ.and acc (𝒰' gdt)) :=
+begin
+    funext env,
+    induction gdt generalizing acc,
+
+    -- case leaf
+    unfold 𝒰_acc,
+    unfold 𝒰',
+    rw Φ_false_and,
+
+    -- case branch
+    
+    unfold 𝒰_acc,
+    rw gdt_ih_a_1,
+    rw Φ_eval,
+    rw gdt_ih_a,
+    rw← Φ_eval,
+    unfold 𝒰',
+    rw Φ_and_assoc,
+
+    -- case grd
+    rw 𝒰',
+
+    rw 𝒰_acc,
+    
+    rw Φ_eval,
+    rw Φ_eval,
+    rw gdt_ih,
+    rw ←Φ_eval,
+    rw ←Φ_eval,
+    rw rw_right_or,
+    rw Φ_and_or_distrib,
+    rw Φ_and_assoc,
+end
+
+
+lemma 𝒰_𝒰'_equiv : Φ_eval ∘ 𝒰 = Φ_eval ∘ 𝒰' := 
+begin
+    unfold function.comp,
+    funext x,
+    rw 𝒰,
+    rw ←Φ_true_and (𝒰' x),
+    rw 𝒰_𝒰'_equiv'
+end
 
 -- ### end: optional
 
@@ -342,6 +460,5 @@ theorem main [decidable_eq Leaf] : ∀ gdt: NGdt, ∀ is_empty: Gs,
     )
     -- We probably need 𝒜_eval for proving this.
     := sorry
-
 
 end NGdt
