@@ -125,8 +125,7 @@ begin
     funext env,
     unfold Φ_eval,
     cases (Φ_eval ty env),
-    unfold Φ_eval._match_3,
-    unfold Φ_eval._match_3
+    repeat { unfold Φ_eval._match_3 }
 end
 
 lemma Φ_and_assoc (ty1: Φ) (ty2: Φ) (ty3: Φ):
@@ -134,33 +133,39 @@ lemma Φ_and_assoc (ty1: Φ) (ty2: Φ) (ty3: Φ):
 begin
     funext env,
     rw Φ_eval,
+    
     simp,
     cases h: (Φ_eval (ty1.and ty2) env),
-        rw Φ_eval._match_3,
-        rw Φ_eval, simp,
-        rw Φ_eval at h, simp at h,
+    repeat {
+        rw Φ_eval,
+        simp,
+        rw Φ_eval at h,
+        simp at h,
         cases h2: (Φ_eval ty1 env),
-            rw Φ_eval._match_3, 
+        repeat {
+            rw Φ_eval._match_3,
+        },
+    },
+    
+    repeat {
+        rw h2 at h,
+        rw Φ_eval._match_3 at h,
+    },
 
-            rw Φ_eval._match_3, 
-            rw h2 at h,
-            rw Φ_eval._match_3 at h,
-            rw Φ_eval, simp,
-            rw h,
-            rw Φ_eval._match_3, 
-
-        rw Φ_eval._match_3,
+    case option.none option.some {
         rw Φ_eval, simp,
-        cases h2: (Φ_eval ty1 env),
-            rw Φ_eval at h, simp at h,
-            rw h2 at h, rw Φ_eval._match_3 at h,
-            cc,
+        rw h,
+        rw Φ_eval._match_3, 
+    },
+    
+    case option.some option.none {
+        cc,
+    },
 
-            rw Φ_eval at h, simp at h,
-            rw h2 at h, rw Φ_eval._match_3 at h,
-            rw Φ_eval._match_3,
-            rw Φ_eval, simp, rw h,
-            rw Φ_eval._match_3,
+    case option.some option.some {
+        rw Φ_eval, simp, rw h,
+        rw Φ_eval._match_3,
+    }
 end
 
 lemma Φ_and_or_distrib (ty1: Φ) (ty2: Φ) (ty3: Φ):
