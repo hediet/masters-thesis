@@ -1,14 +1,10 @@
+import ..gdt.defs
+
 -- # Non-Strict Guard Trees
 -- This chapter covers abstract guard trees that
 -- are non-strict but have a bang guard.
 -- The bang guard strictly evaluates a given variable and
 -- can make the entire computation diverge.
-
-import gdt
-
-namespace NGdt
-
-open gdt
 
 class NGuardModule :=
 -- Represents the type of all guards.
@@ -16,7 +12,7 @@ class NGuardModule :=
 -- None is returned if the guard fails. Guards can modify the environment.
 -- This abstraction allows for "let x = expr", "x == 1" or "let (Cons x:xs) = list" guards.
 (grd_eval : Grd → Env → option Env)
-(isBottom : Var → Env → option Env) -- TODO → bool
+(is_bottom : Var → Env → bool)
 
 variable [NGuardModule]
 open NGuardModule
@@ -34,15 +30,15 @@ inductive NLeaf
 -- This can be achieved by asserting a semantic for `XGrd`:
 inductive XGrd
 | grd: Grd → XGrd
-| isBottom: Var → XGrd
+| is_bottom: Var → XGrd
 
-instance GuardModule : gdt.GuardModule := {
+instance GuardModuleInstance : GuardModule := {
     Grd := XGrd,
     Leaf := NLeaf,
     Env := Env,
     grd_eval := λ grd, match grd with
     | XGrd.grd grd := grd_eval grd
-    | XGrd.isBottom var := isBottom var
+    | XGrd.is_bottom var := λ env, if is_bottom var env then some env else none
     end
 }
 
@@ -70,12 +66,11 @@ def ngdt_eval : NGdt → Env → (option (Env × NLeaf))
     end
 -- This is the only new case
 | (NGdt.grd (NGrd.bang var) tr) env :=
-    match isBottom var env with
+    if is_bottom var env
     -- We diverge and exit early, if `var` evaluates to bottom.
-    | some val := some (env, NLeaf.bottom)
+    then some (env, NLeaf.bottom)
     -- Otherwise, we continue.
-    | none := ngdt_eval tr env
-    end
+    else ngdt_eval tr env
 
 -- ## Reduction To Abstract Guard Trees
 
@@ -83,22 +78,17 @@ def ngdt_eval : NGdt → Env → (option (Env × NLeaf))
 -- This is because bang guards can diverge and terminate the entire computation.
 -- We need to transform the guard tree to describe the semantic.
 
--- This transforms a non-strict guard tree to a guard tree with the `isBottom` guard.
+-- This transforms a non-strict guard tree to a guard tree with the `is_bottom` guard.
 -- The new guard tree can diverge early.
 def ngdt_to_gdt : NGdt → Gdt
 | (NGdt.leaf leaf) := (Gdt.leaf (NLeaf.leaf leaf))
 | (NGdt.branch tr1 tr2) := Gdt.branch (ngdt_to_gdt tr1) (ngdt_to_gdt tr2)
 | (NGdt.grd (NGrd.bang var) tr) := Gdt.branch
         -- If `var` is bottom, the we diverge with the bottom leaf.
-        (Gdt.grd (XGrd.isBottom var) (Gdt.leaf (NLeaf.bottom)))
+        (Gdt.grd (XGrd.is_bottom var) (Gdt.leaf (NLeaf.bottom)))
         -- Otherwise, we continue.
         (ngdt_to_gdt tr)
 | (NGdt.grd (NGrd.grd grd) tr) := (Gdt.grd (XGrd.grd grd) $ ngdt_to_gdt tr)
-
-
--- Reduction to Guard Trees maintains semantic.
-lemma ngdt_eval_eq_gdt_eval :
-        ngdt_eval = gdt_eval ∘ ngdt_to_gdt := sorry
 
 
 variable is_empty: Φ → bool
@@ -154,28 +144,3 @@ def ngdt_eval_option : option NGdt → Env → (option (Env × NLeaf))
 | (some gdt) env := ngdt_eval gdt env
 | none env := none
 
--- Every redundant leaf can be marked as inaccessible instead and
--- every inaccessible leaf can be marked as accessible instead without invalidating the theorem. This only weakens the analysis.
-
-theorem main [decidable_eq Leaf] : ∀ ngdt: NGdt, ∀ is_empty: Gs,
-    (
-        let ⟨ a, i, r ⟩ := ℛ is_empty.val $ 𝒜 $ ngdt_to_gdt ngdt
-        in
-                -- leaves that are redundant and neither accessible nor inaccessible can be removed without changing semantics
-                ngdt_eval_option (remove_leaves ((r.remove_all i).remove_all a) gdt)
-                = ngdt_eval gdt
-            ∧ 
-                -- reachable leaves are accessible.
-                -- Since R is clearly a partition for disjoint leaves,
-                -- this also means that non-accessible leaves are unreachable.
-                ∀ env: Env,
-                    (match ngdt_eval gdt env with
-                    | (some ⟨ _, NLeaf.leaf leaf ⟩) := leaf ∈ a
-                    | _ := true
-                    end : Prop)
-        : Prop
-    )
-    -- We probably need 𝒜_eval for proving this.
-    := sorry
-
-end NGdt
