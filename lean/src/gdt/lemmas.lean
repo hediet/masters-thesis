@@ -15,7 +15,7 @@ begin
     funext env,
     unfold Φ_eval,
     cases (Φ_eval ty env),
-    repeat { unfold Φ_eval._match_3 }
+    all_goals { unfold Φ_eval._match_3 }
 end
 
 lemma Φ_and_assoc (ty1: Φ) (ty2: Φ) (ty3: Φ):
@@ -26,7 +26,7 @@ begin
     conv in ( Φ_eval (ty1.and (ty2.and ty3)) env) { rw Φ_eval },
     simp,
     cases h1: (Φ_eval (ty1.and ty2) env),
-    repeat {
+    all_goals {
         rw Φ_eval at h1,
         simp at h1,
         cases h2: (Φ_eval ty1 env),
@@ -35,7 +35,7 @@ begin
         },
     },
     
-    repeat {
+    all_goals {
         rw h2 at h1,
         rw Φ_eval._match_3 at h1,
     },
@@ -101,9 +101,9 @@ begin
 
     case Gdt.branch {
         unfold 𝒰_acc,
-        rw gdt_ih_a_1,
+        rw gdt_ih_tr2,
         rw Φ_eval,
-        rw gdt_ih_a,
+        rw gdt_ih_tr1,
         rw← Φ_eval,
         unfold 𝒰',
         rw Φ_and_assoc,

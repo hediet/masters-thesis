@@ -31,7 +31,7 @@ open GuardModule
 -- See non-strict guard trees for how a bang "guard" can be transformed to terminate execution.
 inductive Gdt
 | leaf : Leaf → Gdt
-| branch : Gdt → Gdt → Gdt
+| branch (tr1: Gdt) (tr2: Gdt) : Gdt
 | grd : Grd → Gdt → Gdt
 
 -- ## Semantic

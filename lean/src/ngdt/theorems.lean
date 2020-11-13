@@ -6,7 +6,53 @@ open NGuardModule
 -- This is a very important statement, as it allows to use the theory of refinement types
 -- to understand non-strict guard trees.
 theorem ngdt_eval_eq_gdt_eval :
-        ngdt_eval = gdt_eval ∘ ngdt_to_gdt := sorry
+        ngdt_eval = gdt_eval ∘ ngdt_to_gdt :=
+begin
+    funext gdt,
+    funext env,
+    rw function.comp,
+    simp,
+    induction gdt generalizing env,
+
+    case NGdt.leaf {
+        unfold ngdt_to_gdt,
+        unfold ngdt_eval,
+        unfold gdt_eval
+    },
+
+    case NGdt.branch {
+        unfold ngdt_to_gdt,
+        unfold ngdt_eval,
+        unfold gdt_eval,
+
+        rw ←gdt_ih_a,
+        rw ←gdt_ih_a_1,
+        
+        cases ngdt_eval gdt_a env,
+        all_goals {
+            cases ngdt_eval gdt_a_1 env,
+        },
+        all_goals {
+            unfold ngdt_eval._match_1,
+            unfold gdt_eval._match_1,
+        }
+    },
+
+    case NGdt.grd {
+        cases gdt_a,
+        all_goals {
+            rw ngdt_to_gdt,
+            unfold ngdt_eval,
+            unfold gdt_eval,
+            rw ←gdt_ih,
+        },
+        
+        unfold GuardModule.grd_eval,
+    }
+    --case NGdt.
+    --rw ngdt_to_gdt,
+
+end
 
 
 -- Every redundant leaf can be marked as inaccessible instead and
