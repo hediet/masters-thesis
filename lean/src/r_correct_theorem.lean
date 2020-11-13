@@ -5,7 +5,7 @@ open GuardModule
 -- Every redundant leaf can be marked as inaccessible instead and
 -- every inaccessible leaf can be marked as accessible instead without invalidating the theorem. This only weakens the analysis.
 
-theorem main [decidable_eq Leaf] : ∀ gdt: Gdt, ∀ is_empty: Gs,
+theorem r_correct [decidable_eq Leaf] : ∀ gdt: Gdt, ∀ is_empty: Gs,
     (
         let ⟨ a, i, r ⟩ := ℛ is_empty.val $ 𝒜 gdt
         in
