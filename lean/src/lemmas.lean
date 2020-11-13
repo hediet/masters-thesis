@@ -110,16 +110,23 @@ begin
     },
 
     case Gdt.grd {
-        rw 𝒰',
-        rw 𝒰_acc,
-        rw Φ_eval,
-        rw Φ_eval,
-        rw gdt_ih,
-        rw ←Φ_eval,
-        rw ←Φ_eval,
-        rw rw_right_or,
-        rw Φ_and_or_distrib,
-        rw Φ_and_assoc,
+        cases gdt_grd,
+        case Grd.xgrd {
+            rw 𝒰',
+            rw 𝒰_acc,
+            conv in (Φ_eval ((acc.and (Φ.not_xgrd gdt_grd)).or (𝒰_acc (acc.and (Φ.xgrd gdt_grd)) gdt_tr)) env) { rw Φ_eval },
+            rw gdt_ih,
+            rw ←Φ_eval,
+            rw rw_right_or,
+            rw Φ_and_or_distrib,
+            rw Φ_and_assoc,
+        },
+        case Grd.bang {
+            rw 𝒰',
+            rw 𝒰_acc,
+            rw gdt_ih,
+            rw Φ_and_assoc,
+        }
     },
 end
 

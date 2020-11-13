@@ -8,4 +8,4 @@ open GuardModule
 -- This means that the refinement types created by 𝒜 are disjoint.
 theorem 𝒜_eval :
     ∀ env: Env, ∀ gdt: Gdt,
-        (option_to_list $ gdt_eval gdt env) = ant_eval (𝒜 gdt) env := sorry
+        some (gdt_eval gdt env) = ant_eval (𝒜 gdt) env := sorry
