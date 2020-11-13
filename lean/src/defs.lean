@@ -43,19 +43,19 @@ inductive Gdt
 inductive Result
 | leaf (leaf: Leaf) : Result
 | diverged : Result
-| no_match : Result
+| no_match (env: Env) : Result
 
 def gdt_eval : Gdt → Env → Result
 | (Gdt.leaf leaf) env := Result.leaf leaf
 | (Gdt.branch tr1 tr2) env :=
     match gdt_eval tr1 env with
-    | Result.no_match := gdt_eval tr2 env
+    | Result.no_match env := gdt_eval tr2 env
     | r := r
     end
 | (Gdt.grd (Grd.xgrd grd) tr) env :=
     match xgrd_eval grd env with
-    | none := Result.no_match
-    | some val := gdt_eval tr env
+    | none := Result.no_match env
+    | some val := gdt_eval tr val
     end
 -- This is the only new case
 | (Gdt.grd (Grd.bang var) tr) env :=
@@ -73,8 +73,8 @@ inductive Φ
 | not_xgrd (xgrd: XGrd) : Φ
 | var_is_bottom (var: Var): Φ
 | var_is_not_bottom (var: Var): Φ
-| or : Φ → Φ → Φ
-| and : Φ → Φ → Φ
+| or (ty1: Φ) (ty2: Φ): Φ
+| and (ty1: Φ) (ty2: Φ): Φ
 
 -- ## Semantic
 -- This describes the semantic of Refinement Types.
@@ -107,7 +107,7 @@ def Φ_eval: Φ → Env → option Env
     | some env' := Φ_eval t2 env'
     | none := none
     end
-
+    
 -- ## Uncovered Refinement Types
 
 def 𝒰_acc : Φ → Gdt → Φ
@@ -226,4 +226,4 @@ def remove_leaves [decidable_eq Leaf] : list Leaf → Gdt → option Gdt
 -- This accounts for empty guard trees.
 def gdt_eval_option : option Gdt → Env → Result
 | (some gdt) env := gdt_eval gdt env
-| none env := Result.no_match
+| none env := Result.no_match env

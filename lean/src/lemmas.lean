@@ -103,7 +103,10 @@ begin
         unfold 𝒰_acc,
         rw gdt_ih_tr2,
         rw Φ_eval,
+        rw Φ_eval,
+        simp,
         rw gdt_ih_tr1,
+        rw← Φ_eval,
         rw← Φ_eval,
         unfold 𝒰',
         rw Φ_and_assoc,
@@ -131,12 +134,10 @@ begin
 end
 
 
-lemma 𝒰_𝒰'_equiv : Φ_eval ∘ 𝒰 = Φ_eval ∘ 𝒰' := 
+lemma 𝒰_𝒰'_equiv (gdt: Gdt) : Φ_eval (𝒰 gdt) = Φ_eval (𝒰' gdt) := 
 begin
-    unfold function.comp,
-    funext x,
     rw 𝒰,
-    rw ←Φ_true_and (𝒰' x),
+    rw ←Φ_true_and (𝒰' gdt),
     rw 𝒰_𝒰'_equiv'
 end
 
