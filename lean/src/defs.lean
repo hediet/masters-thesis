@@ -57,7 +57,6 @@ def gdt_eval : Gdt → Env → Result
     | none := Result.no_match
     | some val := gdt_eval tr val
     end
--- This is the only new case
 | (Gdt.grd (Grd.bang var) tr) env :=
     if is_bottom var env
     then Result.diverged
@@ -80,38 +79,22 @@ inductive Φ
 
 -- ## Semantic
 -- This describes the semantic of Refinement Types.
-def Φ_eval: Φ → Env → option Env
-| Φ.false env := none
-| Φ.true env := some env
+def Φ_eval: Φ → Env → bool
+| Φ.false env := ff
+| Φ.true env := tt
 | (Φ.xgrd_in grd ty) env := match xgrd_eval grd env with
     | some env := Φ_eval ty env
-    | none := none
+    | none := ff
     end
 | (Φ.not_xgrd grd) env :=
     match xgrd_eval grd env with
-    | some env := none
-    -- If a guard fails, it does not modify the environment!
-    | none := some env
+    | some env := ff
+    | none := tt
     end
-| (Φ.var_is_bottom var) env :=
-    if is_bottom var env
-    then some env
-    else none
-| (Φ.var_is_not_bottom var) env :=
-    if is_bottom var env
-    then none
-    else some env
-| (Φ.or t1 t2) env :=
-    match Φ_eval t1 env with
-    | some env := some env
-    | none := Φ_eval t2 env
-    end
-| (Φ.and t1 t2) env :=
-    match (Φ_eval t1 env) with
-    -- env is not passed down
-    | some _ := Φ_eval t2 env
-    | none := none
-    end
+| (Φ.var_is_bottom var) env := is_bottom var env
+| (Φ.var_is_not_bottom var) env := ¬(is_bottom var env)
+| (Φ.or t1 t2) env := Φ_eval t1 env || Φ_eval t2 env
+| (Φ.and t1 t2) env := Φ_eval t1 env && Φ_eval t2 env
 
 -- ## Uncovered Refinement Types
 
@@ -180,19 +163,18 @@ def 𝒜 : Gdt → Ant Φ := 𝒜_acc Φ.true
 
 def ant_eval_all (ant: Ant Φ) (env: Env) := map_ant (λ ty, Φ_eval ty env) ant
 
-def ant_eval' : Ant (option Env) → option Result
-| (Ant.leaf env leaf) := match env with
-    | some env := some $ Result.leaf leaf
-    | none := some $ Result.no_match
-    end
+def ant_eval' : Ant (bool) → option Result
+| (Ant.leaf matches leaf) := if matches
+    then Result.leaf leaf
+    else Result.no_match
 | (Ant.branch tr1 tr2) :=  match (ant_eval' tr1, ant_eval' tr2) with
     | (some no_match, r) := r
     | (r, some no_match) := r
     | _ := none
     end
 | (Ant.diverge env tr) := match (env, ant_eval' tr) with
-    | (none, r) := r
-    | (some env, some Result.no_match) := some Result.diverged
+    | (ff, r) := r
+    | (tr, some Result.no_match) := some Result.diverged
     | _ := none
     end
 
@@ -207,7 +189,7 @@ def ℛ : Ant Φ → list Leaf × list Leaf × list Leaf
 | (Ant.leaf ty n) := if is_empty ty then ([], [], [n]) else ([n], [], [])
 | (Ant.diverge ty tr) := 
     match (ℛ tr, is_empty ty) with
-    | (([], [], m :: ms), false) := ([], [m], ms)
+    | (([], [], m :: ms), ff) := ([], [m], ms)
     | (r, _) := r
     end
 | (Ant.branch tr1 tr2) :=
@@ -219,9 +201,9 @@ def ℛ : Ant Φ → list Leaf × list Leaf × list Leaf
 def is_correct : (Φ → bool) → Prop
 | g := ∀ ty: Φ, (
         -- If g sais "ty is empty"
-        g ty = false →
+        ¬ g ty →
         -- then `ty` never evaluates to something.
-        ∀ env: Env, Φ_eval ty env = none
+        ∀ env: Env, ¬ Φ_eval ty env
     )
 
 -- Represents all correct G functions from the paper.

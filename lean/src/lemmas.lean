@@ -6,7 +6,8 @@ open GuardModule
 lemma Φ_true_and (ty: Φ): Φ_eval (Φ.true.and ty) = Φ_eval ty :=
 begin
     funext env,
-    unfold Φ_eval
+    unfold Φ_eval,
+    simp,
 end
 
 
@@ -15,7 +16,7 @@ begin
     funext env,
     unfold Φ_eval,
     cases (Φ_eval ty env),
-    all_goals { unfold Φ_eval._match_4 }
+    all_goals { simp },
 end
 
 /- TODO
