@@ -15,9 +15,10 @@ begin
     funext env,
     unfold Φ_eval,
     cases (Φ_eval ty env),
-    all_goals { unfold Φ_eval._match_3 }
+    all_goals { unfold Φ_eval._match_4 }
 end
 
+/- TODO
 lemma Φ_and_assoc (ty1: Φ) (ty2: Φ) (ty3: Φ):
     Φ_eval ((ty1.and ty2).and ty3) = Φ_eval (ty1.and (ty2.and ty3)) :=
 begin
@@ -85,9 +86,10 @@ begin
     rw Φ_eval,
     rw h,
 end
+-/
 
-
-lemma 𝒰_𝒰'_equiv' (acc: Φ) (gdt: Gdt) :
+/- TODO
+lemma 𝒰_𝒰'_equiv_acc (gdt: Gdt) (acc: Φ) :
     Φ_eval (𝒰_acc acc gdt) = Φ_eval (acc.and (𝒰' gdt)) :=
 begin
     funext env,
@@ -138,6 +140,27 @@ lemma 𝒰_𝒰'_equiv (gdt: Gdt) : Φ_eval (𝒰 gdt) = Φ_eval (𝒰' gdt) :=
 begin
     rw 𝒰,
     rw ←Φ_true_and (𝒰' gdt),
-    rw 𝒰_𝒰'_equiv'
+    rw 𝒰_𝒰'_equiv_acc
+end
+-/
+
+lemma 𝒰_𝒰'_equiv (gdt: Gdt) : Φ_eval (𝒰 gdt) = Φ_eval (𝒰' gdt) := 
+begin
+    rw 𝒰
 end
 
+
+
+
+/- TODO
+lemma 𝒜_𝒜'_equiv_acc (gdt: Gdt) (acc: Φ) : ant_eq (𝒜_acc acc gdt) (add_clause_ant acc (𝒜' gdt)) := sorry
+
+
+lemma 𝒜_𝒜'_equiv (gdt: Gdt) : ant_eq (𝒜 gdt) (𝒜' gdt) :=
+begin
+    unfold 𝒜,
+    rw ←𝒜_𝒜'_equiv_acc,
+
+end
+
+-/

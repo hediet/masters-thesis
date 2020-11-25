@@ -11,9 +11,9 @@ theorem r_correct [decidable_eq Leaf] : ∀ gdt: Gdt, ∀ is_empty: Gs,
         in
                 -- Leaves that are redundant and neither accessible nor inaccessible can be removed without changing semantics.
                 -- If all leaves are unique, a, i and r are disjoint.
-                -- In that case, `((r.remove_all i).remove_all a` = `r`.
-                -- If all leaves are equal, `((r.remove_all i).remove_all a` usually is the empty list.
-                gdt_eval_option (remove_leaves ((r.remove_all i).remove_all a) gdt)
+                -- In that case, `r.remove_all (i ++ a)` = `r`.
+                -- If all leaves are equal, `r.remove_all (i ++ a)` usually is the empty list.
+                gdt_eval_option (remove_leaves (r.remove_all (i ++ a)) gdt)
                 = gdt_eval gdt
             ∧ 
                 -- reachable leaves are accessible.

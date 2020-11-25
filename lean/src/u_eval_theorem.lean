@@ -5,6 +5,7 @@ import .lemmas
 variable [GuardModule]
 open GuardModule
 
+/-
 def as_no_match : Result → option Env
 | (Result.no_match env) := some env
 | (Result.diverged) := none
@@ -15,7 +16,7 @@ def as_no_match : Result → option Env
 -- This theorem might be easier to show for 𝒰' rather than 𝒰.
 theorem 𝒰_eval :
     ∀ gdt: Gdt, ∀ env: Env,
-        as_no_match (gdt_eval gdt env) = Φ_eval (𝒰 gdt) env := 
+        Φ_eval (𝒰 gdt) env = as_no_match (gdt_eval gdt env) := 
 begin
     assume gdt: Gdt,
     assume env: Env,
@@ -100,3 +101,4 @@ begin
         }
     }
 end
+-/
