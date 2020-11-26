@@ -43,9 +43,9 @@ inductive Gdt
 -- ## Semantic
 
 inductive Result
-| leaf (leaf: Leaf) : Result
-| diverged : Result
-| no_match : Result
+| leaf (leaf: Leaf)
+| diverged
+| no_match
 
 def gdt_eval : Gdt → Env → Result
 | (Gdt.leaf leaf) env := Result.leaf leaf
@@ -69,14 +69,14 @@ def gdt_eval : Gdt → Env → Result
 
 -- ## Syntax
 inductive Φ
-| false : Φ
-| true : Φ
-| xgrd_in (xgrd: XGrd) (ty: Φ) : Φ
-| not_xgrd (xgrd: XGrd) : Φ
-| var_is_bottom (var: Var) : Φ
-| var_is_not_bottom (var: Var) : Φ
-| or (ty1: Φ) (ty2: Φ): Φ
-| and (ty1: Φ) (ty2: Φ): Φ
+| false
+| true
+| xgrd_in (xgrd: XGrd) (ty: Φ)
+| not_xgrd (xgrd: XGrd)
+| var_is_bottom (var: Var)
+| var_is_not_bottom (var: Var)
+| or (ty1: Φ) (ty2: Φ)
+| and (ty1: Φ) (ty2: Φ)
 
 
 -- ## Semantic
@@ -134,7 +134,6 @@ inductive Ant (α: Type)
 | leaf (a: α) (leaf: Leaf): Ant
 | branch (tr1: Ant) (tr2: Ant): Ant
 | diverge (a: α) (tr: Ant): Ant
-
 
 -- Alternative definition without accumulator
 def map_ant { α : Type } { β : Type } : (α → β) → Ant α → Ant β
