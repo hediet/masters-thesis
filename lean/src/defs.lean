@@ -1,3 +1,5 @@
+import data.bool
+
 class GuardModule :=
     -- Represents the type of all guards.
     -- A guard resembles an if-condition that can fail or pass.
@@ -30,13 +32,13 @@ open GuardModule
 -- ## Syntax
 
 inductive Grd
-| xgrd (xgrd: XGrd): Grd
-| bang (var: Var): Grd
+| xgrd (xgrd: XGrd)
+| bang (var: Var)
 
 inductive Gdt
-| leaf (leaf: Leaf) : Gdt
-| branch (tr1: Gdt) (tr2: Gdt) : Gdt
-| grd (grd: Grd) (tr: Gdt) : Gdt
+| leaf (leaf: Leaf)
+| branch (tr1: Gdt) (tr2: Gdt)
+| grd (grd: Grd) (tr: Gdt)
 
 -- ## Semantic
 
@@ -92,7 +94,7 @@ def Φ_eval: Φ → Env → bool
     | none := tt
     end
 | (Φ.var_is_bottom var) env := is_bottom var env
-| (Φ.var_is_not_bottom var) env := ¬(is_bottom var env)
+| (Φ.var_is_not_bottom var) env := !is_bottom var env
 | (Φ.or t1 t2) env := Φ_eval t1 env || Φ_eval t2 env
 | (Φ.and t1 t2) env := Φ_eval t1 env && Φ_eval t2 env
 
