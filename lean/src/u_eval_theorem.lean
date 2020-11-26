@@ -5,18 +5,15 @@ import .lemmas
 variable [GuardModule]
 open GuardModule
 
-/-
-def as_no_match : Result → option Env
-| (Result.no_match env) := some env
-| (Result.diverged) := none
-| (Result.leaf _) := none
-
+def is_no_match : Result → bool
+| Result.no_match := tt
+| _ := ff
 
 -- Uncovered refinement types capture all values that are not covered.
 -- This theorem might be easier to show for 𝒰' rather than 𝒰.
 theorem 𝒰_eval :
     ∀ gdt: Gdt, ∀ env: Env,
-        Φ_eval (𝒰 gdt) env = as_no_match (gdt_eval gdt env) := 
+        Φ_eval (𝒰 gdt) env = (is_no_match (gdt_eval gdt env)):= 
 begin
     assume gdt: Gdt,
     assume env: Env,
@@ -26,9 +23,6 @@ begin
     induction gdt with leaf generalizing env,
 
     case Gdt.leaf {
-        unfold gdt_eval,
-        unfold 𝒰',
-        unfold Φ_eval,
         finish,
     },
   
@@ -36,12 +30,11 @@ begin
         unfold 𝒰',
         unfold gdt_eval,
         unfold Φ_eval,
-        simp,
 
         cases c1: (Φ_eval (𝒰' gdt_tr1) env),
-
+        
         all_goals {
-            rw Φ_eval._match_3,
+            simp,
             specialize gdt_ih_tr1 env,
             rw c1 at gdt_ih_tr1,
             cases gdt_eval gdt_tr1 env,
@@ -49,14 +42,8 @@ begin
 
         all_goals {
             rw gdt_eval._match_1,
-        },
-        repeat {
             finish,
         },
-
-        rw as_no_match at gdt_ih_tr1,
-        simp at gdt_ih_tr1,
-        finish
     },
 
     case Gdt.grd {
@@ -65,7 +52,6 @@ begin
             unfold 𝒰',
             unfold gdt_eval,
             unfold Φ_eval,
-            simp
         },
 
         {
@@ -73,13 +59,12 @@ begin
             all_goals {
                 rw gdt_eval._match_2,
                 rw Φ_eval._match_1,
-                rw Φ_eval._match_3,
-                rw Φ_eval._match_2,
+                rw Φ_eval._match_2,  
             },
-            {
-                rw as_no_match,
+            case option.none {
+                finish,
             },
-            {
+            case option.some {
                 specialize gdt_ih val,
                 exact gdt_ih,
             }
@@ -87,10 +72,6 @@ begin
 
         {
             cases (is_bottom gdt_grd env),
-            all_goals {
-                simp,
-                unfold Φ_eval._match_3,
-            },
             {
                 specialize gdt_ih env,
                 exact gdt_ih,
@@ -101,4 +82,3 @@ begin
         }
     }
 end
--/
