@@ -130,6 +130,7 @@ def 𝒰 : Gdt → Φ := 𝒰_acc Φ.true
 
 -- # Annotate
 
+-- TODO: Why can't I remove ": Ant"?
 inductive Ant (α: Type)
 | leaf (a: α) (leaf: Leaf): Ant
 | branch (tr1: Ant) (tr2: Ant): Ant
@@ -164,23 +165,23 @@ def 𝒜 : Gdt → Ant Φ := 𝒜_acc Φ.true
 
 def ant_eval_all (ant: Ant Φ) (env: Env) := map_ant (λ ty, Φ_eval ty env) ant
 
+
 def ant_eval' : Ant (bool) → option Result
 | (Ant.leaf matches leaf) := if matches
-    then Result.leaf leaf
-    else Result.no_match
+    then some $ Result.leaf leaf
+    else some $ Result.no_match
 | (Ant.branch tr1 tr2) :=  match (ant_eval' tr1, ant_eval' tr2) with
-    | (some no_match, r) := r
-    | (r, some no_match) := r
+    | (some Result.no_match, r) := r
+    | (r, some Result.no_match) := r
     | _ := none
     end
-| (Ant.diverge env tr) := match (env, ant_eval' tr) with
+| (Ant.diverge matches tr) := match (matches, ant_eval' tr) with
     | (ff, r) := r
     | (tr, some Result.no_match) := some Result.diverged
     | _ := none
     end
 
 def ant_eval (ant: Ant Φ) (env: Env): option Result := ant_eval' (ant_eval_all ant env)
-
 
 
 variable is_empty: Φ → bool
@@ -201,7 +202,7 @@ def ℛ : Ant Φ → list Leaf × list Leaf × list Leaf
 
 def is_correct : (Φ → bool) → Prop
 | g := ∀ ty: Φ, (
-        -- If g sais "ty is empty"
+        -- If g says "ty is empty"
         ¬ g ty →
         -- then `ty` never evaluates to something.
         ∀ env: Env, ¬ Φ_eval ty env

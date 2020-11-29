@@ -165,3 +165,8 @@ begin
 end
 
 -/
+
+lemma 𝒜_𝒜'_equiv (gdt: Gdt) : ant_eval (𝒜 gdt) = ant_eval (𝒜' gdt) :=
+begin
+    unfold 𝒜,
+end
