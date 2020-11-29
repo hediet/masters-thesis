@@ -12,186 +12,87 @@ begin
     sorry
 end
 
--- for the sake of lean, it must be possible to simplify this drastically.
+attribute [simp]
+lemma ant_eval'_simp1 (r: option Result) :
+    ant_eval'._match_1 (some Result.no_match, r) = r :=
+begin
+    cases r,
+    finish,
+    cases r;
+    finish,
+end
+
+attribute [simp]
+lemma ant_eval'_simp2 (r: option Result) :
+    ant_eval'._match_1 (r, some Result.no_match) = r :=
+begin
+    cases r,
+    finish,
+    cases r;
+    finish,
+end
+
+attribute [simp]
+lemma ant_eval'_simp3 (r1: option Result) (r2: option Result) :
+    r1 ≠ some Result.no_match
+    → r2 ≠ some Result.no_match
+    → ant_eval'._match_1 (r1, r2) = none :=
+begin
+    cases r1;
+    try { cases r1 };
+    cases r2;
+    try { cases r2 };
+    finish,    
+end
+
+
+local attribute [simp] ant_eval ant_eval_all map_ant ant_eval' Φ_eval
+
 lemma and_no_match (ant: Ant Φ) (ty: Φ) (env: Env):
     ant_eval ant env = some Result.no_match
     → ant_eval (map_ant (ty.and) ant) env = some Result.no_match :=
 begin
     assume h,
-    rw ant_eval,
-    rw ant_eval_all,
     
     induction ant,
 
     case Ant.leaf {
-        rw ant_eval at h,
-        rw ant_eval_all at h,
-        rw map_ant at h,
-        rw ant_eval' at h,
-        cases c: Φ_eval ant_a env,
-        all_goals {
-            rw c at h,
+        have: Φ_eval ant_a env = ff, begin
             simp at h,
-        },
-        case bool.tt {
-            cc,
-        },
-        rw map_ant,
-        rw map_ant,
-        rw ant_eval',
-        rw Φ_eval,
+            cases Φ_eval ant_a env;
+            finish,
+        end,
         finish,
     },
 
     case Ant.branch {
-        rw ant_eval at h,
-        rw ant_eval_all at h,
-        rw map_ant at h,
+        by_cases c1: (ant_eval ant_tr1 env = some Result.no_match);
+        by_cases c2: (ant_eval ant_tr2 env = some Result.no_match);
+        finish,
+    },
+
+    case Ant.diverge {
+        simp at h,
+        simp,
+
+        rw ←ant_eval_all,
+        rw ←ant_eval,
         rw ←ant_eval_all at h,
-        rw ←ant_eval_all at h,
-        rw ant_eval' at h,
-        
-        
-        rw ←ant_eval at h,
         rw ←ant_eval at h,
 
-        rw map_ant,
-        rw map_ant,
-        rw ant_eval',
-
-        by_cases c1: (ant_eval ant_tr1 env = some Result.no_match),
-        all_goals {
-            by_cases c2: (ant_eval ant_tr2 env = some Result.no_match),
-        },
-
-        {
+        have z : Φ_eval ant_a env = ff ∧ ant_eval ant_tr env = some Result.no_match, {
+            cases Φ_eval ant_a env;
+            cases ant_eval ant_tr env;
+            try { cases val, };
+            simp at h;
             cc,
         },
-        {
-            rw c1 at ant_ih_tr1,
-            rw c1 at h,
-            simp at ant_ih_tr1,
-            rw ant_ih_tr1,
-            
-            cases ant_eval ant_tr2 env,
-            case option.none {
-                rw ant_eval'._match_1 at h,
-                cc,
-            },
-            case option.some {
-                cases val,
-                all_goals {
-                    rw ant_eval'._match_1 at h,
-                    cc,
-                },
-            },
-        },
-        {
-            rw c2 at ant_ih_tr2,
-            rw c2 at h,
-            simp at ant_ih_tr2,
-            rw ant_ih_tr2,
-            cases ant_eval ant_tr1 env,
-            case option.none {
-                rw ant_eval'._match_1 at h,
-                cc,
-            },
-            case option.some {
-                cases val,
-                all_goals {
-                    rw ant_eval'._match_1 at h,
-                    cc,
-                },
-            },
-        },
-        {
-            cases ant_eval ant_tr1 env,
-            all_goals {
-                cases ant_eval ant_tr2 env,
-            },
-            case option.none option.none {
-                rw ant_eval'._match_1 at h,
-                cc,
-            },
-            case option.some option.none {
-                cases val,
-                all_goals {
-                    rw ant_eval'._match_1 at h,
-                    cc,
-                },
-            },
-            case option.none option.some {
-                cases val,
-                all_goals {
-                    rw ant_eval'._match_1 at h,
-                    cc,
-                },
-            },
-            case option.some option.some {
-                cases val,
-                all_goals {
-                    cases val_1,
-                },
-                all_goals {
-                    rw ant_eval'._match_1 at h,
-                    cc,
-                },
-            },
-        },
-    },
-    case Ant.diverge {
-        rw ant_eval at h,
-        rw ant_eval_all at h,
-        rw map_ant at h,
-        rw ant_eval' at h,
-
-        rw map_ant,
-        rw map_ant,
-        rw ant_eval',
-        rw ←ant_eval_all at h,
-        rw ←ant_eval at h,
-
-        have x : ant_eval ant_tr env = some Result.no_match, {
-            cases Φ_eval ant_a env,
-            all_goals {
-                cases ant_eval ant_tr env,
-            },
-            all_goals {
-                try {
-                    cases val,
-                },
-            },
-            case bool.ff option.some Result.leaf {
-                rw ant_eval'._match_2 at h,
-                cc,
-            },
-            case bool.ff option.some Result.diverged {
-                rw ant_eval'._match_2 at h,
-                cc,
-            },
-            all_goals {
-                finish,
-            },
-        },
-
-        rw x at ant_ih,
-        simp at ant_ih,
-        rw ant_ih,
-        cases c: Φ_eval (ty.and ant_a) env,
-        all_goals {
-            rw ant_eval'._match_2,
-        },
-        rw x at h,
-        rw Φ_eval at c,
-        have y: Φ_eval ant_a env = tt, {
-            rw band_eq_true_eq_eq_tt_and_eq_tt at c,
-            exact c.right,
-        },
-        rw y at h,
-        rw ant_eval'._match_2 at h,
-        cc,
+        
+        finish,
     },
 end
+
+
 
 lemma ant_eval_is_some_and (ant: Ant Φ) (env: Env) (ty: Φ):
     option.is_some (ant_eval ant env)
