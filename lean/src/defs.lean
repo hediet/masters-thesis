@@ -177,7 +177,7 @@ def ant_eval' : Ant (bool) → option Result
     end
 | (Ant.diverge matches tr) := match (matches, ant_eval' tr) with
     | (ff, r) := r
-    | (tr, some Result.no_match) := some Result.diverged
+    | (tt, some Result.no_match) := some Result.diverged
     | _ := none
     end
 
