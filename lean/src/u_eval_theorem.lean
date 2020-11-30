@@ -9,6 +9,8 @@ def is_no_match : Result → bool
 | Result.no_match := tt
 | _ := ff
 
+local attribute [simp] gdt_eval._match_1 gdt_eval._match_2 Φ_eval._match_2
+
 -- Uncovered refinement types capture all values that are not covered.
 -- This theorem might be easier to show for 𝒰' rather than 𝒰.
 theorem 𝒰_eval :
@@ -32,16 +34,11 @@ begin
         unfold Φ_eval,
 
         cases c1: (Φ_eval (𝒰' gdt_tr1) env),
-        
         all_goals {
             simp,
             specialize gdt_ih_tr1 env,
             rw c1 at gdt_ih_tr1,
-            cases gdt_eval gdt_tr1 env,
-        },
-
-        all_goals {
-            rw gdt_eval._match_1,
+            cases gdt_eval gdt_tr1 env;
             finish,
         },
     },
@@ -53,14 +50,9 @@ begin
             unfold gdt_eval,
             unfold Φ_eval,
         },
-
+        -- TODO: Why does lean remove the case names?
         {
             cases (xgrd_eval gdt_grd env),
-            all_goals {
-                rw gdt_eval._match_2,
-                rw Φ_eval._match_1,
-                rw Φ_eval._match_2,  
-            },
             case option.none {
                 finish,
             },
@@ -72,13 +64,13 @@ begin
 
         {
             cases (is_bottom gdt_grd env),
-            {
+            case bool.ff {
                 specialize gdt_ih env,
                 exact gdt_ih,
             },
-            {
+            case bool.tt {
                 finish,
-            }
+            },
         }
-    }
+    },
 end
