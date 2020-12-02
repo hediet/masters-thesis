@@ -130,7 +130,6 @@ def 𝒰 : Gdt → Φ := 𝒰_acc Φ.true
 
 -- # Annotate
 
--- TODO: Why can't I remove ": Ant"?
 inductive Ant (α: Type)
 | leaf (a: α) (leaf: Leaf): Ant
 | branch (tr1: Ant) (tr2: Ant): Ant
@@ -170,35 +169,64 @@ def ant_eval' : Ant (bool) → option Result
 | (Ant.leaf matches leaf) := if matches
     then some $ Result.leaf leaf
     else some $ Result.no_match
-| (Ant.branch tr1 tr2) :=  match (ant_eval' tr1, ant_eval' tr2) with
-    | (some Result.no_match, r) := r
-    | (r, some Result.no_match) := r
-    | _ := none
+| (Ant.branch tr1 tr2) := match ant_eval' tr1, ant_eval' tr2 with
+    | some Result.no_match, r := r
+    | r, some Result.no_match := r
+    | _, _ := none
     end
-| (Ant.diverge matches tr) := match (matches, ant_eval' tr) with
-    | (ff, r) := r
-    | (tt, some Result.no_match) := some Result.diverged
-    | _ := none
+| (Ant.diverge matches tr) := match matches, ant_eval' tr with
+    | ff, r := r
+    | tt, some Result.no_match := some Result.diverged
+    | _, _ := none
     end
 
+-- ant_eval simp regeln manuell angeben
 def ant_eval (ant: Ant Φ) (env: Env): option Result := ant_eval' (ant_eval_all ant env)
 
 
 variable is_empty: Φ → bool
 
+/-
+TODO
+structure LeafPartition := mk :: (acc : list Leaf) (inacc : list Leaf) (red : list Leaf)
+
 -- returns (accessible, inaccessible, redundant) leaves, given that `is_empty` is correct.
-def ℛ : Ant Φ → list Leaf × list Leaf × list Leaf
-| (Ant.leaf ty n) := if is_empty ty then ([], [], [n]) else ([n], [], [])
-| (Ant.diverge ty tr) := 
-    match (ℛ tr, is_empty ty) with
-    | (([], [], m :: ms), ff) := ([], [m], ms)
-    | (r, _) := r
+def ℛ' : Ant bool → LeafPartition
+| (Ant.leaf is_empty n) := if is_empty then ⟨ [], [], [n] ⟩ else ⟨ [n], [], [] ⟩
+| (Ant.diverge is_empty tr) := 
+    match ℛ' tr, is_empty with
+    | ⟨ [], [], m :: ms ⟩, ff := ⟨ [], [m], ms ⟩
+    | r, _ := r
     end
 | (Ant.branch tr1 tr2) :=
-    match (ℛ tr1, ℛ tr2) with
+    let r1 := ℛ' tr1, r2 := ℛ' tr2 in
+        ⟨ r1.acc ++ r2.acc, r1.inacc ++ r2.inacc, r1.red ++ r2.red ⟩
+-/
+
+/-
+
+(h1: ℛ' tr = (a, i, r))
+
+(is_empty = false ∧ a = [] ∧ i = [] ∧ r ≠ [] ∧ foo = ([], [m], [ms]))
+∨ (is_empty = true ∧ (a ≠ [] ∨ i ≠ [] ∨ r = [] ∧ foo = (a, i, r))
+
+-/
+
+-- returns (accessible, inaccessible, redundant) leaves, given that `is_empty` is correct.
+def ℛ' : Ant bool → list Leaf × list Leaf × list Leaf
+| (Ant.leaf is_empty n) := if is_empty then ([], [], [n]) else ([n], [], [])
+| (Ant.diverge is_empty tr) := 
+    match ℛ' tr, is_empty with
+    | ([], [], m :: ms), ff := ([], [m], ms)
+    | r, _ := r
+    end
+| (Ant.branch tr1 tr2) :=
+    match (ℛ' tr1, ℛ' tr2) with
     | ((k, n, m), (k', n', m')) := (k ++ k', n ++ n', m ++ m')
     end
 
+def ℛ (ant: Ant Φ): list Leaf × list Leaf × list Leaf :=
+    ℛ' (map_ant is_empty ant)
 
 def is_correct : (Φ → bool) → Prop
 | g := ∀ ty: Φ, (

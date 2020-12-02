@@ -50,7 +50,6 @@ begin
             unfold gdt_eval,
             unfold Φ_eval,
         },
-        -- TODO: Why does lean remove the case names?
         {
             cases (xgrd_eval gdt_grd env),
             case option.none {

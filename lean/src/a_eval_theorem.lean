@@ -19,7 +19,7 @@ end
 
 
 @[simp] lemma ant_eval'_simp1 (r: option Result) :
-    ant_eval'._match_1 (some Result.no_match, r) = r :=
+    ant_eval'._match_1 (some Result.no_match) r = r :=
 begin
     cases r,
     finish,
@@ -28,7 +28,7 @@ begin
 end
 
 @[simp] lemma ant_eval'_simp2 (r: option Result) :
-    ant_eval'._match_1 (r, some Result.no_match) = r :=
+    ant_eval'._match_1 r (some Result.no_match) = r :=
 begin
     cases r,
     finish,
@@ -39,7 +39,7 @@ end
 @[simp] lemma ant_eval'_simp3 (r1: option Result) (r2: option Result) :
     r1 ≠ some Result.no_match
     → r2 ≠ some Result.no_match
-    → ant_eval'._match_1 (r1, r2) = none :=
+    → ant_eval'._match_1 r1 r2 = none :=
 begin
     cases r1;
     try { cases r1 };
@@ -49,7 +49,7 @@ begin
 end
 
 @[simp] lemma ant_eval'_simp4 (r: option Result) :
-    ant_eval'._match_2 (ff, r) = r :=
+    ant_eval'._match_2 ff r = r :=
 begin
     cases r;
     try { cases r };
@@ -57,7 +57,7 @@ begin
 end
 
 @[simp] lemma ant_eval'_simp5 (r: option Result) (h: r ≠ some Result.no_match) :
-    ant_eval'._match_2 (tt, r) = none :=
+    ant_eval'._match_2 tt r = none :=
 begin
     cases r;
     try { cases r };
@@ -67,7 +67,7 @@ end
 
 local attribute [simp] 𝒜' ant_eval ant_eval_all map_ant ant_eval' Φ_eval gdt_eval is_no_match
 
-lemma and_no_match (ant: Ant Φ) (ty: Φ) (env: Env) (h: ant_eval ant env = some Result.no_match):
+lemma and_no_match { ant: Ant Φ } { ty: Φ } { env: Env } (h: ant_eval ant env = some Result.no_match):
     ant_eval (map_ant (ty.and) ant) env = some Result.no_match :=
 begin
     induction ant,
@@ -88,7 +88,12 @@ begin
     },
 
     case Ant.diverge {
-        simp at h, rw [←ant_eval_all, ←ant_eval] at h,
+        -- h: ant_eval (Ant.diverge ant_a ant_tr) env = some Result.no_match
+        simp at h,
+        -- h: ant_eval'._match_2 (Φ_eval ant_a env) (ant_eval' (map_ant (λ (ty : Φ), Φ_eval ty env) ant_tr)) = some Result.no_match
+        rw [←ant_eval_all, ←ant_eval] at h,
+        -- h: ant_eval'._match_2 (Φ_eval ant_a env) (ant_eval ant_tr env) = some Result.no_match
+
         simp, rw [←ant_eval_all, ←ant_eval],
 
         have z : Φ_eval ant_a env = ff ∧ ant_eval ant_tr env = some Result.no_match, {
@@ -130,7 +135,6 @@ begin
         
         conv at h {
             simp,
-            -- TODO can this be improved?
             rw ← ant_eval_all,
             rw ← ant_eval_all,
             rw ←ant_eval,
@@ -149,19 +153,22 @@ begin
         by_cases h_2: (ant_eval ant_tr2 env = some Result.no_match),
         
         {
-            rw (and_no_match _ _ _ h_1),
-            rw (and_no_match _ _ _ h_2),
-            simp,
+            /-
+             (h: ant_eval ant env = some Result.no_match)
+                → (ant_eval (map_ant (ty.and) ant) env = some Result.no_match)
+            -/
+
+            simp [and_no_match, *],
         },
         {
-            rw (and_no_match _ _ _ h_1),
+            rw (and_no_match h_1),
             rw ant_eval'_simp1,
             rw h_1 at h,
             rw ant_eval'_simp1 at h,
             exact ant_ih_tr2 h,
         },
         {
-            rw (and_no_match _ _ _ h_2),
+            rw (and_no_match h_2),
             rw ant_eval'_simp2,
             rw h_2 at h,
             rw ant_eval'_simp2 at h,
@@ -195,7 +202,7 @@ begin
         },
 
         {
-            rw and_no_match _ _ _ x,
+            rw and_no_match x,
             simp,
         },
         {
@@ -231,6 +238,7 @@ begin
     induction ant;
     finish,
 end
+
 
 -- 𝒜 maintains semantics
 -- This theorem implies that ant_eval returns a list of length at most 1.

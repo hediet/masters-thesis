@@ -1,3 +1,4 @@
+import tactic
 import .defs
 
 variable [GuardModule]
@@ -166,7 +167,23 @@ end
 
 -/
 
-lemma 𝒜_𝒜'_equiv (gdt: Gdt) : ant_eval (𝒜 gdt) = ant_eval (𝒜' gdt) :=
+@[simp] lemma ant_eval_all_equiv_imp_ant_eval_equiv (ant1: Ant Φ) (ant2: Ant Φ)
+    (h: ant_eval_all ant1 = ant_eval_all ant2)
+    : ant_eval ant1 = ant_eval ant2 :=
+begin
+    ext env :1,
+    rw ant_eval,
+    rw ant_eval,
+    finish,
+end
+
+lemma 𝒜_𝒜'_equiv' (gdt: Gdt) : ant_eval_all (𝒜 gdt) = ant_eval_all (𝒜' gdt) :=
 begin
     unfold 𝒜,
+end
+
+lemma 𝒜_𝒜'_equiv (gdt: Gdt) : ant_eval (𝒜 gdt) = ant_eval (𝒜' gdt) :=
+begin
+    rw ant_eval_all_equiv_imp_ant_eval_equiv,
+    exact 𝒜_𝒜'_equiv' gdt,
 end
