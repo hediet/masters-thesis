@@ -186,31 +186,8 @@ def ant_eval (ant: Ant Φ) (env: Env): option Result := ant_eval' (ant_eval_all 
 
 variable is_empty: Φ → bool
 
-/-
-TODO
-structure LeafPartition := mk :: (acc : list Leaf) (inacc : list Leaf) (red : list Leaf)
 
--- returns (accessible, inaccessible, redundant) leaves, given that `is_empty` is correct.
-def ℛ' : Ant bool → LeafPartition
-| (Ant.leaf is_empty n) := if is_empty then ⟨ [], [], [n] ⟩ else ⟨ [n], [], [] ⟩
-| (Ant.diverge is_empty tr) := 
-    match ℛ' tr, is_empty with
-    | ⟨ [], [], m :: ms ⟩, ff := ⟨ [], [m], ms ⟩
-    | r, _ := r
-    end
-| (Ant.branch tr1 tr2) :=
-    let r1 := ℛ' tr1, r2 := ℛ' tr2 in
-        ⟨ r1.acc ++ r2.acc, r1.inacc ++ r2.inacc, r1.red ++ r2.red ⟩
--/
 
-/-
-
-(h1: ℛ' tr = (a, i, r))
-
-(is_empty = false ∧ a = [] ∧ i = [] ∧ r ≠ [] ∧ foo = ([], [m], [ms]))
-∨ (is_empty = true ∧ (a ≠ [] ∨ i ≠ [] ∨ r = [] ∧ foo = (a, i, r))
-
--/
 
 -- returns (accessible, inaccessible, redundant) leaves, given that `is_empty` is correct.
 def ℛ' : Ant bool → list Leaf × list Leaf × list Leaf
@@ -228,16 +205,16 @@ def ℛ' : Ant bool → list Leaf × list Leaf × list Leaf
 def ℛ (ant: Ant Φ): list Leaf × list Leaf × list Leaf :=
     ℛ' (map_ant is_empty ant)
 
-def is_correct : (Φ → bool) → Prop
+def is_empty_prover : (Φ → bool) → Prop
 | g := ∀ ty: Φ, (
-        -- If g says "ty is empty"
-        ¬ g ty →
+        -- If g says "ty can be proven to be empty"
+        g ty = tt →
         -- then `ty` never evaluates to something.
         ∀ env: Env, ¬ Φ_eval ty env
     )
 
 -- Represents all correct G functions from the paper.
-def Gs := { g : Φ → bool // is_correct g }
+def Gs := { g : Φ → bool // is_empty_prover g }
 
 
 
