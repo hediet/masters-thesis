@@ -2,6 +2,7 @@ import tactic
 import .defs
 variable [GuardModule]
 open GuardModule
+variable [decidable_eq Leaf]
 
 -- (accessible, inaccessible, redundant)
 structure LeafPartition := mk :: (acc : list Leaf) (inacc : list Leaf) (red : list Leaf)
@@ -17,6 +18,12 @@ def R' : Ant bool → LeafPartition
     let r1 := R' tr1, r2 := R' tr2 in
         ⟨ r1.acc ++ r2.acc, r1.inacc ++ r2.inacc, r1.red ++ r2.red ⟩
 
+/-
+    This definition is much easier to use than ℛ.
+    * Associativity of `map_ant` can be utilized.
+    * LeafPartition is much easier to use than triples.
+    * Ant.branch has no match.
+-/
 def R (is_empty: Φ → bool) (ant: Ant Φ): LeafPartition :=
     R' (map_ant is_empty ant)
 
@@ -28,33 +35,24 @@ begin
     induction ant,
     case Ant.leaf {
         cases c: is_empty ant_a;
-        simp [R, R', R'._match_1, ℛ', ℛ, ℛ'._match_1, map_ant, ℛ'._match_2, to_triple, c],
+        simp [R, R', R'._match_1, ℛ, ℛ._match_1, map_ant, ℛ._match_2, to_triple, c],
     },
     
     case Ant.branch {
         rw ℛ,
-        rw map_ant,
-        rw ℛ',
-        rw ←ℛ,
-        rw ←ℛ,
-
         rw ←ant_ih_tr1,
         rw ←ant_ih_tr2,
         
-        cases ℛ' (map_ant is_empty ant_tr1) with a1 ir1;
+        cases ℛ is_empty ant_tr1 with a1 ir1;
         cases ir1 with i1 r1;
-        cases ℛ' (map_ant is_empty ant_tr2) with a2 ir2;
+        cases ℛ is_empty ant_tr2 with a2 ir2;
         cases ir2 with i2 r2;
 
-        simp [R, R', R'._match_1, ℛ', ℛ, ℛ'._match_1, map_ant, ℛ'._match_2, to_triple],
+        simp [R, R', R'._match_1, ℛ, ℛ._match_1, map_ant, ℛ._match_2, to_triple],
     },
 
     case Ant.diverge {
         rw ℛ,
-        rw map_ant,
-        rw ℛ',
-        rw ←ℛ,
-
         rw ←ant_ih,
 
         cases c1: is_empty ant_a;
@@ -63,6 +61,7 @@ begin
         cases inacc;
         cases red;
 
-        simp [R, R', R'._match_1, ℛ', ℛ, ℛ'._match_1, map_ant, ℛ'._match_2, to_triple, c1, c],
+        simp [R, R', R'._match_1, ℛ, ℛ._match_1, map_ant, ℛ._match_2, to_triple, c1, c],
     }
 end
+

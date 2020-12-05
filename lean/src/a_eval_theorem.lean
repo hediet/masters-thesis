@@ -5,6 +5,7 @@ import .u_eval_theorem
 
 variable [GuardModule]
 open GuardModule
+variable [decidable_eq Leaf]
 
 /-
 Does this help?
@@ -212,7 +213,7 @@ begin
             exact ant_ih h,
         },
         {
-            rw and_no_match _ _ _ x,
+            rw and_no_match x,
             cases Φ_eval ty env;
             simp,
         },
@@ -378,3 +379,185 @@ begin
         }
     },
 end
+
+lemma foo_bar { α: Type } { β: Type } { ant: Ant α } { ls: list Leaf } { f: α → β }
+        (h: map_ant_option f (ant_remove_leaves ls ant) = none):
+        ant_remove_leaves ls ant = none :=
+begin
+    cases ant_remove_leaves ls ant,
+    simp,
+    rw map_ant_option at h,
+    simp at h,
+    contradiction,
+end
+
+/-
+
+
+
+-/
+
+/-
+def 𝒜'_option: option Gdt -> option (Ant Φ)
+| (some gdt) := some (𝒜' gdt)
+| none := none
+
+lemma ant_removes_leaves_map_ant_homomorph { α: Type } { β: Type } (ant: Ant α) (ls: list Leaf) (f: α → β) :
+        ant_remove_leaves ls (map_ant f ant) = map_ant_option f (ant_remove_leaves ls ant) :=
+begin
+    induction ant,
+    case Ant.leaf {
+        by_cases ant_leaf ∈ ls;
+        simp [h, map_ant_option, ant_remove_leaves, map_ant],
+    },
+    case Ant.branch {
+        rw [map_ant, ant_remove_leaves, ant_ih_tr1, ant_ih_tr2, ant_remove_leaves],
+        cases ant_remove_leaves ls ant_tr1;
+        cases ant_remove_leaves ls ant_tr2;
+        simp [map_ant_option, ant_remove_leaves, ant_remove_leaves._match_1],
+    },
+    case Ant.diverge {
+        rw [map_ant, ant_remove_leaves, ant_ih, ant_remove_leaves],
+        cases ant_remove_leaves ls ant_tr;
+        simp [map_ant_option, ant_remove_leaves, ant_remove_leaves._match_1, map_ant],
+    },
+end
+
+lemma remove_leaves_none (gdt: Gdt) (ls: list Leaf):
+    (gdt_remove_leaves ls gdt = none) ↔ (ant_remove_leaves ls (𝒜' gdt) = none) :=
+begin
+    induction gdt with leaf,
+
+    case Gdt.leaf {
+        rw [gdt_remove_leaves, 𝒜', ant_remove_leaves],
+        by_cases leaf ∈ ls;
+        simp [h],
+    },
+
+    case Gdt.grd {
+        cases gdt_grd,
+        {
+            rw 𝒜',
+            rw ant_removes_leaves_map_ant_homomorph,
+            rw gdt_remove_leaves,
+            cases gdt_remove_leaves ls gdt_tr;
+            cases ant_remove_leaves ls (𝒜' gdt_tr);
+            finish [ant_remove_leaves, map_ant_option, gdt_remove_leaves._match_2],
+        },
+        {
+            rw 𝒜',
+            rw ant_remove_leaves,
+            rw ant_removes_leaves_map_ant_homomorph,
+            rw gdt_remove_leaves,
+            cases gdt_remove_leaves ls gdt_tr;
+            cases ant_remove_leaves ls (𝒜' gdt_tr);
+            finish [ant_remove_leaves, map_ant_option, gdt_remove_leaves._match_2],
+        },
+    },
+
+    case Gdt.branch {
+        rw [gdt_remove_leaves, 𝒜', ant_remove_leaves],
+        rw ant_removes_leaves_map_ant_homomorph,
+        cases gdt_remove_leaves ls gdt_tr1;
+        cases gdt_remove_leaves ls gdt_tr2;
+        cases ant_remove_leaves ls (𝒜' gdt_tr1);
+        cases ant_remove_leaves ls (𝒜' gdt_tr2);
+        finish [gdt_remove_leaves._match_1, gdt_ih_tr1, gdt_ih_tr2],
+    },
+end
+
+lemma xyz (gdt: Gdt) (ls: list Leaf):
+    ant_eval_option (ant_remove_leaves ls (𝒜' gdt)) = ant_eval_option (𝒜'_option (gdt_remove_leaves ls gdt)) :=
+begin
+    ext env:1,
+    induction gdt with leaf,
+
+    case Gdt.leaf {
+        by_cases x: leaf ∈ ls;
+        --finish [ant_remove_leaves, gdt_remove_leaves, 𝒜', 𝒜'_option],
+        sorry,
+    },
+
+    case Gdt.branch {
+        simp [ant_remove_leaves, gdt_remove_leaves, 𝒜', 𝒜'_option],
+
+        cases c1: gdt_remove_leaves ls gdt_tr1;
+        cases c2: gdt_remove_leaves ls gdt_tr2,
+
+        simp [ant_eval_option, ant_eval_option, ant_remove_leaves, ant_remove_leaves._match_1, gdt_eval_option, gdt_remove_leaves, 𝒜'],
+        {
+            /-
+            have h1 : ant_remove_leaves ls (𝒜' gdt_tr1) = none :=
+            begin
+                finish [remove_leaves_none],
+            end,
+            have h2 : ant_remove_leaves ls (map_ant (𝒰' gdt_tr1).and (𝒜' gdt_tr2)) = none :=
+            begin
+                finish [ant_removes_leaves_map_ant_homomorph, remove_leaves_none],
+            end,
+
+            finish,
+            -/
+            sorry,
+        },
+        {
+            have h1 : ant_remove_leaves ls (𝒜' gdt_tr1) = none :=
+            begin
+                --finish [remove_leaves_none],
+                sorry,
+            end,
+
+            rw h1,
+            rw gdt_remove_leaves._match_1,
+            rw 𝒜'_option,
+            rw ant_eval_option,
+
+            have h2 : ∃ v2: Ant Φ, ant_remove_leaves ls (map_ant (𝒰' gdt_tr1).and (𝒜' gdt_tr2)) = some v2 :=
+            begin
+                cases c3: ant_remove_leaves ls (map_ant (𝒰' gdt_tr1).and (𝒜' gdt_tr2)),
+                {
+                    rw ant_removes_leaves_map_ant_homomorph at c3,
+                    replace c3 := foo_bar c3,
+                    rw ←remove_leaves_none at c3,
+                    rw c2 at c3,
+                    simp at c3,
+                    contradiction,
+                },
+                simp,
+            end,
+
+            cases h2,
+            rw h2_h,
+            rw ant_remove_leaves._match_1,
+            rw ant_eval_option,
+            rw ant_removes_leaves_map_ant_homomorph at h2_h,
+            rw c2 at gdt_ih_tr2,
+            rw 𝒜'_option at gdt_ih_tr2,
+            rw ant_eval_option at gdt_ih_tr2,
+            rw ←gdt_ih_tr2,
+        }
+    }
+end
+-/
+
+
+/-
+lemma xyz1 (gdt: Gdt) (ls: list Leaf) (env: Env):
+    ant_eval_option (ant_remove_leaves ls (𝒜' gdt)) env = some (gdt_eval_option (gdt_remove_leaves ls gdt) env) :=
+begin
+    induction gdt with leaf,
+
+    case Gdt.leaf {
+        by_cases x: leaf ∈ ls;
+        finish [ant_eval_option, ant_remove_leaves, gdt_eval_option, gdt_remove_leaves, 𝒜'],
+    },
+
+    case Gdt.branch {
+        simp [ant_eval_option, ant_remove_leaves, gdt_eval_option, gdt_remove_leaves, 𝒜'],
+
+        cases ant_remove_leaves ls (𝒜' gdt_tr1);
+        cases ant_remove_leaves ls (map_ant (𝒰' gdt_tr1).and (𝒜' gdt_tr2)),
+        simp [ant_eval_option, ant_remove_leaves, ant_remove_leaves._match_1, gdt_eval_option, gdt_remove_leaves, 𝒜'],
+    }
+end
+-/

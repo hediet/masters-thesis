@@ -1,4 +1,5 @@
 import data.bool
+import data.finset
 
 class GuardModule :=
     -- Represents the type of all guards.
@@ -27,6 +28,7 @@ class GuardModule :=
 
 variable [GuardModule]
 open GuardModule
+variable [decidable_eq Leaf]
 
 -- # Guard Trees
 -- ## Syntax
@@ -141,6 +143,10 @@ def map_ant { α : Type } { β : Type } : (α → β) → Ant α → Ant β
 | f (Ant.branch tr1 tr2) := (Ant.branch (map_ant f tr1) (map_ant f tr2))
 | f (Ant.diverge a tr) := (Ant.diverge (f a) (map_ant f tr))
 
+def map_ant_option { α : Type } { β : Type } : (α → β) → option (Ant α) → option (Ant β)
+| f (some ant) := some (map_ant f ant)
+| f none := none
+
 def 𝒜' : Gdt → Ant Φ
 | (Gdt.leaf leaf) := Ant.leaf Φ.true leaf
 | (Gdt.branch tr1 tr2) := Ant.branch (𝒜' tr1) $ map_ant ((𝒰' tr1).and) (𝒜' tr2)
@@ -190,20 +196,18 @@ variable is_empty: Φ → bool
 
 
 -- returns (accessible, inaccessible, redundant) leaves, given that `is_empty` is correct.
-def ℛ' : Ant bool → list Leaf × list Leaf × list Leaf
-| (Ant.leaf is_empty n) := if is_empty then ([], [], [n]) else ([n], [], [])
-| (Ant.diverge is_empty tr) := 
-    match ℛ' tr, is_empty with
+def ℛ : Ant Φ → list Leaf × list Leaf × list Leaf
+| (Ant.leaf ty n) := if is_empty ty then ([], [], [n]) else ([n], [], [])
+| (Ant.diverge ty tr) := 
+    match ℛ tr, is_empty ty with
     | ([], [], m :: ms), ff := ([], [m], ms)
     | r, _ := r
     end
 | (Ant.branch tr1 tr2) :=
-    match (ℛ' tr1, ℛ' tr2) with
+    match (ℛ tr1, ℛ tr2) with
     | ((k, n, m), (k', n', m')) := (k ++ k', n ++ n', m ++ m')
     end
 
-def ℛ (ant: Ant Φ): list Leaf × list Leaf × list Leaf :=
-    ℛ' (map_ant is_empty ant)
 
 def is_empty_prover : (Φ → bool) → Prop
 | g := ∀ ty: Φ, (
@@ -217,20 +221,19 @@ def is_empty_prover : (Φ → bool) → Prop
 def Gs := { g : Φ → bool // is_empty_prover g }
 
 
+def gdt_branch : option Gdt → option Gdt → option Gdt
+| (some tr1) (some tr2) := some (Gdt.branch tr1 tr2)
+| (some tr1) none := some tr1
+| none (some tr2) := some tr2
+| none none := none
 
 -- Removes a list of leaves from a guard tree.
 -- Returns `none` if the guard tree is empty.
-def remove_leaves [decidable_eq Leaf] : list Leaf → Gdt → option Gdt
+def gdt_remove_leaves : finset Leaf → Gdt → option Gdt
 | leaves (Gdt.leaf leaf) := if leaf ∈ leaves then none else some (Gdt.leaf leaf)
-| leaves (Gdt.branch tr1 tr2) :=
-    match (remove_leaves leaves tr1, remove_leaves leaves tr2) with
-    | ((some tr1), (some tr2)) := some (Gdt.branch tr1 tr2)
-    | ((some tr1), none) := some tr1
-    | (none, (some tr2)) := some tr2
-    | (none, none) := none
-    end
-| leaves (Gdt.grd grd tr) := 
-    match remove_leaves leaves tr with
+| leaves (Gdt.branch tr1 tr2) := gdt_branch (gdt_remove_leaves leaves tr1) (gdt_remove_leaves leaves tr2)
+| leaves (Gdt.grd grd tr) :=
+    match gdt_remove_leaves leaves tr with
     | none := none
     | some tr := Gdt.grd grd tr
     end
@@ -239,4 +242,25 @@ def remove_leaves [decidable_eq Leaf] : list Leaf → Gdt → option Gdt
 -- This accounts for empty guard trees.
 def gdt_eval_option : option Gdt → Env → Result
 | (some gdt) env := gdt_eval gdt env
+| none env := Result.no_match
+
+-- Removes a list of leaves from an ant tree.
+-- Returns `none` if the guard tree is empty.
+def ant_remove_leaves { α: Type _ } : list Leaf → Ant α → option (Ant α)
+| leaves (Ant.leaf a leaf) := if leaf ∈ leaves then none else some (Ant.leaf a leaf)
+| leaves (Ant.branch tr1 tr2) :=
+    match (ant_remove_leaves leaves tr1, ant_remove_leaves leaves tr2) with
+    | ((some tr1), (some tr2)) := some (Ant.branch tr1 tr2)
+    | ((some tr1), none) := some tr1
+    | (none, (some tr2)) := some tr2
+    | (none, none) := none
+    end
+| leaves (Ant.diverge a tr) := 
+    match ant_remove_leaves leaves tr with
+    | none := none
+    | some tr := some (Ant.diverge a tr)
+    end
+
+def ant_eval_option : option (Ant Φ) → Env → option Result
+| (some ant) env := ant_eval ant env
 | none env := Result.no_match

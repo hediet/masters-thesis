@@ -4,6 +4,7 @@ import .lemmas
 
 variable [GuardModule]
 open GuardModule
+variable [decidable_eq Leaf]
 
 def is_no_match : Result → bool
 | Result.no_match := tt
@@ -72,4 +73,13 @@ begin
             },
         }
     },
+end
+
+theorem 𝒰_eval1 { gdt: Gdt } { env: Env }:
+        Φ_eval (𝒰' gdt) env ↔ (gdt_eval gdt env = Result.no_match):= 
+begin
+    rw ←𝒰_𝒰'_equiv,
+    rw 𝒰_eval _ _,
+    cases gdt_eval gdt env;
+    simp [is_no_match],
 end

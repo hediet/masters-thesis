@@ -3,6 +3,7 @@ import .defs
 
 variable [GuardModule]
 open GuardModule
+variable [decidable_eq Leaf]
 
 lemma Φ_true_and (ty: Φ): Φ_eval (Φ.true.and ty) = Φ_eval ty :=
 begin
