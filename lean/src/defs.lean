@@ -15,6 +15,8 @@ class GuardModule :=
     -- Represents an environment type that is used to define a semantic for a guard tree.
     (Env : Type)
 
+    (Env_inhabited: inhabited Env)
+
     -- Represents the type of variables that can be compared against bottom.
     (Var : Type)
 

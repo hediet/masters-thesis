@@ -247,7 +247,14 @@ begin
 end
 
 
-lemma baz123 { α β: Type } { ant: Ant α } { a1 a2: Ant β } { f: α → β }
+lemma inverse_map_ant_leaf { α β: Type } { ant: Ant α } { b: β } { leaf: Leaf } { f: α → β }
+    (h: map_ant f ant = Ant.leaf b leaf):
+    ∃ a: α, ant = Ant.leaf a leaf ∧ b = f a :=
+begin
+    cases ant; finish,
+end
+
+lemma inverse_map_ant_branch { α β: Type } { ant: Ant α } { a1 a2: Ant β } { f: α → β }
     (h: map_ant f ant = Ant.branch a1 a2):
     ∃ ant1: Ant α, ∃ ant2: Ant α,
         ant = Ant.branch ant1 ant2 ∧ a1 = map_ant f ant1 ∧ a2 = map_ant f ant2 :=
@@ -335,6 +342,22 @@ begin
     simp,
 end
 
+/-
+@[simp]
+lemma true_is_not_empty { is_empty: Gs }: is_empty.val Φ.true = ff :=
+begin
+    have: Φ_eval Φ.true (@default Env Env_inhabited) = tt, { rw Φ_eval, },
+    exact eval_true_implies_empty_false is_empty this,
+end
+-/
+
+@[simp]
+lemma true_eval_true { env: Env } : Φ_eval Φ.true env = tt :=
+begin
+    simp [Φ_eval],
+end
+
+
 lemma r_correct_2
     (is_empty: Gs) (gdt: Gdt) (d: disjoint_leaves gdt) (r: LeafPartition) (ant: Ant Φ) (env: Env)
     (ha: ant_eval_all ant env = ant_eval_all (𝒜' gdt) env)
@@ -344,8 +367,38 @@ lemma r_correct_2
 begin
     induction gdt generalizing r ant,
 
-    case Gdt.leaf {
+    case Gdt.grd {
+        rw disjoint_leaves at d,
+        replace gdt_ih := gdt_ih d,
+        clear d,
 
+        cases gdt_grd,
+
+        case Grd.xgrd {
+            rw [𝒜'] at ha,
+        },
+
+        case Grd.bang {
+
+        },
+    },
+
+/-
+    case Gdt.leaf {
+        simp [gdt_eval],
+        simp [𝒜', map_ant] at ha,
+        
+        have ha := inverse_map_ant_leaf ha,
+        cases ha with ty ha,
+        cases ha with ha1 ha2,
+        rw ha1 at hr,
+        rw R at hr,
+        rw map_ant at hr,
+        rw R' at hr,
+
+        cases c: is_empty.val ty,
+        { simp [hr, gdt_eval_option, gdt_eval, c], },
+        { finish [is_empty_implies_eval_false c], },
     },
 
     case Gdt.branch {
@@ -358,7 +411,7 @@ begin
         rw ←ant_eval_all at ha,
         rw ←ant_eval_all at ha,
 
-        replace ha := baz123 ha,
+        replace ha := inverse_map_ant_branch ha,
         cases ha with ant1 ha,
         cases ha with ant2 ha,
         cases ha with ha1 ha,
@@ -511,6 +564,7 @@ begin
         rw gdt_branch_replace_right_env p,
         simp [gdt_branch, gdt_eval_option],
     },
+    -/
 end
 
 
@@ -540,7 +594,7 @@ begin
         rw ←ant_eval_all at ha,
         rw ←ant_eval_all at ha,
 
-        replace ha := baz123 ha,
+        replace ha := inverse_map_ant_branch ha,
         cases ha with ant1 ha,
         cases ha with ant2 ha,
         cases ha with ha1 ha,
