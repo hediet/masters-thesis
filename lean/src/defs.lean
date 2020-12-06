@@ -15,7 +15,7 @@ class GuardModule :=
     -- Represents an environment type that is used to define a semantic for a guard tree.
     (Env : Type)
 
-    (Env_inhabited: inhabited Env)
+    --(Env_inhabited: inhabited Env)
 
     -- Represents the type of variables that can be compared against bottom.
     (Var : Type)
@@ -223,22 +223,22 @@ def is_empty_prover : (Φ → bool) → Prop
 def Gs := { g : Φ → bool // is_empty_prover g }
 
 
-def gdt_branch : option Gdt → option Gdt → option Gdt
+def gdt_build_branch : option Gdt → option Gdt → option Gdt
 | (some tr1) (some tr2) := some (Gdt.branch tr1 tr2)
 | (some tr1) none := some tr1
 | none (some tr2) := some tr2
 | none none := none
 
+def gdt_build_grd : Grd → option Gdt → option Gdt
+| grd (some tr) := some (Gdt.grd grd tr)
+| _ none := none
+
 -- Removes a list of leaves from a guard tree.
 -- Returns `none` if the guard tree is empty.
 def gdt_remove_leaves : finset Leaf → Gdt → option Gdt
 | leaves (Gdt.leaf leaf) := if leaf ∈ leaves then none else some (Gdt.leaf leaf)
-| leaves (Gdt.branch tr1 tr2) := gdt_branch (gdt_remove_leaves leaves tr1) (gdt_remove_leaves leaves tr2)
-| leaves (Gdt.grd grd tr) :=
-    match gdt_remove_leaves leaves tr with
-    | none := none
-    | some tr := Gdt.grd grd tr
-    end
+| leaves (Gdt.branch tr1 tr2) := gdt_build_branch (gdt_remove_leaves leaves tr1) (gdt_remove_leaves leaves tr2)
+| leaves (Gdt.grd grd tr) := gdt_build_grd grd (gdt_remove_leaves leaves tr)
 
 -- Like `ngdt_eval` in the `some` case, but never accepts anything in the `none` case.
 -- This accounts for empty guard trees.

@@ -48,7 +48,7 @@ begin
     finish,
 end
 
-
+@[simp]
 lemma gdt_remove_leaves_empty_set (gdt: Gdt): gdt_remove_leaves ∅ gdt = some gdt :=
 begin
     induction gdt;
@@ -73,5 +73,5 @@ begin
     },
     case Gdt.grd {
         finish [gdt_leaves, gdt_remove_leaves],
-    }
+    },
 end
