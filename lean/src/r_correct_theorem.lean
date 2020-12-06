@@ -358,25 +358,59 @@ begin
 end
 
 
-lemma r_correct_2
-    (is_empty: Gs) (gdt: Gdt) (d: disjoint_leaves gdt) (r: LeafPartition) (ant: Ant Φ) (env: Env)
-    (ty: Φ) (x: Φ_eval ty env = tt)
-    (ha: ant_eval_all ant env = ant_eval_all (map_ant (ty.and) (𝒜' gdt)) env)
-    (hr: r = R is_empty.val ant):
-        gdt_eval_option (gdt_remove_leaves r.red.to_finset gdt) env
-        = gdt_eval gdt env :=
+def is_strict (f: Φ → Φ) (env: Env) := ∀ ty: Φ, Φ_eval ty env = tt → Φ_eval (f ty) env = tt
+
+
+lemma xgrd_in_strictness { f: Φ → Φ } { env env': Env } { grd: XGrd }
+    (h1: is_strict f env) (h2: xgrd_eval grd env = some env'):
+        is_strict (f ∘ Φ.xgrd_in grd) env' :=
 begin
-    induction gdt generalizing r ant,
+    rw is_strict,
+    intro ty,
+    intro p,
+    rw function.comp,
+    simp,
+
+    rw is_strict at h1,
+    specialize h1 (Φ.xgrd_in grd ty),
+    simp [Φ_eval, h2, p] at h1,
+    simp [h1],
+end
+
+--  is_strict (f ∘ Φ.xgrd_in gdt_grd) env 
+
+lemma r_correct_2
+    (is_empty: Gs)
+    (gdt: Gdt) (gdt_disjoint: disjoint_leaves gdt)
+    (env: Env) (f: Φ → Φ) (f_prop: is_strict f env)
+    (ant: Ant Φ) (ant_def: ant_eval_all ant env = ant_eval_all (map_ant f (𝒜' gdt)) env)
+    (r: LeafPartition) (r_def: r = R is_empty.val ant):
+
+        gdt_eval_option (gdt_remove_leaves r.red.to_finset gdt) env = gdt_eval gdt env :=
+begin
+    induction gdt generalizing f r ant env,
 
     case Gdt.grd {
-        rw disjoint_leaves at d,
-        replace gdt_ih := gdt_ih d,
-        clear d,
+        rw disjoint_leaves at gdt_disjoint,
+        replace gdt_ih := gdt_ih gdt_disjoint,
+        clear gdt_disjoint,
 
         cases gdt_grd,
 
         case Grd.xgrd {
-            rw [𝒜'] at ha,
+
+            rw [𝒜'] at ant_def,
+            rw map_ant_associative at ant_def,
+            specialize gdt_ih (f ∘ Φ.xgrd_in gdt_grd) r ant,
+
+            rw gdt_eval, -- todo
+
+            cases c: xgrd_eval gdt_grd env,
+
+            case option.some {
+                rw gdt_eval._match_2,
+                rw gdt_remove_leaves,
+            },
         },
 
         case Grd.bang {
