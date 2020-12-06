@@ -360,7 +360,8 @@ end
 
 lemma r_correct_2
     (is_empty: Gs) (gdt: Gdt) (d: disjoint_leaves gdt) (r: LeafPartition) (ant: Ant Φ) (env: Env)
-    (ha: ant_eval_all ant env = ant_eval_all (𝒜' gdt) env)
+    (ty: Φ) (x: Φ_eval ty env = tt)
+    (ha: ant_eval_all ant env = ant_eval_all (map_ant (ty.and) (𝒜' gdt)) env)
     (hr: r = R is_empty.val ant):
         gdt_eval_option (gdt_remove_leaves r.red.to_finset gdt) env
         = gdt_eval gdt env :=
