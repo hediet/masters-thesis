@@ -438,15 +438,18 @@ begin
     simp [gdt_eval, gdt_eval_option, gdt_build_grd, h],
 end
 
+lemma subset_subset_insert { α: Type } [decidable_eq α] { u v: finset α } (h: u ⊆ v) (a: α) : u ⊆ insert a v :=
+    finset.subset.trans h (finset.subset_insert a v)
 
 lemma r_correct_2
     (is_empty: Gs)
     (gdt: Gdt) (gdt_disjoint: disjoint_leaves gdt)
     (env ant_env: Env)
     (ant: Ant Φ) (ant_def: ant_eval_all ant ant_env = ant_eval_all (𝒜' gdt) env)
-    (r: LeafPartition) (r_def: r = R is_empty.val ant):
+    (r: LeafPartition) (r_def: r = R is_empty.val ant)
+    (leaves: finset Leaf) (leaves_def: leaves ⊆ r.red.to_finset):
 
-        gdt_eval_option (gdt_remove_leaves r.red.to_finset gdt) env = gdt_eval gdt env :=
+        gdt_eval_option (gdt_remove_leaves leaves gdt) env = gdt_eval gdt env :=
 begin
     induction gdt generalizing r ant env ant_env,
 
@@ -479,7 +482,7 @@ begin
                 
                 
                 rw [gdt_remove_leaves, grd_eval_xgrd_some c, grd_eval_option_xgrd_some c],
-                exact gdt_ih,
+                exact gdt_ih leaves_def,
             },
 
             case option.none {
@@ -535,15 +538,15 @@ begin
                     cases y with y1 y,
                     cases y with y2 y,
                     rw y at r_def,
-                    rw r_def,
-                    simp,
+                    rw r_def at leaves_def,
+                    simp at leaves_def,
                     rw y2 at gdt_ih,
                     simp at gdt_ih,
                     rw grd_eval_bang_is_not_bottom c,
                     rw ←gdt_ih,
                     rw gdt_remove_leaves,
                     rw grd_eval_option_bang_is_not_bottom c,
-                    sorry,
+                    exact subset_subset_insert leaves_def _,
                 },
 
                 case or.inr {
@@ -553,7 +556,7 @@ begin
                     rw grd_eval_bang_is_not_bottom c,
                     rw gdt_remove_leaves,
                     rw grd_eval_option_bang_is_not_bottom c,
-                    exact gdt_ih,
+                    exact gdt_ih leaves_def,
                 },
             },
 
@@ -570,8 +573,9 @@ begin
                 rw gdt_remove_leaves,
                 rw grd_eval_option_bang_is_bottom c,
 
-                suffices : (gdt_remove_leaves r.red.to_finset gdt_tr).is_some = tt,
-                simp [this],
+                suffices : (gdt_remove_leaves leaves gdt_tr).is_some = tt, {
+                    simp [this],
+                },
 
                 cases y,
 
@@ -586,12 +590,12 @@ begin
                 case or.inr {
                     cases y with y1 y,
                     rw y at r_def,
-                    rw r_def,
+                    rw r_def at leaves_def,
                     cases y1 with x y,
                     rw c at ant_h1,
                     finish [is_empty_implies_eval_false x],
                     sorry,
-                }
+                },
 
                 -- to show: ∃ x ∈ gdt_leaves ant_grd \ r.red 
             },
@@ -614,7 +618,10 @@ begin
         rw R' at r_def,
 
         cases c: is_empty.val ty,
-        { simp [r_def, gdt_eval_option, gdt_eval, c], },
+        {
+            --simp [r_def, gdt_eval_option, gdt_eval, c, leaves_def],
+            sorry,
+        },
         { finish [is_empty_implies_eval_false c], },
     },
 
@@ -793,6 +800,23 @@ end
 
 
 
+lemma r_correct_3
+    (is_empty: Gs)
+    (gdt: Gdt) (gdt_disjoint: disjoint_leaves gdt):
+    gdt_eval_option (gdt_remove_leaves (R is_empty.val (𝒜' gdt)).red.to_finset gdt) = gdt_eval gdt :=
+begin
+    ext env:1,
+
+    set r := (R is_empty.val (𝒜' gdt)) with r_def,
+
+    have: (R is_empty.val (𝒜' gdt)).red.to_finset ⊆ r.red.to_finset, {
+        simp [r_def],
+    },
+
+    exact r_correct_2 is_empty gdt gdt_disjoint env env  (𝒜' gdt)
+        (refl (ant_eval_all (𝒜' gdt) env)) r r_def ((R is_empty.val (𝒜' gdt)).red.to_finset) this,
+end
+    
 
 
 
