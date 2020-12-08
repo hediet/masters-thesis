@@ -596,14 +596,9 @@ begin
                     finish [is_empty_implies_eval_false x],
                     sorry,
                 },
-
-                -- to show: ∃ x ∈ gdt_leaves ant_grd \ r.red 
             },
-
-            
         },
     },
-
 
     case Gdt.leaf {
         simp [gdt_eval],
