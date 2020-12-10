@@ -56,7 +56,7 @@ begin
     },
 end
 
-lemma U_eq_𝒰 (gdt: Gdt) : (U gdt).eval = (𝒰 gdt).eval :=
+lemma U_eq_𝒰 { gdt: Gdt } : (U gdt).eval = (𝒰 gdt).eval :=
 begin
     ext env,
     simp [𝒰, ←U_eq_𝒰_acc (id_stable) (id_hom)],

@@ -8,9 +8,7 @@ open GuardModule
 
 def homomorphic (f: Φ → Φ) := ∀ ty1 ty2: Φ, (f (ty1.or ty2)).eval = ((f ty1).or (f ty2)).eval
 
-lemma id_hom: homomorphic id := begin
-    simp [homomorphic],
-end
+lemma id_hom: homomorphic id := by simp [homomorphic]
 
 lemma and_right_hom { ty: Φ }: homomorphic ty.and :=
 begin
@@ -49,9 +47,7 @@ begin
     assume ty1 ty2,
     unfold function.comp,
     
-    have : (f2 (ty1.or ty2)).eval = ((f2 ty1).or (f2 ty2)).eval := begin
-      simp [f2_hom _ _],
-    end,
+    have : (f2 (ty1.or ty2)).eval = ((f2 ty1).or (f2 ty2)).eval := by simp [f2_hom _ _],
 
     rw stable_app f1_stable this,
     rw f1_hom,

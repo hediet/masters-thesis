@@ -1,4 +1,6 @@
 import .definitions
+import .internal.helper_defs
+import .internal.U_semantic
 
 variable [GuardModule]
 open GuardModule
@@ -6,7 +8,9 @@ open GuardModule
 theorem 𝒰_semantic: ∀ gdt: Gdt, ∀ env: Env,
         (𝒰 gdt).eval env ↔ (gdt.eval env = Result.no_match) :=
 begin
-  sorry
+    assume gdt env,
+    rw ←@U_eq_𝒰,
+    exact U_semantic,
 end
 
 theorem ℛ_semantic : ∀ is_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leaves → 
