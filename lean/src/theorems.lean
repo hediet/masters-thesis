@@ -1,25 +1,25 @@
-import .defs
+import .definitions
 
 variable [GuardModule]
 open GuardModule
 
 theorem 𝒰_semantic: ∀ gdt: Gdt, ∀ env: Env,
-        Φ_eval (𝒰 gdt) env ↔ (gdt_eval gdt env = Result.no_match) :=
+        (𝒰 gdt).eval env ↔ (gdt.eval env = Result.no_match) :=
 begin
   sorry
 end
 
-theorem ℛ_semantic : ∀ is_empty: Gs, ∀ gdt: Gdt, disjoint_leaves gdt → 
+theorem ℛ_semantic : ∀ is_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leaves → 
     (
         let ⟨ a, i, r ⟩ := ℛ is_empty.val (𝒜 gdt)
         in
                 -- Redundant leaves can be removed without changing semantics.
-                gdt_eval_option (gdt_remove_leaves r.to_finset gdt)
-                = gdt_eval gdt
+                Gdt.eval_option (gdt.remove_leaves r.to_finset)
+                = gdt.eval
             ∧ 
                 -- Reachable leaves are accessible and neither inaccessible nor redundant.
                 ∀ env: Env, ∀ leaf: Leaf,
-                    gdt_eval gdt env = Result.leaf leaf
+                    gdt.eval env = Result.leaf leaf
                       → leaf ∈ a \ i \ r
         : Prop
     )

@@ -43,34 +43,34 @@ inductive Gdt
 | branch (tr1: Gdt) (tr2: Gdt)
 | grd (grd: Grd) (tr: Gdt)
 
-def gdt_build_branch : option Gdt → option Gdt → option Gdt
+def Gdt.branch_option : option Gdt → option Gdt → option Gdt
 | (some tr1) (some tr2) := some (Gdt.branch tr1 tr2)
 | (some tr1) none := some tr1
 | none (some tr2) := some tr2
 | none none := none
 
-def gdt_build_grd : Grd → option Gdt → option Gdt
+def Gdt.grd_option : Grd → option Gdt → option Gdt
 | grd (some tr) := some (Gdt.grd grd tr)
 | _ none := none
 
 -- Removes a set of leaves from a guard tree.
 -- Returns `none` if the guard tree is empty.
-def gdt_remove_leaves : finset Leaf → Gdt → option Gdt
+def Gdt.remove_leaves : finset Leaf → Gdt → option Gdt
 | leaves (Gdt.leaf leaf) := if leaf ∈ leaves then none else some (Gdt.leaf leaf)
-| leaves (Gdt.branch tr1 tr2) := gdt_build_branch (gdt_remove_leaves leaves tr1) (gdt_remove_leaves leaves tr2)
-| leaves (Gdt.grd grd tr) := gdt_build_grd grd (gdt_remove_leaves leaves tr)
+| leaves (Gdt.branch tr1 tr2) := Gdt.branch_option (tr1.remove_leaves leaves) (tr2.remove_leaves leaves)
+| leaves (Gdt.grd grd tr) := Gdt.grd_option grd (tr.remove_leaves leaves)
 
 -- Returns a set of all leaves that a guard tree contains.
-def gdt_leaves: Gdt → finset Leaf
+def Gdt.leaves: Gdt → finset Leaf
 | (Gdt.leaf leaf) := { leaf }
-| (Gdt.branch tr1 tr2) := gdt_leaves tr1 ∪ gdt_leaves tr2
-| (Gdt.grd grd tr) := gdt_leaves tr
+| (Gdt.branch tr1 tr2) := tr1.leaves ∪ tr2.leaves
+| (Gdt.grd grd tr) := tr.leaves
 
 -- States that all leaves are different in a given guard tree.
-def disjoint_leaves: Gdt → Prop
+def Gdt.disjoint_leaves: Gdt → Prop
 | (Gdt.leaf leaf) := true
-| (Gdt.branch tr1 tr2) := disjoint_leaves tr1 ∧ disjoint_leaves tr2 ∧ disjoint (gdt_leaves tr1) (gdt_leaves tr2)
-| (Gdt.grd grd tr) := disjoint_leaves tr
+| (Gdt.branch tr1 tr2) := tr1.disjoint_leaves ∧ tr2.disjoint_leaves ∧ disjoint tr1.leaves tr2.leaves
+| (Gdt.grd grd tr) := tr.disjoint_leaves
 
 -- ## Semantic
 inductive Result
@@ -78,26 +78,26 @@ inductive Result
 | diverged
 | no_match
 
-def gdt_eval : Gdt → Env → Result
+def Gdt.eval : Gdt → Env → Result
 | (Gdt.leaf leaf) env := Result.leaf leaf
 | (Gdt.branch tr1 tr2) env :=
-    match gdt_eval tr1 env with
-    | Result.no_match := gdt_eval tr2 env
+    match tr1.eval env with
+    | Result.no_match := tr2.eval env
     | r := r
     end
 | (Gdt.grd (Grd.xgrd grd) tr) env :=
     match xgrd_eval grd env with
     | none := Result.no_match
-    | some val := gdt_eval tr val
+    | some val := tr.eval val
     end
 | (Gdt.grd (Grd.bang var) tr) env :=
     if is_bottom var env
     then Result.diverged
-    else gdt_eval tr env
+    else tr.eval env
 
 -- This continues `gdt_eval` to `option Gdt`.
-def gdt_eval_option : option Gdt → Env → Result
-| (some gdt) env := gdt_eval gdt env
+def Gdt.eval_option : option Gdt → Env → Result
+| (some gdt) env := gdt.eval env
 | none env := Result.no_match
 
 -- # Refinement Types
@@ -113,11 +113,11 @@ inductive Φ
 | and (ty1: Φ) (ty2: Φ)
 
 -- ## Semantic
-def Φ_eval: Φ → Env → bool
+def Φ.eval: Φ → Env → bool
 | Φ.false env := ff
 | Φ.true env := tt
 | (Φ.xgrd_in grd ty) env := match xgrd_eval grd env with
-    | some env := Φ_eval ty env
+    | some env := ty.eval env
     | none := ff
     end
 | (Φ.not_xgrd grd) env :=
@@ -127,15 +127,16 @@ def Φ_eval: Φ → Env → bool
     end
 | (Φ.var_is_bottom var) env := is_bottom var env
 | (Φ.var_is_not_bottom var) env := !is_bottom var env
-| (Φ.or t1 t2) env := Φ_eval t1 env || Φ_eval t2 env
-| (Φ.and t1 t2) env := Φ_eval t1 env && Φ_eval t2 env
+| (Φ.or t1 t2) env := t1.eval env || t2.eval env
+| (Φ.and t1 t2) env := t1.eval env && t2.eval env
 
 
 -- ## Uncovered Refinement Types
--- Φ_eval (𝒰_acc gdt acc ty) = Φ_eval (acc (𝒰' gdt)) :=
+-- ∀ acc: Φ_eval (𝒰_acc gdt acc ty) = Φ_eval (acc (𝒰 gdt)) :=
+
 def 𝒰_acc : (Φ → Φ) → Gdt → Φ
-| acc (Gdt.leaf _) := Φ.false
-| acc (Gdt.branch tr1 tr2) := (𝒰_acc (𝒰_acc acc tr1).and tr2)
+| acc (Gdt.leaf _) := acc Φ.false
+| acc (Gdt.branch tr1 tr2) := (𝒰_acc (acc ∘ (𝒰_acc id tr1).and) tr2)
 | acc (Gdt.grd (Grd.bang var) tree) :=
     𝒰_acc (acc ∘ (Φ.var_is_not_bottom var).and) tree
 | acc (Gdt.grd (Grd.xgrd grd) tree) :=
@@ -154,22 +155,20 @@ inductive Ant (α: Type)
 def 𝒜_acc : (Φ → Φ) → Gdt → Ant Φ
 | acc (Gdt.leaf leaf) := Ant.leaf (acc Φ.true) leaf
 | acc (Gdt.branch tr1 tr2) := Ant.branch (𝒜_acc acc tr1) (𝒜_acc (𝒰_acc acc tr1).and tr2)
-| acc (Gdt.grd (Grd.bang var) tr) := Ant.diverge (acc (Φ.var_is_bottom var)) (𝒜_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr)
+| acc (Gdt.grd (Grd.bang var) tr) := Ant.diverge (acc (Φ.var_is_bottom var)) 
+                                        (𝒜_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr)
 | acc (Gdt.grd (Grd.xgrd grd) tr) := (𝒜_acc (acc ∘ (Φ.xgrd_in grd)) tr)
 
 def 𝒜 : Gdt → Ant Φ := 𝒜_acc id
 
 -- # Empty Provers
 
+def Φ.is_empty (ty: Φ): Prop := ∀ env: Env, ¬(ty.eval env)
+
 variable can_prove_empty: Φ → bool
 
 def is_empty_prover : (Φ → bool) → Prop
-| g := ∀ ty: Φ, (
-        -- If g says "ty can be proven to be empty"
-        g ty = tt →
-        -- then `ty` never evaluates to something.
-        ∀ env: Env, ¬ Φ_eval ty env
-    )
+| g := ∀ ty: Φ, g ty = tt → ty.is_empty
 
 -- Represents all correct G functions from the paper.
 def Gs := { g : Φ → bool // is_empty_prover g }
