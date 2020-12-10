@@ -30,11 +30,9 @@ begin
     finish [Gdt.eval, Gdt.eval._match_2,  Gdt.eval._match_1],
 end
 
-
 @[simp]
 lemma gdt_leaf_eval { leaf: Leaf } { env: Env }: (Gdt.leaf leaf).eval env = Result.leaf leaf :=
 by simp [Gdt.eval]
-
 
 lemma grd_eval_xgrd_some { grd: XGrd } { tr: Gdt } { env env': Env }
     (h: xgrd_eval grd env = some env'):
