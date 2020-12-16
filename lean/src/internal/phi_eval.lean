@@ -40,4 +40,3 @@ by simp [Φ.eval]
 lemma Φ_eval_var_is_bottom { var: Var } { env: Env }:
     (Φ.var_is_bottom var).eval env = is_bottom var env :=
 by simp [Φ.eval]
-

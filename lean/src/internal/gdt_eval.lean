@@ -53,4 +53,3 @@ lemma grd_eval_bang_not_bottom { var: Var } { tr: Gdt } { env: Env }
     (h: is_bottom var env = ff):
     (Gdt.grd (Grd.bang var) tr).eval env = tr.eval env :=
 by simp [Gdt.eval, h]
-

@@ -147,3 +147,27 @@ begin
     },
 end
 
+@[simp]
+lemma R'_empty (tr: Ant bool) : R' (Ant.diverge tt tr) = R' tr :=
+begin
+    cases c1: R' tr,
+    cases c2: acc;
+    cases c3: inacc;
+    cases c4: red;
+    simp [R', R'._match_1, c1, c2, c3, c4],
+end
+
+def R_diverge { ant: Ant bool } { r: LeafPartition } (a: bool)
+    (h: R' ant = r):
+    (∃ rh: Leaf, ∃ rs: list Leaf, a = ff ∧ r = ⟨ [], [], rh::rs ⟩ ∧ R' (Ant.diverge a ant) = ⟨ [], [rh], rs ⟩)
+    ∨ ((a = tt ∨ r.acc ≠ [] ∨ r.inacc ≠ [] ∨ r.red = []) ∧ R' (Ant.diverge a ant) = r) :=
+begin
+    unfold R' Ant.map,
+    
+    cases a;
+    cases r;
+    cases r_acc;
+    cases r_inacc;
+    cases r_red;
+    simp [h, R'._match_1],
+end
