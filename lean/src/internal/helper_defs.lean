@@ -114,12 +114,13 @@ def R' : Ant bool → LeafPartition
     * LeafPartition is much easier to use than triples.
     * Ant.branch has no match which would require a case distinction.
 -/
+-- TODO remove R and rename R' to R.
 def R (can_prove_empty: Φ → bool) (ant: Ant Φ): LeafPartition := R' (ant.map can_prove_empty)
 
 def to_triple (p: LeafPartition): (list Leaf × list Leaf × list Leaf) :=
     (p.acc, p.inacc, p.red)
 
-lemma R_eq_ℛ (can_prove_empty: Φ -> bool) (ant: Ant Φ): to_triple (R can_prove_empty ant) = ℛ can_prove_empty ant :=
+lemma R_eq_ℛ (can_prove_empty: Φ → bool) (ant: Ant Φ): to_triple (R can_prove_empty ant) = ℛ can_prove_empty ant :=
 begin
     induction ant,
     case Ant.leaf {

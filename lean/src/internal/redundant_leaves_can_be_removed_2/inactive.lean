@@ -167,7 +167,6 @@ lemma removable_leaves_can_be_removed
     (gdt: Gdt) (gdt_disjoint: gdt.disjoint_leaves)
     -- We only focus on a very particular environment `env`.
     (env: Env)
-    
     (leaves: finset Leaf) (leaves_def: leaves.removable_in (gdt.mark_inactive_leaves env)):
 
         Gdt.eval_option (gdt.remove_leaves leaves) env = gdt.eval env :=
@@ -181,7 +180,7 @@ begin
   },
 
   case Gdt.branch {
-        simp [Gdt.mark_inactive_leaves] at leaves_def,
+        simp [Gdt.mark_inactive_leaves, -Result.is_match_neq_no_match] at leaves_def,
         cases (gdt_tr1.eval env).is_match,
         case bool.ff {
             simp [Ant.inactive_leaves, Gdt.mark_inactive_leaves, finset.removable_in, Ant.critical_leaf_sets ] at leaves_def,
@@ -190,10 +189,10 @@ begin
             unfold Gdt.remove_leaves,
             unfold Gdt.disjoint_leaves at gdt_disjoint,
 
-            have : can_be_removed (gdt_tr2.mark_inactive_leaves env) leaves :=
+            have : leaves.removable_in (gdt_tr2.mark_inactive_leaves env) :=
             begin
                 have := sets_1 leaves_def.1 gdt_disjoint.2.2,
-                unfold can_be_removed,
+                unfold removable_in,
                 split, { simp [*], },
                 exact leaves_def.2,
             end,
@@ -202,15 +201,15 @@ begin
             sorry,
         },
         case bool.tt {
-            simp [Ant.inactive_leaves, Gdt.mark_inactive_leaves, can_be_removed, Ant.critical_leaf_sets ] at leaves_def,
+            simp [Ant.inactive_leaves, Gdt.mark_inactive_leaves, removable_in, Ant.critical_leaf_sets ] at leaves_def,
             simp [Ant.leaves] at leaves_def,
 
             unfold Gdt.remove_leaves,
             unfold Gdt.disjoint_leaves at gdt_disjoint,
 
-            have : can_be_removed (gdt_tr1.mark_inactive_leaves env) leaves :=
+            have : leaves.removable_in (gdt_tr1.mark_inactive_leaves env) :=
             begin
-                unfold can_be_removed,
+                unfold removable_in,
                 simp,
                 have := sets_2 leaves_def.1 gdt_disjoint.2.2,
                 split, { simp [*], },
@@ -228,10 +227,15 @@ begin
             cases c: xgrd_eval gdt_grd env with env',
             case option.some {
                 simp [grd_eval_xgrd_some c],
-                unfold can_be_removed at leaves_def,
+                unfold removable_in at leaves_def,
                 simp only [Gdt.mark_inactive_leaves, Gdt.mark_inactive_leaves._match_1, c] at leaves_def,
-                rw ←can_be_removed at leaves_def,
-                specialize gdt_ih gdt_disjoint env' leaves_def,
+                have : leaves.removable_in (gdt_tr.mark_inactive_leaves env') :=
+                begin
+                    unfold removable_in,
+                    exact leaves_def,
+                end,
+                
+                specialize gdt_ih gdt_disjoint env' this,
                 unfold Gdt.remove_leaves,
                 sorry,
             },
@@ -245,14 +249,14 @@ begin
             cases c: is_bottom var env,
             case bool.tt {
                 simp [grd_eval_bang_bottom c],
-                simp [can_be_removed, Gdt.leaves, Ant.leaves, Ant.inactive_leaves, Ant.critical_leaf_sets, Gdt.mark_inactive_leaves, c] at leaves_def,
+                simp [removable_in, Gdt.leaves, Ant.leaves, Ant.inactive_leaves, Ant.critical_leaf_sets, Gdt.mark_inactive_leaves, c] at leaves_def,
                 unfold Gdt.remove_leaves,
                 sorry,
             },
             case bool.ff {
-                simp [can_be_removed, Gdt.leaves, Gdt.mark_inactive_leaves, c, Ant.leaves, Ant.inactive_leaves, Ant.critical_leaf_sets] at leaves_def,
-                have : can_be_removed (gdt_tr.mark_inactive_leaves env) leaves, {
-                    simp [can_be_removed, Gdt.leaves, Gdt.mark_inactive_leaves, c, Ant.leaves, Ant.inactive_leaves, Ant.critical_leaf_sets],
+                simp [removable_in, Gdt.leaves, Gdt.mark_inactive_leaves, c, Ant.leaves, Ant.inactive_leaves, Ant.critical_leaf_sets] at leaves_def,
+                have : removable_in (gdt_tr.mark_inactive_leaves env) leaves, {
+                    simp [removable_in, Gdt.leaves, Gdt.mark_inactive_leaves, c, Ant.leaves, Ant.inactive_leaves, Ant.critical_leaf_sets],
                     exact leaves_def,
                 },
                 specialize gdt_ih gdt_disjoint env this,

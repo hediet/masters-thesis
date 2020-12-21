@@ -32,7 +32,7 @@ begin
     induction ant,
     case Ant.leaf {
         unfold Ant.map Ant.mark_inactive_leaves,
-        apply Ant.implies2.leaf,
+        apply Ant.implies.leaf,
         -- TODO WTF
         unfold_coes,
         simp,
@@ -41,12 +41,12 @@ begin
     },
     case Ant.branch {
         -- TODO only is required here
-        simp only [Ant.implies2.branch, Ant.map, *, Ant.mark_inactive_leaves.branch],
+        simp only [Ant.implies.branch, Ant.map, *, Ant.mark_inactive_leaves.branch],
     },
     case Ant.diverge {
         unfold Ant.map,
         rw Ant.mark_inactive_leaves.diverge,
-        apply Ant.implies2.diverge,
+        apply Ant.implies.diverge,
         { exact ant_ih, },
         {
             -- TODO can this be improved?
@@ -125,10 +125,8 @@ begin
             },
         },
         case Grd.bang {
-
+            sorry,
         },
-        simp [A, Ant.mark_inactive_leaves, Ant.map, Φ.eval, Gdt.mark_inactive_leaves],
-        
     },
 end
 
@@ -140,7 +138,7 @@ begin
     -- case leaf:
     {
         cases a_a; cases b_a;
-        finish [Ant.inactive_leaves, Ant.implies2.leaf],
+        finish [Ant.inactive_leaves, Ant.implies.leaf],
     },
     -- case branch:
     {

@@ -10,7 +10,7 @@ theorem 𝒰_semantic: ∀ gdt: Gdt, ∀ env: Env,
 begin
     assume gdt env,
     rw ←@U_eq_𝒰,
-    exact U_semantic,
+    simp [U_semantic],
 end
 
 theorem ℛ_semantic : ∀ is_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leaves → 

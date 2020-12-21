@@ -6,7 +6,7 @@ open GuardModule
 
 @[simp]
 lemma gdt_eval_branch_left_no_match { gdt1: Gdt } { gdt2: Gdt } { env: Env } (h: gdt1.eval env = Result.no_match):
-            (Gdt.branch gdt1 gdt2).eval env = gdt2.eval env :=
+    (Gdt.branch gdt1 gdt2).eval env = gdt2.eval env :=
 begin
     cases c: gdt2.eval env;
     finish [Gdt.eval],
@@ -14,7 +14,7 @@ end
 
 @[simp]
 lemma gdt_eval_branch_right_no_match { gdt1: Gdt } { gdt2: Gdt } { env: Env } (h: gdt2.eval env = Result.no_match):
-            (Gdt.branch gdt1 gdt2).eval env = gdt1.eval env :=
+    (Gdt.branch gdt1 gdt2).eval env = gdt1.eval env :=
 begin
     cases c: gdt1.eval env;
     finish [Gdt.eval],
