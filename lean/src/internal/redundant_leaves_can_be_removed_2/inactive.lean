@@ -163,19 +163,19 @@ begin
     tauto, 
 end
 
-lemma inactive_leaves_can_be_removed
+lemma removable_leaves_can_be_removed
     (gdt: Gdt) (gdt_disjoint: gdt.disjoint_leaves)
     -- We only focus on a very particular environment `env`.
     (env: Env)
     
-    (leaves: finset Leaf) (leaves_def: can_be_removed (gdt.mark_inactive_leaves env) leaves):
+    (leaves: finset Leaf) (leaves_def: leaves.removable_in (gdt.mark_inactive_leaves env)):
 
         Gdt.eval_option (gdt.remove_leaves leaves) env = gdt.eval env :=
 begin
   induction gdt with leaf generalizing env,
   case Gdt.leaf {
       simp [Gdt.eval],
-      unfold Gdt.mark_inactive_leaves can_be_removed at leaves_def,
+      unfold Gdt.mark_inactive_leaves finset.removable_in at leaves_def,
       simp [Ant.inactive_leaves, Ant.critical_leaf_sets] at leaves_def,
       sorry,
   },
@@ -184,7 +184,7 @@ begin
         simp [Gdt.mark_inactive_leaves] at leaves_def,
         cases (gdt_tr1.eval env).is_match,
         case bool.ff {
-            simp [Ant.inactive_leaves, Gdt.mark_inactive_leaves, can_be_removed, Ant.critical_leaf_sets ] at leaves_def,
+            simp [Ant.inactive_leaves, Gdt.mark_inactive_leaves, finset.removable_in, Ant.critical_leaf_sets ] at leaves_def,
             simp [Ant.leaves] at leaves_def,
 
             unfold Gdt.remove_leaves,

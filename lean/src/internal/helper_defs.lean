@@ -72,7 +72,7 @@ lemma Ant.map.associative { α β γ: Type } (f: β → γ) (g: α → β) (ant:
     (ant.map g).map f = ant.map (f ∘ g) :=
 begin
     induction ant;
-    finish,
+    simp [*, Ant.map],
 end
 
 def Ant.map_option { α β: Type } : (α → β) → option (Ant α) → option (Ant β)
@@ -200,7 +200,7 @@ def Ant.critical_leaf_sets :  Ant bool → finset (finset Leaf)
     else { tr.leaves }
 | (Ant.branch tr1 tr2) := tr1.critical_leaf_sets ∪ tr2.critical_leaf_sets
 
-def removable (a: Ant bool) (leaves: finset Leaf) :=
+def finset.removable_in (a: Ant bool) (leaves: finset Leaf) :=
     leaves ∩ a.leaves ⊆ a.inactive_leaves
     ∧ ∀ e ∈ a.critical_leaf_sets, ¬ e ⊆ leaves
 

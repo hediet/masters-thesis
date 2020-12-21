@@ -132,26 +132,7 @@ begin
     },
 end
 
-/-
-lemma redundant_implies_inactive
-    (gdt: Gdt) (can_prove_empty: Gs) (env: Env)
-    (ant: Ant Φ) (ant_def: ant.eval_leaves = (A gdt).eval_leaves):
-    (ant.map (can_prove_empty.val)).implies (Gdt.mark_inactive_leaves gdt env) :=
-begin
-    induction gdt generalizing env,
-    case Gdt.leaf {
-        rw A at ant_def,
-        replace ant_def := congr_fun ant_def env,
-        unfold Ant.eval_leaves at ant_def,
-        rw map_ant_structure_leaf ant ant_def,
-        
-        simp [Ant.implies, Ant.map, Gdt.mark_inactive_leaves],
-    },
-    sorry,
-end
--/
-
-lemma removable_monotonous' { a b: Ant bool } (h: a ⇒ b): 
+lemma removable.monotonous' { a b: Ant bool } (h: a ⇒ b): 
         a.inactive_leaves ⊆ b.inactive_leaves ∧ b.critical_leaf_sets ⊆ a.critical_leaf_sets :=
 begin
     induction a generalizing b;
@@ -183,11 +164,11 @@ begin
     },
 end
 
-lemma removable_monotonous { a b: Ant bool } (leaves: finset Leaf) (h: a ⇒ b):
-    removable a leaves → removable b leaves :=
+lemma removable.monotonous { a b: Ant bool } (leaves: finset Leaf) (h: a ⇒ b):
+    leaves.removable_in a → leaves.removable_in b :=
 begin
-    unfold removable,
-    have := removable_monotonous' h,
+    unfold finset.removable_in,
+    have := removable.monotonous' h,
     assume p,
     split,
     {
@@ -201,19 +182,19 @@ end
 
 lemma R'_red_removable (ant: Ant bool)
     --(ant_disjoint: ant.disjoint_leaves)
-    : removable ant (R' ant).red.to_finset :=
+    : (R' ant).red.to_finset.removable_in ant :=
 begin
     induction ant,
 
     case Ant.leaf {
-        unfold removable R',
+        unfold finset.removable_in R',
         cases ant_a;
         simp [Ant.critical_leaf_sets, Ant.inactive_leaves, Ant.leaves],
     },
     case Ant.branch {
-        unfold removable R',
-        unfold removable R' at ant_ih_tr1,
-        unfold removable R' at ant_ih_tr2,
+        unfold finset.removable_in R',
+        unfold finset.removable_in R' at ant_ih_tr1,
+        unfold finset.removable_in R' at ant_ih_tr2,
         unfold LeafPartition.red,
         split, {
             simp [Ant.inactive_leaves, finset.union_subset_union ant_ih_tr1.1 ant_ih_tr2.1, Ant.leaves],
@@ -228,8 +209,8 @@ begin
         sorry,
     },
     case Ant.diverge {
-        unfold removable,
-        unfold removable at ant_ih,
+        unfold finset.removable_in,
+        unfold finset.removable_in at ant_ih,
 
         split, {
             cases R_diverge ant_a (refl (R' ant_tr)) with d d,
@@ -286,7 +267,7 @@ begin
     -- `can_prove_empty` approximates emptiness for a single refinement type.
     let ant := (A gdt).map can_prove_empty.val,
 
-    -- `ant` approximates emptiness of these refinement types (s1).
+    -- `ant` approximates emptiness of these refinement types for every `env` (s1).
     have s1: ant ⇒ (A gdt).mark_inactive_leaves env
         := @can_prove_empty_implies_inactive _ can_prove_empty (A gdt) env,
 
@@ -297,24 +278,26 @@ begin
     -- `ant` also approximates inactive leaves of `gdt` in context of `env` (s3).
     have s3: ant ⇒ gdt.mark_inactive_leaves env
         := eq.subst s2 s1,
-    
-    
+
+    -- `R'_red_leaves` is the set we want to remove.
     let R'_red_leaves := (R' ant).red.to_finset,
 
-    -- The set of leaves `R'_red_leaves` can be removed from `ant`.
+    -- The set of leaves `R'_red_leaves` is removable in `ant`.
     -- This means that these leaves are inactive
     -- and possibly active diverge nodes are not removed.
-    have s4: removable ant R'_red_leaves
-        := R'_red_removable
-     ant,
+    have s4: R'_red_leaves.removable_in ant 
+        := R'_red_removable ant,
     
     -- Since `removable` is monotonous and `ant` approximates inactive leaves on `gdt`,
-    -- `R'_red_leaves` can also be removed from `gdt`.
-    have: R'_red_leaves.removable (gdt.mark_inactive_leaves env)
-        := removable_monotonous _ s3 s4,
+    -- `R'_red_leaves` can also be removed from `gdt` (s5).
+    have s5: R'_red_leaves.removable_in (gdt.mark_inactive_leaves env)
+        := removable.monotonous _ s3 s4,
     
-    have: Gdt.eval_option (Gdt.remove_leaves R'_red_leaves gdt) env = gdt.eval env
-        := inactive_leaves_removable gdt gdt_disjoint env _ this,
+    -- Since `R'_red_leaves` is a removable set, it can be removed from `gdt` without
+    -- changing the semantics. Note that `R'_red_leaves` is independent of env.
+    have s6: Gdt.eval_option (Gdt.remove_leaves R'_red_leaves gdt) env = gdt.eval env
+        := removable_leaves_can_be_removed gdt gdt_disjoint env _ s5,
 
-    exact this,
+    -- This finishes the proof.
+    exact s6,
 end
