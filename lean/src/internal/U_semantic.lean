@@ -9,8 +9,10 @@ open GuardModule
 
 @[simp]
 theorem U_semantic { gdt: Gdt } { env: Env }:
-    (U gdt).eval env ↔ (gdt.eval env = Result.no_match) :=
+    (U gdt).eval env = !(gdt.eval env).is_match :=
 begin
+    rw ←bool.coe_bool_iff,
+    
     induction gdt with leaf generalizing env,
 
     case Gdt.leaf { finish, },

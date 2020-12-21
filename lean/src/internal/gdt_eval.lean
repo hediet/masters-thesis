@@ -1,6 +1,5 @@
 import tactic
 import ..definitions
-import .helper_defs
 
 variable [GuardModule]
 open GuardModule
@@ -53,3 +52,11 @@ lemma grd_eval_bang_not_bottom { var: Var } { tr: Gdt } { env: Env }
     (h: is_bottom var env = ff):
     (Gdt.grd (Grd.bang var) tr).eval env = tr.eval env :=
 by simp [Gdt.eval, h]
+
+@[simp]
+lemma grd_eval_bang_no_match { var: Var } { tr: Gdt } { env: Env }:
+    (Gdt.grd (Grd.bang var) tr).eval env = Result.no_match ↔ is_bottom var env = ff ∧ tr.eval env = Result.no_match :=
+begin
+    cases c: is_bottom var env;
+    simp [Gdt.eval, c],
+end

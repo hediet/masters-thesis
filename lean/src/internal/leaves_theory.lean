@@ -8,7 +8,7 @@ variable [GuardModule]
 open GuardModule
 
 @[simp]
-lemma map_leaves_id { α: Type } { β: Type } (ant: Ant α) (f: α → β): (ant.map f).leaves = ant.leaves :=
+lemma map_leaves_id { α β: Type } (ant: Ant α) (f: α → β): (ant.map f).leaves = ant.leaves :=
 begin
     induction ant;
     finish [Ant.leaves, Ant.map],

@@ -63,12 +63,19 @@ begin
 end
 
 
-def Ant.map { α : Type } { β : Type } : (α → β) → Ant α → Ant β
+def Ant.map { α β: Type } : (α → β) → Ant α → Ant β
 | f (Ant.leaf a leaf) := Ant.leaf (f a) leaf
 | f (Ant.branch tr1 tr2) := (Ant.branch (tr1.map f) (tr2.map f))
 | f (Ant.diverge a tr) := (Ant.diverge (f a) (tr.map f))
 
-def Ant.map_option { α : Type } { β : Type } : (α → β) → option (Ant α) → option (Ant β)
+lemma Ant.map.associative { α β γ: Type } (f: β → γ) (g: α → β) (ant: Ant α):
+    (ant.map g).map f = ant.map (f ∘ g) :=
+begin
+    induction ant;
+    finish,
+end
+
+def Ant.map_option { α β: Type } : (α → β) → option (Ant α) → option (Ant β)
 | f (some ant) := some (ant.map f)
 | f none := none
 
@@ -170,4 +177,57 @@ begin
     cases r_inacc;
     cases r_red;
     simp [h, R'._match_1],
+end
+
+def Ant.inactive_leaves :  Ant bool → finset Leaf
+| (Ant.leaf inactive n) := if inactive then { n } else ∅
+| (Ant.diverge inactive tr) := tr.inactive_leaves
+| (Ant.branch tr1 tr2) := tr1.inactive_leaves ∪ tr2.inactive_leaves
+
+lemma Ant.inactive_leaves_subset_leaves { a: Ant bool } : a.inactive_leaves ⊆ a.leaves :=
+begin
+    induction a,
+    cases a_a,
+    all_goals {
+        simp [Ant.inactive_leaves, Ant.leaves, finset.union_subset_union, *],
+    },
+end
+
+def Ant.critical_leaf_sets :  Ant bool → finset (finset Leaf)
+| (Ant.leaf inactive n) := ∅
+| (Ant.diverge inactive tr) := tr.critical_leaf_sets ∪ if inactive
+    then ∅
+    else { tr.leaves }
+| (Ant.branch tr1 tr2) := tr1.critical_leaf_sets ∪ tr2.critical_leaf_sets
+
+def removable (a: Ant bool) (leaves: finset Leaf) :=
+    leaves ∩ a.leaves ⊆ a.inactive_leaves
+    ∧ ∀ e ∈ a.critical_leaf_sets, ¬ e ⊆ leaves
+
+def Result.is_match : Result → bool
+| Result.no_match := ff
+| _ := tt
+
+@[simp]
+lemma Result.is_match_neq_no_match (r: Result): r.is_match ↔ r ≠ Result.no_match :=
+begin
+    cases r;
+    simp [Result.is_match],
+end
+
+@[simp]
+lemma Result.not_is_match_eq_no_match (r: Result): !r.is_match ↔ r = Result.no_match :=
+begin
+    cases r;
+    simp [Result.is_match],
+end
+
+@[simp]
+lemma is_empty_implies_eval_false { can_prove_empty: Gs } { ty: Φ} { env: Env} (h: can_prove_empty.val ty = tt): ty.eval env = ff :=
+begin
+    have := can_prove_empty.property,
+    unfold is_empty_prover at this,
+    unfold Φ.is_empty at this,
+    specialize this ty,
+    finish [is_empty_prover],
 end

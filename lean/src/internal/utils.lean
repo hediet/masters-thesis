@@ -10,6 +10,13 @@ begin
     finish,
 end
 
+lemma subset_right_union { α: Type } [decidable_eq α] { u v w: finset α } (h: u ⊆ v): u ⊆ v ∪ w :=
+begin
+    have : ∅ ⊆ w := by simp,
+    have := finset.union_subset_union h this,
+    finish [this],
+end
+
 lemma subset_union_right_subset { α: Type } [decidable_eq α] { u v w: finset α } (h: u ∪ v ⊆ w): u ⊆ w :=
 begin
     rw finset.subset_iff,
