@@ -125,7 +125,27 @@ begin
             },
         },
         case Grd.bang {
-            sorry,
+            unfold A Ant.map,
+            unfold Ant.mark_inactive_leaves Ant.map,
+            rw Ant.map.associative,
+            rw function.comp,
+            unfold Φ.eval,
+            --rw ←Ant.mark_inactive_leaves,
+            unfold Gdt.mark_inactive_leaves,
+
+            cases is_bottom gdt_grd env,
+            case bool.ff {
+                simp,
+                rw ←gdt_ih env,
+                simp [Ant.mark_inactive_leaves],
+            },
+            case bool.tt {
+                simp,
+                have := Gdt.mark_inactive_leaves_mark_all_leaves_inactive gdt_tr env,
+                rw ←gdt_ih env at this,
+                rw ←this,
+                simp [Ant.mark_inactive_leaves, Ant.map.associative],
+            },
         },
     },
 end
