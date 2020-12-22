@@ -42,7 +42,7 @@ begin
         case Grd.xgrd {
             ext env,
             simp [𝒰_acc, U],
-            rw acc_hom,
+            rw (acc_hom _ _).1,
             have : (𝒰_acc (acc ∘ Φ.xgrd_in gdt_grd) gdt_tr).eval = (acc (Φ.xgrd_in gdt_grd (U gdt_tr))).eval := begin
                 simp [←gdt_ih (stable_comp acc_stable (xgrd_in_stable _))
                     (comp_hom acc_hom acc_stable (xgrd_in_hom gdt_grd) (xgrd_in_stable gdt_grd))],
@@ -144,35 +144,33 @@ def Ant.leaves { α: Type }: Ant α → finset Leaf
 -- (accessible, inaccessible, redundant)
 structure LeafPartition := mk :: (acc : list Leaf) (inacc : list Leaf) (red : list Leaf)
 
-def R' : Ant bool → LeafPartition
+/-
+    This definition is much easier to use than ℛ, but almost equal to ℛ.
+    * Associativity of `Ant.map` can be utilized.
+    * LeafPartition is much easier to use than triples.
+    * Ant.branch has no match which would require a case distinction.
+    * This definition can handle any `Ant bool`.
+-/
+def R : Ant bool → LeafPartition
 | (Ant.leaf can_prove_empty n) := if can_prove_empty then ⟨ [], [], [n] ⟩ else ⟨ [n], [], [] ⟩
 | (Ant.diverge can_prove_empty tr) := 
-    match R' tr, can_prove_empty with
+    match R tr, can_prove_empty with
     | ⟨ [], [], m :: ms ⟩, ff := ⟨ [], [m], ms ⟩
     | r, _ := r
     end
 | (Ant.branch tr1 tr2) :=
-    let r1 := R' tr1, r2 := R' tr2 in
+    let r1 := R tr1, r2 := R tr2 in
         ⟨ r1.acc ++ r2.acc, r1.inacc ++ r2.inacc, r1.red ++ r2.red ⟩
-
-/-
-    This definition is much easier to use than ℛ, but equal to ℛ.
-    * Associativity of `Ant.map` can be utilized.
-    * LeafPartition is much easier to use than triples.
-    * Ant.branch has no match which would require a case distinction.
--/
--- TODO remove R and rename R' to R.
-def R (can_prove_empty: Φ → bool) (ant: Ant Φ): LeafPartition := R' (ant.map can_prove_empty)
 
 def to_triple (p: LeafPartition): (list Leaf × list Leaf × list Leaf) :=
     (p.acc, p.inacc, p.red)
 
-lemma R_eq_ℛ (can_prove_empty: Φ → bool) (ant: Ant Φ): to_triple (R can_prove_empty ant) = ℛ can_prove_empty ant :=
+lemma R_eq_ℛ (can_prove_empty: Φ → bool) (ant: Ant Φ): to_triple (R (ant.map can_prove_empty)) = ℛ can_prove_empty ant :=
 begin
     induction ant,
     case Ant.leaf {
         cases c: can_prove_empty ant_a;
-        simp [R, R', R'._match_1, ℛ, ℛ._match_1, Ant.map, ℛ._match_2, to_triple, c],
+        simp [R, R._match_1, ℛ, ℛ._match_1, Ant.map, ℛ._match_2, to_triple, c],
     },
     
     case Ant.branch {
@@ -185,7 +183,7 @@ begin
         cases ℛ can_prove_empty ant_tr2 with a2 ir2;
         cases ir2 with i2 r2;
 
-        simp [R, R', R'._match_1, ℛ, ℛ._match_1, Ant.map, ℛ._match_2, to_triple],
+        simp [R, R._match_1, ℛ, ℛ._match_1, Ant.map, ℛ._match_2, to_triple],
     },
 
     case Ant.diverge {
@@ -193,37 +191,37 @@ begin
         rw ←ant_ih,
 
         cases c1: can_prove_empty ant_a;
-        cases c: (R' (Ant.map can_prove_empty ant_tr));
+        cases c: (R (Ant.map can_prove_empty ant_tr));
         cases acc;
         cases inacc;
         cases red;
-        simp [R, R', R'._match_1, ℛ, ℛ._match_1, Ant.map, ℛ._match_2, to_triple, c1, c],
+        simp [R, R._match_1, ℛ, ℛ._match_1, Ant.map, ℛ._match_2, to_triple, c1, c],
     },
 end
 
 @[simp]
-lemma R'_empty (tr: Ant bool) : R' (Ant.diverge tt tr) = R' tr :=
+lemma R_empty (tr: Ant bool) : R (Ant.diverge tt tr) = R tr :=
 begin
-    cases c1: R' tr,
+    cases c1: R tr,
     cases c2: acc;
     cases c3: inacc;
     cases c4: red;
-    simp [R', R'._match_1, c1, c2, c3, c4],
+    simp [R, R._match_1, c1, c2, c3, c4],
 end
 
 def R_diverge { ant: Ant bool } { r: LeafPartition } (a: bool)
-    (h: R' ant = r):
-    (∃ rh: Leaf, ∃ rs: list Leaf, a = ff ∧ r = ⟨ [], [], rh::rs ⟩ ∧ R' (Ant.diverge a ant) = ⟨ [], [rh], rs ⟩)
-    ∨ ((a = tt ∨ r.acc ≠ [] ∨ r.inacc ≠ [] ∨ r.red = []) ∧ R' (Ant.diverge a ant) = r) :=
+    (h: R ant = r):
+    (∃ rh: Leaf, ∃ rs: list Leaf, a = ff ∧ r = ⟨ [], [], rh::rs ⟩ ∧ R (Ant.diverge a ant) = ⟨ [], [rh], rs ⟩)
+    ∨ ((a = tt ∨ r.acc ≠ [] ∨ r.inacc ≠ [] ∨ r.red = []) ∧ R (Ant.diverge a ant) = r) :=
 begin
-    unfold R' Ant.map,
+    unfold R Ant.map,
     
     cases a;
     cases r;
     cases r_acc;
     cases r_inacc;
     cases r_red;
-    simp [h, R'._match_1],
+    simp [h, R._match_1],
 end
 
 def Ant.inactive_leaves :  Ant bool → finset Leaf
