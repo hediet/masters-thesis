@@ -130,7 +130,7 @@ begin
     },
 end
 
-lemma removable.monotonous' { a b: Ant bool } (h: a ⇒ b): 
+lemma redundant_in.monotonous' { a b: Ant bool } (h: a ⇒ b): 
         a.inactive_leaves ⊆ b.inactive_leaves ∧ b.critical_leaf_sets ⊆ a.critical_leaf_sets :=
 begin
     induction a generalizing b;
@@ -162,11 +162,11 @@ begin
     },
 end
 
-lemma removable.monotonous { a b: Ant bool } (leaves: finset Leaf) (h: a ⇒ b):
-    leaves.removable_in a → leaves.removable_in b :=
+lemma redundant_in.monotonous { a b: Ant bool } (leaves: finset Leaf) (h: a ⇒ b):
+    leaves.redundant_in a → leaves.redundant_in b :=
 begin
-    unfold finset.removable_in,
-    have := removable.monotonous' h,
+    unfold finset.redundant_in,
+    have := redundant_in.monotonous' h,
     assume p,
     split,
     {
@@ -178,21 +178,21 @@ begin
     exact p.right e (this.2 q),
 end
 
-lemma R_red_removable (ant: Ant bool)
+lemma R_red_redundant (ant: Ant bool)
     --(ant_disjoint: ant.disjoint_leaves)
-    : (R ant).red.to_finset.removable_in ant :=
+    : (R ant).red.to_finset.redundant_in ant :=
 begin
     induction ant,
 
     case Ant.leaf {
-        unfold finset.removable_in R,
+        unfold finset.redundant_in R,
         cases ant_a;
         simp [Ant.critical_leaf_sets, Ant.inactive_leaves, Ant.leaves],
     },
     case Ant.branch {
-        unfold finset.removable_in R,
-        unfold finset.removable_in R at ant_ih_tr1,
-        unfold finset.removable_in R at ant_ih_tr2,
+        unfold finset.redundant_in R,
+        unfold finset.redundant_in R at ant_ih_tr1,
+        unfold finset.redundant_in R at ant_ih_tr2,
         unfold LeafPartition.red,
         split, {
             simp [Ant.inactive_leaves, finset.union_subset_union ant_ih_tr1.1 ant_ih_tr2.1, Ant.leaves],
@@ -207,8 +207,8 @@ begin
         sorry,
     },
     case Ant.diverge {
-        unfold finset.removable_in,
-        unfold finset.removable_in at ant_ih,
+        unfold finset.redundant_in,
+        unfold finset.redundant_in at ant_ih,
 
         split, {
             cases R_diverge ant_a (refl (R ant_tr)) with d d,
@@ -254,7 +254,7 @@ begin
     },
 end
 
-theorem redundant_leaves_removable
+theorem R_red_removable
     (can_prove_empty: Gs)
     (gdt: Gdt) (gdt_disjoint: gdt.disjoint_leaves):
     Gdt.eval_option (gdt.remove_leaves ((R $ (A gdt).map can_prove_empty.val).red.to_finset)) = gdt.eval :=
@@ -280,21 +280,21 @@ begin
     -- `R_red_leaves` is the set we want to remove.
     let R_red_leaves := (R ant).red.to_finset,
 
-    -- The set of leaves `R_red_leaves` is removable in `ant`.
+    -- The set of leaves `R_red_leaves` is redundant in `ant`.
     -- This means that these leaves are inactive
     -- and possibly active diverge nodes are not removed.
-    have s4: R_red_leaves.removable_in ant 
-        := R_red_removable ant,
+    have s4: R_red_leaves.redundant_in ant 
+        := R_red_redundant ant,
     
-    -- Since `removable` is monotonous and `ant` approximates inactive leaves on `gdt`,
+    -- Since `redundant` is monotonous and `ant` approximates inactive leaves on `gdt`,
     -- `R_red_leaves` can also be removed from `gdt` (s5).
-    have s5: R_red_leaves.removable_in (gdt.mark_inactive_leaves env)
-        := removable.monotonous _ s3 s4,
+    have s5: R_red_leaves.redundant_in (gdt.mark_inactive_leaves env)
+        := redundant_in.monotonous _ s3 s4,
     
-    -- Since `R_red_leaves` is a removable set, it can be removed from `gdt` without
+    -- Since `R_red_leaves` is a redundant set, it can be removed from `gdt` without
     -- changing the semantics. Note that `R_red_leaves` is independent of env.
     have s6: Gdt.eval_option (Gdt.remove_leaves R_red_leaves gdt) env = gdt.eval env
-        := removable_leaves_can_be_removed gdt gdt_disjoint env _ s5,
+        := redundant_leaves_removable gdt gdt_disjoint env _ s5,
 
     -- This finishes the proof.
     exact s6,

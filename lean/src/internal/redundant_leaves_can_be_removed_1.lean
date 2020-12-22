@@ -6,7 +6,7 @@ import data.finset
 variable [GuardModule]
 open GuardModule
 
-lemma redundant_leaves_can_be_removed'
+lemma redundant_leaves_removable'
     (can_prove_empty: Gs)
     (gdt: Gdt) (gdt_disjoint: gdt.disjoint_leaves)
     -- We only focus on a very particular environment `env`.
@@ -22,7 +22,7 @@ begin
 end
 
 
-lemma redundant_leaves_can_be_removed
+lemma redundant_leaves_removable
     (is_empty: Gs)
     (gdt: Gdt) (gdt_disjoint: gdt.disjoint_leaves):
     Gdt.eval_option (gdt.remove_leaves ((R $ (A gdt).map is_empty.val).red.to_finset)) = gdt.eval :=
@@ -34,7 +34,7 @@ begin
         simp [r_def],
     },
 
-    exact redundant_leaves_can_be_removed' is_empty gdt gdt_disjoint env env  (A gdt)
+    exact redundant_leaves_removable' is_empty gdt gdt_disjoint env env  (A gdt)
         (refl ((A gdt).eval_leaves env)) r r_def ((R $ (A gdt).map is_empty.val).red.to_finset) this,
 end
     

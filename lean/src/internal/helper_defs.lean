@@ -245,7 +245,7 @@ def Ant.critical_leaf_sets :  Ant bool → finset (finset Leaf)
     else { tr.leaves }
 | (Ant.branch tr1 tr2) := tr1.critical_leaf_sets ∪ tr2.critical_leaf_sets
 
-def finset.removable_in (a: Ant bool) (leaves: finset Leaf) :=
+def finset.redundant_in (a: Ant bool) (leaves: finset Leaf) :=
     leaves ∩ a.leaves ⊆ a.inactive_leaves
     ∧ ∀ e ∈ a.critical_leaf_sets, ¬ e ⊆ leaves
 
