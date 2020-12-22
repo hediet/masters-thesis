@@ -198,8 +198,48 @@ begin
     exact p.right e (this.2 q),
 end
 
+lemma R_red_subset_leaves { ant: Ant bool }: (R ant).red.to_finset ⊆ ant.leaves :=
+begin
+    induction ant,
+    case Ant.leaf {
+        cases ant_a;
+        simp [R, Ant.leaves],
+    },
+    case Ant.branch {
+        simp [R, Ant.leaves, finset.union_subset_union, *],
+    },
+    case Ant.diverge {
+        cases R_diverge_cases ant_tr ant_a, {
+            rw h_R,
+            rw h_R_ant at ant_ih,
+            unfold LeafPartition.red at ant_ih,
+            rw list.to_finset_cons at ant_ih,
+            simp [Ant.leaves, finset.insert_subset.1 ant_ih],
+        }, {
+            simp [*, Ant.leaves],
+        },
+    },
+end
+
+lemma subset_inter_subset { α: Type } [decidable_eq α] { s1 s2 s3: finset α }: s1 ⊆ s3 → s1 ∩ s2 ⊆ s3 :=
+begin
+    refine finset.subset.trans _,
+    exact finset.inter_subset_left s1 s2,
+end
+
+lemma subset_inter_subset_subset { α: Type } [decidable_eq α] { s1 s2 s3: finset α } (h: s1 ⊆ s2): s1 ∩ s2 ⊆ s3 ↔ s1 ⊆ s3 :=
+begin
+    split, {
+        refine finset.subset.trans _,
+        refine finset.subset_inter _ h,
+        exact finset.subset.refl s1,
+    }, {
+        exact subset_inter_subset,
+    },
+end
+
 lemma R_red_redundant (ant: Ant bool)
-    --(ant_disjoint: ant.disjoint_leaves)
+    (ant_disjoint: ant.disjoint_leaves)
     : (R ant).red.to_finset.redundant_in ant :=
 begin
     induction ant,
@@ -210,13 +250,22 @@ begin
         simp [Ant.critical_leaf_sets, Ant.inactive_leaves, Ant.leaves],
     },
     case Ant.branch {
+        unfold Ant.disjoint_leaves at ant_disjoint,
+        specialize ant_ih_tr1 ant_disjoint.1,
+        specialize ant_ih_tr2 ant_disjoint.2.1,
+
         unfold finset.redundant_in R,
         unfold finset.redundant_in R at ant_ih_tr1,
         unfold finset.redundant_in R at ant_ih_tr2,
         unfold LeafPartition.red,
         split, {
             simp [Ant.inactive_leaves, finset.union_subset_union ant_ih_tr1.1 ant_ih_tr2.1, Ant.leaves],
-            sorry,
+            replace ant_ih_tr1 := ant_ih_tr1.1,
+            replace ant_ih_tr2 := ant_ih_tr2.1,
+            rw subset_inter_subset_subset R_red_subset_leaves at ant_ih_tr1,
+            rw subset_inter_subset_subset R_red_subset_leaves at ant_ih_tr2,
+            apply subset_inter_subset,
+            exact finset.union_subset_union ant_ih_tr1 ant_ih_tr2,
         },
 
         assume e,
@@ -224,6 +273,8 @@ begin
         rw Ant.critical_leaf_sets at h,
         
         simp,
+        replace ant_ih_tr1 := ant_ih_tr1.2,
+        replace ant_ih_tr2 := ant_ih_tr2.2,
         sorry,
     },
     case Ant.diverge {
@@ -297,23 +348,23 @@ begin
     have s3: ant ⇒ gdt.mark_inactive_leaves env
         := eq.subst s2 s1,
 
-    -- `R_red_leaves` is the set we want to remove.
-    let R_red_leaves := (R ant).red.to_finset,
+    -- `R_red` is the set we want to remove.
+    let R_red := (R ant).red.to_finset,
 
-    -- The set of leaves `R_red_leaves` is redundant in `ant`.
+    -- The set of leaves `R_red` is redundant in `ant`.
     -- This means that these leaves are inactive
     -- and possibly active diverge nodes are not removed.
-    have s4: R_red_leaves.redundant_in ant 
+    have s4: R_red.redundant_in ant 
         := R_red_redundant ant,
     
     -- Since `redundant` is monotonous and `ant` approximates inactive leaves on `gdt`,
-    -- `R_red_leaves` can also be removed from `gdt` (s5).
-    have s5: R_red_leaves.redundant_in (gdt.mark_inactive_leaves env)
+    -- `R_red` can also be removed from `gdt` (s5).
+    have s5: R_red.redundant_in (gdt.mark_inactive_leaves env)
         := redundant_in.monotonous _ s3 s4,
     
-    -- Since `R_red_leaves` is a redundant set, it can be removed from `gdt` without
-    -- changing the semantics. Note that `R_red_leaves` is independent of env.
-    have s6: Gdt.eval_option (Gdt.remove_leaves R_red_leaves gdt) env = gdt.eval env
+    -- Since `R_red` is a redundant set, it can be removed from `gdt` without
+    -- changing the semantics. Note that `R_red` is independent of env.
+    have s6: Gdt.eval_option (Gdt.remove_leaves R_red gdt) env = gdt.eval env
         := redundant_leaves_removable gdt gdt_disjoint env _ s5,
 
     -- This finishes the proof.

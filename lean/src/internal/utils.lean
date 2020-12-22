@@ -42,12 +42,3 @@ end
 lemma subset_subset_insert { α: Type } [decidable_eq α] { u v: finset α } (h: u ⊆ v) (a: α) : u ⊆ insert a v :=
     finset.subset.trans h (finset.subset_insert a v)
 
-lemma sublist_subset { α: Type } [decidable_eq α] { u v: list α } (h: u <+ v): u.to_finset ⊆ v.to_finset :=
-begin
-    replace h := list.sublist.subset h,
-    rw finset.subset_iff,
-    assume x,
-    assume h',
-    replace h' := list.mem_to_finset.mp h',
-    exact list.mem_to_finset.mpr (h h'),
-end

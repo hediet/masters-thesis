@@ -140,6 +140,10 @@ def Ant.leaves { α: Type }: Ant α → finset Leaf
 | (Ant.branch tr1 tr2) := Ant.leaves tr1 ∪ Ant.leaves tr2
 | (Ant.diverge a tr) := Ant.leaves tr
 
+def Ant.disjoint_leaves { α: Type } : Ant α → Prop
+| (Ant.leaf _ leaf) := true
+| (Ant.branch tr1 tr2) := tr1.disjoint_leaves ∧ tr2.disjoint_leaves ∧ disjoint tr1.leaves tr2.leaves
+| (Ant.diverge _ tr) := tr.disjoint_leaves
 
 -- (accessible, inaccessible, redundant)
 structure LeafPartition := mk :: (acc : list Leaf) (inacc : list Leaf) (red : list Leaf)
@@ -207,6 +211,24 @@ begin
     cases c3: inacc;
     cases c4: red;
     simp [R, R._match_1, c1, c2, c3, c4],
+end
+
+inductive R_diverge_case (ant: Ant bool) (a: bool)
+| case1 (rh: Leaf) (rs: list Leaf) (h_a: a = ff)
+    (h_R_ant: R ant = ⟨ [], [], rh::rs ⟩)
+    (h_R: R (Ant.diverge a ant) = ⟨ [], [rh], rs ⟩): R_diverge_case
+| case2 (h: a = tt ∨ (R ant).acc ≠ [] ∨ (R ant).inacc ≠ [] ∨ (R ant).red = [])
+    (h_R: R (Ant.diverge a ant) = R ant): R_diverge_case
+
+def foo {α : Type} {C : Ant α → Sort} (n : Ant α):
+  (Π (a : α) (leaf : Leaf), C (Ant.leaf a leaf)) →
+  (Π (a : α) (tr : Ant α), C tr → C (Ant.diverge a tr)) → C n := begin
+    sorry
+end
+
+def R_diverge_cases (ant: Ant bool) (a: bool): a := --R_diverge_case ant a :=
+begin
+    sorry,
 end
 
 def R_diverge { ant: Ant bool } { r: LeafPartition } (a: bool)
