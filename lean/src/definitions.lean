@@ -154,9 +154,9 @@ inductive Ant (α: Type)
 
 def 𝒜_acc : (Φ → Φ) → Gdt → Ant Φ
 | acc (Gdt.leaf leaf) := Ant.leaf (acc Φ.true) leaf
-| acc (Gdt.branch tr1 tr2) := Ant.branch (𝒜_acc acc tr1) (𝒜_acc (𝒰_acc acc tr1).and tr2)
+| acc (Gdt.branch tr1 tr2) := Ant.branch (𝒜_acc acc tr1) (𝒜_acc ((𝒰_acc acc tr1).and ∘ acc) tr2)
 | acc (Gdt.grd (Grd.bang var) tr) := Ant.diverge (acc (Φ.var_is_bottom var)) 
-                                        (𝒜_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr)
+                                        (𝒜_acc (acc ∘ ((Φ.var_is_not_bottom var).and)) tr)
 | acc (Gdt.grd (Grd.xgrd grd) tr) := (𝒜_acc (acc ∘ (Φ.xgrd_in grd)) tr)
 
 def 𝒜 : Gdt → Ant Φ := 𝒜_acc id

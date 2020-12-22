@@ -88,6 +88,53 @@ def A : Gdt → Ant Φ
 | (Gdt.grd (Grd.bang var) tr) := Ant.diverge (Φ.var_is_bottom var) $ (A tr).map ((Φ.var_is_not_bottom var).and)
 | (Gdt.grd (Grd.xgrd grd) tr) := (A tr).map (Φ.xgrd_in grd)
 
+def A_eq_𝒜 { gdt: Gdt } { acc: Φ → Φ } (acc_stable: stable acc) (acc_hom: homomorphic acc):
+    ((A gdt).map acc).eval_leaves = (𝒜_acc acc gdt).eval_leaves :=
+begin
+    ext env,
+    induction gdt generalizing acc env,
+    case Gdt.leaf { simp [A, Ant.map, 𝒜_acc], },
+    case Gdt.branch {
+        unfold 𝒜_acc,
+        unfold Ant.eval_leaves,
+        unfold Ant.map,
+        rw ←Ant.eval_leaves,
+        rw ←Ant.eval_leaves,
+        rw ←Ant.eval_leaves,
+        
+        specialize gdt_ih_tr1 env acc_stable acc_hom,
+        rw ←gdt_ih_tr1,
+        
+        specialize @gdt_ih_tr2 ((𝒰_acc acc gdt_tr1).and ∘ acc) env
+            (stable_comp and_right_stable acc_stable)
+            (comp_hom and_right_hom and_right_stable acc_hom acc_stable),
+        rw ←gdt_ih_tr2,
+
+        simp [Ant.map, A, Ant.eval_leaves, Ant.map.associative, function.comp, Φ.eval, (acc_hom _ _).2, U_eq_𝒰_acc acc_stable acc_hom],
+    },
+    case Gdt.grd {
+        cases gdt_grd,        
+        case Grd.xgrd {
+            unfold A 𝒜_acc Ant.map,
+            specialize @gdt_ih (acc ∘ Φ.xgrd_in gdt_grd) env
+                (stable_comp acc_stable (xgrd_in_stable gdt_grd))
+                (comp_hom acc_hom acc_stable (xgrd_in_hom gdt_grd) (xgrd_in_stable gdt_grd)),
+            rw ←gdt_ih,
+            rw Ant.map.associative,
+        },
+        case Grd.bang {
+            unfold A 𝒜_acc Ant.map Ant.eval_leaves,
+            rw ←Ant.eval_leaves,
+            rw ←Ant.eval_leaves,
+            specialize @gdt_ih (acc ∘ (Φ.var_is_not_bottom gdt_grd).and) env
+                (stable_comp acc_stable and_right_stable)
+                (comp_hom acc_hom acc_stable and_right_hom and_right_stable),
+            rw ←gdt_ih,
+            rw Ant.map.associative,
+        },
+    },
+end
+
 def Ant.leaves { α: Type }: Ant α → finset Leaf
 | (Ant.leaf a leaf) := { leaf }
 | (Ant.branch tr1 tr2) := Ant.leaves tr1 ∪ Ant.leaves tr2
@@ -150,7 +197,6 @@ begin
         cases acc;
         cases inacc;
         cases red;
-
         simp [R, R', R'._match_1, ℛ, ℛ._match_1, Ant.map, ℛ._match_2, to_triple, c1, c],
     },
 end
