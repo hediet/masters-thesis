@@ -1,5 +1,6 @@
 import tactic
 import ..definitions
+import .helper_defs
 
 variable [GuardModule]
 open GuardModule
@@ -13,7 +14,7 @@ begin
 end
 
 @[simp]
-lemma gdt_eval_branch_right_no_match { gdt1: Gdt } { gdt2: Gdt } { env: Env } (h: gdt2.eval env = Result.no_match):
+lemma gdt_eval_branch_left_match { gdt1: Gdt } { gdt2: Gdt } { env: Env } (h: gdt1.eval env ≠ Result.no_match):
     (Gdt.branch gdt1 gdt2).eval env = gdt1.eval env :=
 begin
     cases c: gdt1.eval env;
@@ -21,8 +22,59 @@ begin
 end
 
 @[simp]
+lemma gdt_eval_branch_right_no_match { gdt1: Gdt } { gdt2: Gdt } { env: Env } (h: gdt2.eval env = Result.no_match):
+    (Gdt.branch gdt1 gdt2).eval env = gdt1.eval env :=
+begin
+    cases c: gdt1.eval env;
+    finish [Gdt.eval],
+end
+
+lemma gdt_eval_branch_right_no_match2 { gdt1: Gdt } { gdt2: Gdt } { env: Env } (h: gdt1.eval env ≠ Result.no_match ∨ gdt2.eval env = Result.no_match):
+    (Gdt.branch gdt1 gdt2).eval env = gdt1.eval env :=
+begin
+    cases c: gdt1.eval env;
+    finish [Gdt.eval],
+end
+
+lemma Gdt.branch_replace_right_env { gdt₁ gdt₂ gdt₂': Gdt } { env: Env }
+    (h: gdt₂.eval env = gdt₂'.eval env ∨ gdt₁.eval env ≠ Result.no_match):
+    (gdt₁.branch gdt₂).eval env = (gdt₁.branch gdt₂').eval env :=
+by by_cases x: gdt₁.eval env = Result.no_match; finish [gdt_eval_branch_left_match, gdt_eval_branch_left_no_match, x]
+
+@[simp]
 lemma gdt_eval_branch_no_match { gdt1: Gdt } { gdt2: Gdt } { env: Env }:
     (Gdt.branch gdt1 gdt2).eval env = Result.no_match ↔ gdt1.eval env = Result.no_match ∧ gdt2.eval env = Result.no_match :=
+begin
+    cases c1: gdt1.eval env;
+    cases c2: gdt2.eval env;
+    finish [Gdt.eval, Gdt.eval._match_2,  Gdt.eval._match_1],
+end
+
+@[simp]
+lemma Gdt.eval_branch_match { gdt1: Gdt } { gdt2: Gdt } { env: Env } { leaf: Leaf } (h: (Gdt.branch gdt1 gdt2).eval env = Result.leaf leaf):
+    gdt1.eval env = Result.leaf leaf ∨ gdt2.eval env = Result.leaf leaf :=
+begin
+    cases c1: gdt1.eval env;
+    cases c2: gdt2.eval env;
+    finish [Gdt.eval, Gdt.eval._match_2,  Gdt.eval._match_1],
+end
+
+@[simp]
+lemma Gdt.eval_branch_diverge { gdt1: Gdt } { gdt2: Gdt } { env: Env }:
+    (Gdt.branch gdt1 gdt2).eval env = Result.diverged
+    ↔ gdt1.eval env = Result.diverged
+        ∨ (gdt1.eval env = Result.no_match ∧ gdt2.eval env = Result.diverged) :=
+begin
+    cases c1: gdt1.eval env;
+    cases c2: gdt2.eval env;
+    finish [Gdt.eval, Gdt.eval._match_2,  Gdt.eval._match_1],
+end
+
+@[simp]
+lemma Gdt.eval_branch_match_2 { gdt1: Gdt } { gdt2: Gdt } { env: Env } { leaf: Leaf }:
+    (Gdt.branch gdt1 gdt2).eval env = Result.leaf leaf
+    ↔ gdt1.eval env = Result.leaf leaf
+        ∨ (gdt1.eval env = Result.no_match ∧ gdt2.eval env = Result.leaf leaf) :=
 begin
     cases c1: gdt1.eval env;
     cases c2: gdt2.eval env;

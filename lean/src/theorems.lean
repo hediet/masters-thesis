@@ -13,18 +13,19 @@ begin
     simp [U_semantic],
 end
 
-theorem ℛ_semantic : ∀ is_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leaves → 
+theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leaves → 
     (
-        let ⟨ a, i, r ⟩ := ℛ is_empty.val (𝒜 gdt)
+        let ⟨ a, i, r ⟩ := ℛ can_prove_empty.val (𝒜 gdt)
         in
-                -- Redundant leaves can be removed without changing semantics.
-                Gdt.eval_option (gdt.remove_leaves r.to_finset)
-                = gdt.eval
-            ∧ 
                 -- Reachable leaves are accessible and neither inaccessible nor redundant.
                 ∀ env: Env, ∀ leaf: Leaf,
                     gdt.eval env = Result.leaf leaf
-                      → leaf ∈ a \ i \ r
+                      → leaf ∈ a \ (i ++ r)
+            ∧
+                -- Redundant leaves can be removed without changing semantics.
+                Gdt.eval_option (gdt.remove_leaves r.to_finset)
+                = gdt.eval
+
         : Prop
     )
     :=

@@ -18,16 +18,37 @@ inductive Ant.implies: Ant bool → Ant bool → Prop
 | diverge { a b: bool } { a_tr b_tr } (h1: Ant.implies a_tr b_tr) (h2: a → b):
     Ant.implies (Ant.diverge a a_tr) (Ant.diverge b b_tr)
 
-notation a ⇒ b := Ant.implies a b
+infix `⟶`: 50 := Ant.implies
 
-def Ant.implies_equal_structure { a b: Ant bool } (h: a ⇒ b):
+@[trans] theorem Ant.implies.trans (a b c : Ant bool) (h1: a ⟶ b) (h2: b ⟶ c): a ⟶ c :=
+begin
+    induction h1 generalizing c;
+    cases h2,
+    {
+        refine Ant.implies.leaf _,
+        finish,
+    }, {
+        refine Ant.implies.branch _ _,
+        finish,
+        finish,
+    }, {
+        refine Ant.implies.diverge _ _,
+        finish,
+        finish,
+    }
+end
+
+@[refl] theorem Ant.implies.refl (a : Ant bool) : a ⟶ a :=
+by induction a; simp [Ant.implies.leaf, Ant.implies.branch, Ant.implies.diverge, *]
+
+def Ant.implies_equal_structure { a b: Ant bool } (h: a ⟶ b):
     a.map (λ x, false) = b.map (λ x, false) :=
 begin
     induction h;
     simp [Ant.map, *],
 end
 
-def Ant.implies_same_leaves { a b: Ant bool } (h: a ⇒ b): a.leaves = b.leaves :=
+def Ant.implies_same_leaves { a b: Ant bool } (h: a ⟶ b): a.leaves = b.leaves :=
 begin
     have := congr_arg Ant.leaves (Ant.implies_equal_structure h),
     finish [map_leaves_id],

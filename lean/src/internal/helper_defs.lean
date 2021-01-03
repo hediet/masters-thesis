@@ -213,25 +213,7 @@ begin
     simp [R, R._match_1, c1, c2, c3, c4],
 end
 
-inductive R_diverge_case (ant: Ant bool) (a: bool)
-| case1 (rh: Leaf) (rs: list Leaf) (h_a: a = ff)
-    (h_R_ant: R ant = ⟨ [], [], rh::rs ⟩)
-    (h_R: R (Ant.diverge a ant) = ⟨ [], [rh], rs ⟩): R_diverge_case
-| case2 (h: a = tt ∨ (R ant).acc ≠ [] ∨ (R ant).inacc ≠ [] ∨ (R ant).red = [])
-    (h_R: R (Ant.diverge a ant) = R ant): R_diverge_case
-
-def foo {α : Type} {C : Ant α → Sort} (n : Ant α):
-  (Π (a : α) (leaf : Leaf), C (Ant.leaf a leaf)) →
-  (Π (a : α) (tr : Ant α), C tr → C (Ant.diverge a tr)) → C n := begin
-    sorry
-end
-
-def R_diverge_cases (ant: Ant bool) (a: bool): a := --R_diverge_case ant a :=
-begin
-    sorry,
-end
-
-def R_diverge { ant: Ant bool } { r: LeafPartition } (a: bool)
+lemma R_diverge { ant: Ant bool } { r: LeafPartition } (a: bool)
     (h: R ant = r):
     (∃ rh: Leaf, ∃ rs: list Leaf, a = ff ∧ r = ⟨ [], [], rh::rs ⟩ ∧ R (Ant.diverge a ant) = ⟨ [], [rh], rs ⟩)
     ∨ ((a = tt ∨ r.acc ≠ [] ∨ r.inacc ≠ [] ∨ r.red = []) ∧ R (Ant.diverge a ant) = r) :=
@@ -246,7 +228,27 @@ begin
     simp [h, R._match_1],
 end
 
-def Ant.inactive_leaves :  Ant bool → finset Leaf
+inductive R_diverge_case (ant: Ant bool) (a: bool) : Prop
+| case1 (rh: Leaf) (rs: list Leaf) (h_a: a = ff)
+    (h_R_ant: R ant = ⟨ [], [], rh::rs ⟩)
+    (h_R: R (Ant.diverge a ant) = ⟨ [], [rh], rs ⟩): R_diverge_case
+| case2 (h: a = tt ∨ (R ant).acc ≠ [] ∨ (R ant).inacc ≠ [] ∨ (R ant).red = [])
+    (h_R: R (Ant.diverge a ant) = R ant): R_diverge_case
+
+def R_diverge_cases (ant: Ant bool) (a: bool): (R_diverge_case ant a) :=
+begin
+    set r := R ant with d,
+    have x := R_diverge a d,
+    cases x, {
+        cases x with rh x,
+        cases x with rs x,
+        exact R_diverge_case.case1 rh rs x.1 x.2.1 x.2.2,
+    }, {
+        exact R_diverge_case.case2 x.1 x.2,
+    }
+end
+
+def Ant.inactive_leaves : Ant bool → finset Leaf
 | (Ant.leaf inactive n) := if inactive then { n } else ∅
 | (Ant.diverge inactive tr) := tr.inactive_leaves
 | (Ant.branch tr1 tr2) := tr1.inactive_leaves ∪ tr2.inactive_leaves
@@ -274,6 +276,20 @@ def finset.redundant_in (a: Ant bool) (leaves: finset Leaf) :=
 def Result.is_match : Result → bool
 | Result.no_match := ff
 | _ := tt
+
+@[simp]
+lemma Result.is_match_tt_neq_no_match (r: Result): r.is_match = tt ↔ r ≠ Result.no_match :=
+begin
+    cases r;
+    simp [Result.is_match],
+end
+
+@[simp]
+lemma Result.is_match_ff_neq_no_match (r: Result): r.is_match = ff ↔ r = Result.no_match :=
+begin
+    cases r;
+    simp [Result.is_match],
+end
 
 @[simp]
 lemma Result.is_match_neq_no_match (r: Result): r.is_match ↔ r ≠ Result.no_match :=
