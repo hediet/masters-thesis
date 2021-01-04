@@ -9,6 +9,7 @@ import ..leaves_theory
 import .ant_implies
 import .inactive
 import ..U_semantic
+import tactic.slim_check
 
 variable [GuardModule]
 open GuardModule
@@ -17,14 +18,21 @@ open GuardModule
 def Ant.mark_inactive_leaves (ant: Ant Φ) (env: Env) := ant.map (λ ty, !(ty.eval env))
 
 @[simp]
-lemma Ant.mark_inactive_leaves.branch (ant1 ant2: Ant Φ) (env) :
+lemma Ant.mark_inactive_leaves.branch (ant1 ant2: Ant Φ) (env: Env):
     (ant1.branch ant2).mark_inactive_leaves env = (ant1.mark_inactive_leaves env).branch (ant2.mark_inactive_leaves env) :=
-by simp [Ant.map, Ant.mark_inactive_leaves]
+by simp only [Ant.map, Ant.mark_inactive_leaves, eq_self_iff_true, and_self]
 
 @[simp]
-lemma Ant.mark_inactive_leaves.diverge (a) (ant: Ant Φ) (env) :
+lemma Ant.mark_inactive_leaves.diverge (a) (ant: Ant Φ) (env: Env):
     (Ant.diverge a ant).mark_inactive_leaves env = Ant.diverge (!(a.eval env)) (ant.mark_inactive_leaves env) :=
-by simp [Ant.map, Ant.mark_inactive_leaves]
+by simp only [Ant.map, Ant.mark_inactive_leaves, eq_self_iff_true, and_self]
+
+lemma Ant.mark_inactive_leaves_map_not_eq_of_eval_leaves (ant: Ant Φ) (env: Env): (ant.mark_inactive_leaves env) = (ant.eval_leaves env).map (λ a, !a) :=
+by simp only [Ant.mark_inactive_leaves, Ant.eval_leaves, Ant.map.associative, function.comp, bnot_bnot]
+
+lemma Ant.mark_inactive_leaves_eq_of_eval_leaves_eq { ant1 ant2: Ant Φ } (h: ant1.eval_leaves = ant2.eval_leaves):
+    ant1.mark_inactive_leaves = ant2.mark_inactive_leaves :=
+by ext env; simp [Ant.mark_inactive_leaves_map_not_eq_of_eval_leaves, h]
 
 lemma can_prove_empty_implies_inactive (can_prove_empty: Gs) (ant: Ant Φ) (env: Env):
     (ant.map (can_prove_empty.val)) ⟶ (ant.mark_inactive_leaves env) :=
@@ -353,6 +361,13 @@ begin
     simp [list.not_mem_of_nodup_cons this],
 end
 
+lemma R_acc_no_dup { ant: Ant bool } (ant_disjoint: ant.disjoint_leaves): (R ant).acc.nodup :=
+begin
+    have d := (R_red_partition ant_disjoint).2,
+    rw list.append_assoc at d,
+    exact list.nodup_of_nodup_append_left d,
+end
+
 lemma R_acc_l_not_mem { ant: Ant bool } (ant_disjoint: ant.disjoint_leaves) { l: Leaf } { ls: list Leaf } (h: (R ant).acc = l::ls):
     l ∉ (R ant).red.to_finset :=
 begin
@@ -475,14 +490,15 @@ end
 lemma Ant.disjoint_leaves_of_map { α β: Type } { f: α → β } { ant: Ant α }: (ant.map f).disjoint_leaves ↔ ant.disjoint_leaves :=
 by induction ant; { simp [Ant.map, Ant.disjoint_leaves, *], }
 
+@[simp]
+lemma Ant.disjoint_leaves_of_mark_inactive_leaves { ant: Ant Φ } { env: Env }:
+    (ant.mark_inactive_leaves env).disjoint_leaves ↔ ant.disjoint_leaves :=
+by simp [Ant.mark_inactive_leaves]
+
 lemma Ant.disjoint_leaves_of_mark_inactive_leaves_eq { ant1 ant2: Ant Φ } { env: Env } (h: ant1.mark_inactive_leaves env = ant2.mark_inactive_leaves env):
     ant1.disjoint_leaves ↔ ant2.disjoint_leaves :=
 begin
-    unfold Ant.mark_inactive_leaves at h,
-    have : (Ant.map (λ (ty : Φ), !ty.eval env) ant1).disjoint_leaves ↔ (Ant.map (λ (ty : Φ), !ty.eval env) ant2).disjoint_leaves :=
-    begin
-        simp [h],
-    end,
+    have : (ant1.mark_inactive_leaves env).disjoint_leaves ↔ (ant2.mark_inactive_leaves env).disjoint_leaves := by rw h,
     simp at this,
     exact this,
 end
@@ -698,8 +714,8 @@ end
 
 theorem R_red_removable
     (can_prove_empty: Gs)
-    (gdt: Gdt) (gdt_disjoint: gdt.disjoint_leaves)
-    (Agdt: Ant Φ)
+    { gdt: Gdt } (gdt_disjoint: gdt.disjoint_leaves)
+    { Agdt: Ant Φ }
     (ant_def: Agdt.mark_inactive_leaves = (A gdt).mark_inactive_leaves):
     Gdt.eval_option (gdt.remove_leaves ((R $ Agdt.map can_prove_empty.val).red.to_finset)) = gdt.eval :=
 begin
@@ -786,7 +802,38 @@ begin
     finish,
 end
 
-lemma gdt_mark_inactive_leaves_inactive_leaves_of_diverged_or_no_match { gdt: Gdt } { env: Env }:
+lemma disjoint_set_union_eq_union_iff_right { α: Type } [decidable_eq α] (a: finset α) { b c: finset α } (h1: disjoint a b) (h2: disjoint a c): a ∪ b = a ∪ c ↔ b = c :=
+begin
+    split, {
+        assume x,
+        rw finset.ext_iff,
+        assume e,
+        rw finset.ext_iff at x,
+        specialize x e,
+
+        rw finset.disjoint_iff_inter_eq_empty at h1,
+        rw finset.ext_iff at h1,
+        specialize h1 e,
+
+        rw finset.disjoint_iff_inter_eq_empty at h2,
+        rw finset.ext_iff at h2,
+        specialize h2 e,
+
+        simp * at *,
+        finish,
+    }, {
+        assume x,
+        simp [x],
+    }
+end
+
+lemma disjoint_set_union_eq_union_iff_left { α: Type } [decidable_eq α] (a: finset α) { b c: finset α } (h1: disjoint b a) (h2: disjoint c a): b ∪ a = c ∪ a ↔ b = c :=
+begin
+    have := disjoint_set_union_eq_union_iff_right a (disjoint.comm.1 h1) (disjoint.comm.1 h2),
+    simp only [this, finset.union_comm],
+end
+
+lemma gdt_mark_inactive_leaves_inactive_leaves_of_diverged_or_no_match { gdt: Gdt } { env: Env } (gdt_disjoint: gdt.disjoint_leaves):
     (gdt.mark_inactive_leaves env).inactive_leaves = gdt.leaves ↔ gdt.eval env = Result.diverged ∨ gdt.eval env = Result.no_match :=
 begin
     induction gdt with leaf generalizing env,
@@ -794,6 +841,7 @@ begin
         simp [Gdt.eval, Gdt.mark_inactive_leaves, Ant.inactive_leaves, Gdt.leaves, ne.symm (finset.singleton_ne_empty leaf)],
     },
     case Gdt.grd {
+        unfold Gdt.disjoint_leaves at gdt_disjoint,
         cases gdt_grd,
         case Grd.xgrd {
             cases c: xgrd_eval gdt_grd env,
@@ -807,16 +855,19 @@ begin
         }
     },
     case Gdt.branch {
+        unfold Gdt.disjoint_leaves at gdt_disjoint,
         simp [Gdt.mark_inactive_leaves, Ant.inactive_leaves],
         by_cases c: gdt_tr1.eval env = Result.no_match;
         simp [c, Gdt.leaves],
         {
-            rw ←gdt_ih_tr2,
+            rw ←gdt_ih_tr2 gdt_disjoint.2.1,
             rw Gdt.mark_inactive_leaves_no_match c,
             rw Gdt.mark_all_leaves_inactive.inactive_leaves,
-            sorry,
+            have := finset.disjoint_of_subset_right (Gdt.mark_inactive_leaves.inactive_leaves gdt_tr2 env) gdt_disjoint.2.2,
+            simp [disjoint_set_union_eq_union_iff_right _ this gdt_disjoint.2.2],
         }, {
-            sorry,
+            have := finset.disjoint_of_subset_left (Gdt.mark_inactive_leaves.inactive_leaves gdt_tr1 env) gdt_disjoint.2.2,
+            simp [disjoint_set_union_eq_union_iff_left _ this gdt_disjoint.2.2, gdt_ih_tr1 gdt_disjoint.1, c],
         }
     },
 end
@@ -878,7 +929,7 @@ begin
         
         cases c: (gdt_tr1.eval env).is_match, {
             simp at c,
-            simp [c, gdt_mark_inactive_leaves_inactive_leaves_of_diverged_or_no_match.2 (or.inr c), ne.symm (finset.singleton_ne_empty _)],
+            simp [c, (gdt_mark_inactive_leaves_inactive_leaves_of_diverged_or_no_match gdt_disjoint.1).2 (or.inr c), ne.symm (finset.singleton_ne_empty _)],
         }, {
             simp at c,
             simp [c],
@@ -911,18 +962,46 @@ begin
     },
 end
 
-lemma f__oo { gdt: Gdt } { env: Env } { leaf: Leaf } { ant: Ant bool }
+@[simp]
+lemma ant_mark_inactive_leaves { ant: Ant Φ } { env: Env }: (ant.mark_inactive_leaves env).leaves = ant.leaves :=
+begin
+    unfold Ant.mark_inactive_leaves,
+    simp,
+end
+
+
+lemma r_correct_2 { gdt: Gdt } { env: Env } { leaf: Leaf } { ant: Ant Φ }
     (gdt_disjoint: gdt.disjoint_leaves)
     (can_prove_empty: Gs)
-    (ant_def: (A gdt).mark_inactive_leaves env = ant)
-    (h: gdt.eval env = Result.leaf leaf):
-    leaf ∈ (R ant).acc \ ((R ant).inacc ++ (R ant).red) :=
+    (ant_def: ant.mark_inactive_leaves env = (A gdt).mark_inactive_leaves env)
+    (h: gdt.eval env = Result.leaf leaf)
+    { r: LeafPartition }
+    (r_def: r = R (ant.map can_prove_empty.val)):
+    leaf ∈ r.acc \ (r.inacc ++ r.red) :=
 begin
+    
+    have l : leaf ∈ (ant.map can_prove_empty.val).leaves :=
+    begin
+        
+        have : ((A gdt).mark_inactive_leaves env).leaves = (ant.mark_inactive_leaves env).leaves :=
+        begin
+            simp [ant_def],
+        end,
+        have : (ant.map can_prove_empty.val).leaves = gdt.leaves := begin
+            simp at this,
+            simp [this],
+        end,
+        rw this,
+        exact Gdt.eval.leaf_mem_leaves h,
+    end,
+
+    have xxx := ant_def,
     rw ←gdt_mark_inactive_leaves_inactive_leaves_of_leaf_match gdt_disjoint at h,
     rw A_mark_inactive_leaves gdt env at ant_def,
-    rw ant_def at h,
+    rw ←ant_def at h,
 
-    have : leaf ∉ ant.inactive_leaves :=
+
+    have leaf_in : leaf ∉ (ant.mark_inactive_leaves env).inactive_leaves :=
     begin
         rw finset.ext_iff at h,
         specialize h leaf,
@@ -930,24 +1009,51 @@ begin
         exact h.2,
     end,
 
-    have x : leaf ∉ (R ant).inacc ++ (R ant).red :=
+    replace leaf_in : leaf ∉ (ant.map can_prove_empty.val).inactive_leaves :=
     begin
-        have := r_correct_1 ant,
+        have := can_prove_empty_implies_inactive can_prove_empty ant env,
+        replace := (redundant_in.monotonous' this).1,
+        by_contra,
+        have y := this a,
+        simp [leaf_in] at y,
+        contradiction,
+    end,
+
+    have x : leaf ∉ r.inacc ++ r.red :=
+    begin
+        have := r_correct_1 (ant.map can_prove_empty.val),
         rw finset.subset_iff at this,
         specialize @this leaf,
+        rw r_def,
         finish,
     end,
     
-    have : leaf ∈ (R ant).acc :=
+    have ant_disjoint: (ant.map can_prove_empty.val).disjoint_leaves := begin
+        have x := Ant.disjoint_leaves_of_mark_inactive_leaves_eq xxx,
+        have y := Ant.disjoint_leaves_of_gdt_disjoint_leaves gdt_disjoint,
+        simp [x, y],
+    end,
+
+    have : leaf ∈ r.acc :=
     begin
-        have ant_disjoint: ant.disjoint_leaves := by sorry,
+        
         have := (R_red_partition ant_disjoint).1,
-        have l : leaf ∈ ant.leaves := by sorry,
+
         rw ←this at l,
         simp at x,
         push_neg at x,
         simp [x] at l,
+        unfold_coes at l,
+        simp [x] at l,
+        unfold_coes at l,
+        rw ←r_def at l,
+        simp [x] at l,
         exact l,
     end,
-
+    
+    have acc_no_dup := R_acc_no_dup ant_disjoint,
+    rw ←r_def at acc_no_dup,
+    simp only [has_sdiff.sdiff], 
+    rw list.mem_diff_iff_of_nodup acc_no_dup,
+    simp [this, x],
 end

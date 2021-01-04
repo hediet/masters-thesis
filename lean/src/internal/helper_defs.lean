@@ -26,12 +26,12 @@ begin
     },
 
     case Gdt.branch {
-        have : (𝒰_acc id gdt_tr1).eval = (id (U gdt_tr1)).eval := begin
-            simp [←gdt_ih_tr1, id_stable, id_hom],
-        end,
-        have : ((𝒰_acc id gdt_tr1).and (U gdt_tr2)).eval = ((id (U gdt_tr1)).and (U gdt_tr2)).eval := begin
-            rw stable_app and_left_stable this,
-        end,
+        have : (𝒰_acc id gdt_tr1).eval = (id (U gdt_tr1)).eval :=
+        by simp [←gdt_ih_tr1, id_stable, id_hom],
+        
+        have : ((𝒰_acc id gdt_tr1).and (U gdt_tr2)).eval = ((id (U gdt_tr1)).and (U gdt_tr2)).eval :=
+        by rw stable_app and_left_stable this,
+
         simp [𝒰_acc, U, ←gdt_ih_tr2 (stable_comp acc_stable and_right_stable) (comp_hom acc_hom acc_stable and_right_hom and_right_stable),
             function.comp, stable_app acc_stable this],
     },
@@ -43,10 +43,9 @@ begin
             ext env,
             simp [𝒰_acc, U],
             rw (acc_hom _ _).1,
-            have : (𝒰_acc (acc ∘ Φ.xgrd_in gdt_grd) gdt_tr).eval = (acc (Φ.xgrd_in gdt_grd (U gdt_tr))).eval := begin
-                simp [←gdt_ih (stable_comp acc_stable (xgrd_in_stable _))
+            have : (𝒰_acc (acc ∘ Φ.xgrd_in gdt_grd) gdt_tr).eval = (acc (Φ.xgrd_in gdt_grd (U gdt_tr))).eval :=
+            by simp [←gdt_ih (stable_comp acc_stable (xgrd_in_stable _))
                     (comp_hom acc_hom acc_stable (xgrd_in_hom gdt_grd) (xgrd_in_stable gdt_grd))],
-            end,
             rw stable_app or_right_stable this,
         },
 
@@ -57,11 +56,7 @@ begin
 end
 
 lemma U_eq_𝒰 { gdt: Gdt } : (U gdt).eval = (𝒰 gdt).eval :=
-begin
-    ext env,
-    simp [𝒰, ←U_eq_𝒰_acc (id_stable) (id_hom)],
-end
-
+by ext env; simp [𝒰, ←U_eq_𝒰_acc (id_stable) (id_hom)]
 
 def Ant.map { α β: Type } : (α → β) → Ant α → Ant β
 | f (Ant.leaf a leaf) := Ant.leaf (f a) leaf
@@ -70,10 +65,10 @@ def Ant.map { α β: Type } : (α → β) → Ant α → Ant β
 
 lemma Ant.map.associative { α β γ: Type } (f: β → γ) (g: α → β) (ant: Ant α):
     (ant.map g).map f = ant.map (f ∘ g) :=
-begin
-    induction ant;
-    simp [*, Ant.map],
-end
+by induction ant; simp [*, Ant.map]
+
+lemma Ant.map.id { α: Type } (ant: Ant α): ant.map id = ant :=
+by induction ant; simp [Ant.map, *]
 
 def Ant.map_option { α β: Type } : (α → β) → option (Ant α) → option (Ant β)
 | f (some ant) := some (ant.map f)
@@ -88,7 +83,7 @@ def A : Gdt → Ant Φ
 | (Gdt.grd (Grd.bang var) tr) := Ant.diverge (Φ.var_is_bottom var) $ (A tr).map ((Φ.var_is_not_bottom var).and)
 | (Gdt.grd (Grd.xgrd grd) tr) := (A tr).map (Φ.xgrd_in grd)
 
-def A_eq_𝒜 { gdt: Gdt } { acc: Φ → Φ } (acc_stable: stable acc) (acc_hom: homomorphic acc):
+lemma A_eq_𝒜' (gdt: Gdt) { acc: Φ → Φ } (acc_stable: stable acc) (acc_hom: homomorphic acc):
     ((A gdt).map acc).eval_leaves = (𝒜_acc acc gdt).eval_leaves :=
 begin
     ext env,
@@ -133,6 +128,14 @@ begin
             rw Ant.map.associative,
         },
     },
+end
+
+theorem A_eq_𝒜 (gdt: Gdt): (A gdt).eval_leaves = (𝒜 gdt).eval_leaves :=
+begin
+    unfold 𝒜,
+    have := A_eq_𝒜' gdt id_stable id_hom,
+    simp [Ant.map.id] at this,
+    exact this,
 end
 
 def Ant.leaves { α: Type }: Ant α → finset Leaf

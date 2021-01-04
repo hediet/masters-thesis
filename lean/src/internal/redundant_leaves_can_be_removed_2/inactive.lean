@@ -98,6 +98,8 @@ begin
     simp [*, Gdt.leaves, Gdt.mark_inactive_leaves, Ant.critical_leaf_sets, Ant.leaves],
 end
 
+lemma Gdt.mark_inactive_leaves.inactive_leaves (gdt: Gdt) (env: Env): (gdt.mark_inactive_leaves env).inactive_leaves ⊆ gdt.leaves :=
+by simp only [←Gdt.mark_inactive_leaves.leaves gdt env, Ant.inactive_leaves_subset_leaves]
 
 lemma Gdt.mark_inactive_leaves_no_match { env: Env } { gdt: Gdt } (h: gdt.eval env = Result.no_match):
     gdt.mark_inactive_leaves env = gdt.mark_all_leaves_inactive :=

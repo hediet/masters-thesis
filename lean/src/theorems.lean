@@ -1,6 +1,7 @@
 import .definitions
 import .internal.helper_defs
 import .internal.U_semantic
+import .internal.redundant_leaves_can_be_removed_2.main
 
 variable [GuardModule]
 open GuardModule
@@ -18,9 +19,10 @@ theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leave
         let ⟨ a, i, r ⟩ := ℛ can_prove_empty.val (𝒜 gdt)
         in
                 -- Reachable leaves are accessible and neither inaccessible nor redundant.
-                ∀ env: Env, ∀ leaf: Leaf,
+                (∀ env: Env, ∀ leaf: Leaf,
                     gdt.eval env = Result.leaf leaf
                       → leaf ∈ a \ (i ++ r)
+                )
             ∧
                 -- Redundant leaves can be removed without changing semantics.
                 Gdt.eval_option (gdt.remove_leaves r.to_finset)
@@ -30,5 +32,27 @@ theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leave
     )
     :=
 begin
-    sorry
+    assume can_prove_empty gdt gdt_disjoint,
+    cases c: ℛ can_prove_empty.val (𝒜 gdt) with a i_r,
+    cases i_r with i r,
+    dsimp only,
+
+    rw ←R_eq_ℛ at c,
+    unfold to_triple at c,
+    set p := R (Ant.map can_prove_empty.val (𝒜 gdt)) with p_def,
+    cases c,
+
+    
+    have Agdt_def := eq.symm (Ant.mark_inactive_leaves_eq_of_eval_leaves_eq (A_eq_𝒜 gdt)),
+    
+
+    split, {
+        assume env leaf h,
+        replace Agdt_def := function.funext_iff.1 Agdt_def env,
+        exact r_correct_2 gdt_disjoint can_prove_empty Agdt_def h p_def,
+    }, {
+        have := R_red_removable can_prove_empty gdt_disjoint Agdt_def,
+        rw ←p_def at this,
+        exact this,
+    }
 end
