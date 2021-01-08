@@ -132,8 +132,6 @@ def Φ.eval: Φ → Env → bool
 
 
 -- ## Uncovered Refinement Types
--- ∀ acc: Φ_eval (𝒰_acc gdt acc ty) = Φ_eval (acc (𝒰 gdt)) :=
-
 def 𝒰_acc : (Φ → Φ) → Gdt → Φ
 | acc (Gdt.leaf _) := acc Φ.false
 | acc (Gdt.branch tr1 tr2) := (𝒰_acc (acc ∘ (𝒰_acc id tr1).and) tr2)
