@@ -2,50 +2,29 @@ import tactic
 import ...definitions
 import data.finset
 
+meta def stable_macro: tactic unit := `[
+    rw stable,
+    assume ty1 ty2 h,
+    ext env,
+    simp [Φ.eval, h]
+]
+
 variable [GuardModule]
 open GuardModule
 
 def stable (f: Φ → Φ) := ∀ ty1 ty2: Φ, (ty1.eval = ty2.eval) → (f ty1).eval = (f ty2).eval
 
-lemma stable.and_left { ty: Φ }: stable (λ ty', ty'.and ty) :=
-begin
-    rw stable,
-    assume ty1 ty2 h,
-    ext env,
-    simp [Φ.eval, h],
-end
-
-lemma stable.and_right { ty: Φ }: stable ty.and :=
-begin
-    rw stable,
-    assume ty1 ty2 h,
-    ext env,
-    simp [Φ.eval, h],
-end
-
-lemma stable.or_right { ty: Φ }: stable ty.or :=
-begin
-    rw stable,
-    assume ty1 ty2 h,
-    ext env,
-    simp [Φ.eval, h],
-end
-
-lemma stable.xgrd_in (xgrd: XGrd): stable (Φ.xgrd_in xgrd) :=
-begin
-    rw stable,
-    assume ty1 ty2 h,
-    ext env,
-    simp [Φ.eval, h],
-end
+lemma stable.id: stable id := by simp [stable]
+lemma stable.and_left { ty: Φ }: stable (λ ty', ty'.and ty) := by stable_macro
+lemma stable.and_right { ty: Φ }: stable ty.and := by stable_macro
+lemma stable.or_right { ty: Φ }: stable ty.or := by stable_macro
+lemma stable.xgrd_in (xgrd: XGrd): stable (Φ.xgrd_in xgrd) := by stable_macro
 
 lemma stable.app { f: Φ → Φ } (f_stable: stable f) { ty1 ty2: Φ } (h: ty1.eval = ty2.eval): (f ty1).eval = (f ty2).eval :=
 by finish [stable]
 
 lemma stable.comp { f1 f2: Φ → Φ } (f1_stable: stable f1) (f2_stable: stable f2): stable (f1 ∘ f2) :=
 by finish [stable]
-
-lemma stable.id: stable id := by simp [stable]
 
 
 def hom (f: Φ → Φ) := ∀ ty1 ty2: Φ,

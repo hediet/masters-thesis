@@ -2,8 +2,6 @@ import tactic
 import data.finset
 import ...definitions
 import ..internal_definitions
-import ..utils
-import ..tactics
 import .map
 import ..phi.eval
 import .leaves

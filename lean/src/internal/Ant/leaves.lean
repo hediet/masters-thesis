@@ -33,16 +33,14 @@ lemma Ant.critical_leaf_set_elements { ant: Ant bool } { e: finset Leaf } (h: e 
 begin
     induction ant;
     rw Ant.critical_leaf_sets at h,
-    case Ant.leaf {
-        finish,
-    },
+    case Ant.leaf { finish, },
     case Ant.branch {
-        simp at h,
+        simp only [finset.mem_union] at h,
         cases h;
         simp [subset_right_union, subset_left_union, *],
     },
     case Ant.diverge {
-        simp at h,
+        simp only [finset.mem_union] at h,
         cases h;
         try {
             cases ant_a;
@@ -53,10 +51,7 @@ end
 
 @[simp]
 lemma ant_mark_inactive_leaves { ant: Ant Φ } { env: Env }: (ant.mark_inactive_leaves env).leaves = ant.leaves :=
-begin
-    unfold Ant.mark_inactive_leaves,
-    simp,
-end
+by simp [Ant.mark_inactive_leaves]
 
 
 @[simp]

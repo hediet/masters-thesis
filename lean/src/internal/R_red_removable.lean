@@ -14,9 +14,8 @@ import .R
 variable [GuardModule]
 open GuardModule
 
-lemma R_red_redundant { ant: Ant bool }
-    (ant_disjoint: ant.disjoint_leaves)
-    : ant.is_redundant_set (R ant).red.to_finset :=
+lemma R_red_redundant { ant: Ant bool } (ant_disjoint: ant.disjoint_leaves):
+    ant.is_redundant_set (R ant).red.to_finset :=
 begin
     induction_ant_disjoint ant from ant_disjoint,
 

@@ -11,34 +11,19 @@ lemma Gdt.branch_option_replace_left_env { gdt₁ gdt₁' gdt₂: option Gdt } {
     Gdt.eval_option (Gdt.branch_option gdt₁ gdt₂) env = Gdt.eval_option (Gdt.branch_option gdt₁' gdt₂) env :=
 by cases gdt₁; cases gdt₁'; cases gdt₂; finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval, Gdt.eval_branch_right]
 
+@[simp]
+lemma Gdt.branch_option_first_none { gdt: option Gdt }: (Gdt.branch_option none gdt) = gdt :=
+by cases gdt; simp [Gdt.branch_option]
+
 lemma Gdt.branch_option_replace_right_env { gdt₁ gdt₂: option Gdt } (gdt₂': option Gdt) { env: Env }
     (h: Gdt.eval_option gdt₂ env = Gdt.eval_option gdt₂' env ∨ Gdt.eval_option gdt₁ env ≠ Result.no_match):
     Gdt.eval_option (Gdt.branch_option gdt₁ gdt₂) env = Gdt.eval_option (Gdt.branch_option gdt₁ gdt₂') env :=
 begin
-  cases gdt₁;
-  cases gdt₂;
-  cases gdt₂',
-
-  finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval, Gdt.eval_branch_right],
-  finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval, Gdt.eval_branch_right],
-  finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval, Gdt.eval_branch_right],
-  finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval, Gdt.eval_branch_right],
-  finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval, Gdt.eval_branch_right],
-
-  simp [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_right],
-  simp [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_right] at h,
-  rw Gdt.eval_branch_left,
-  finish,
-  
-
-  simp [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_right],
-  simp [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_right] at h,
-  rw Gdt.eval_branch_left,
-  finish,
-
-  simp [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_right],
-  simp [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_right] at h,
-  exact Gdt.eval_branch_replace_right_env h,
+    cases gdt₁, { finish [Gdt.branch_option, Gdt.eval_option], },
+    cases gdt₂, { cases gdt₂'; finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_left], },
+    cases gdt₂', { finish [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_left], },
+    simp only [Gdt.branch_option, Gdt.eval_option, Gdt.eval_branch_left] at *,
+    exact Gdt.eval_branch_replace_right_env h,
 end
 
 @[simp]

@@ -44,12 +44,7 @@ begin
 end
 
 lemma Gdt.mark_all_leaves_inactive_is_reduntant_set (gdt: Gdt) (leaves: finset Leaf): gdt.mark_all_leaves_inactive.is_redundant_set leaves :=
-begin
-    unfold Ant.is_redundant_set,
-    simp [finset.inter_subset_right],
-end
-
-
+by simp [Ant.is_redundant_set, finset.inter_subset_right]
 
 
 lemma Gdt.mark_inactive_leaves_of_xgrd_some { xgrd: XGrd } { env env': Env } (h: xgrd_eval xgrd env = some env') (gdt: Gdt):
@@ -90,9 +85,7 @@ lemma Gdt.mark_inactive_leaves_no_match { env: Env } { gdt: Gdt } (h: gdt.eval e
     gdt.mark_inactive_leaves env = gdt.mark_all_leaves_inactive :=
 begin
     induction gdt with leaf generalizing env,
-    case Gdt.leaf {
-        finish [Gdt.eval],
-    },
+    case Gdt.leaf { finish [Gdt.eval], },
     case Gdt.branch {
         simp [
             Gdt.mark_inactive_leaves, Gdt.mark_all_leaves_inactive,
