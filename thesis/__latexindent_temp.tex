@@ -1,0 +1,93 @@
+\documentclass[parskip=full,12pt,a4paper,twoside,headings=openright]{scrreprt}
+% switch to scrbook if you want roman page numbers for the front matter
+% however scrbook has no 'abstract' environment!
+% if your thesis is in english, use "parskip=no" instead
+
+% binding correction (BCOR) von 1cm für Leimbindung
+\KOMAoptions{BCOR=1cm}
+\KOMAoptions{draft=yes}
+
+\usepackage[utf8]{inputenc} % encoding of sources
+\usepackage[T1]{fontenc}
+\usepackage{studarbeit}
+
+\title{A Proof of Correctness for Lower Your Guards in Lean}
+\author{Alice Müller}
+\thesistype{Bachelorarbeit}
+\zweitgutachter{Prof.~Dr.~rer.~nat.~Bernhard~Beckert}
+\betreuer{M.~Sc.~Sebastian~Bischof-Wagner}
+\coverimage{4665389330_d09f3d6b75_z.jpg}
+\abgabedatum{{\year=2038 \month=1 \day=19 \today}}
+
+\newcommand{\libFIRM}{lib\textsc{Firm}}
+
+\begin{document}
+
+\begin{otherlanguage}{ngerman} % Titelseite ist immer auf Deutsch
+\mytitlepage
+\end{otherlanguage}
+
+\begin{abstract}
+\begin{center}\Huge\textbf{\textsf{Zusammenfassung}}
+\end{center}
+\vfill
+
+Konsistentes Hashen und Voice-over-IP
+wurde bisher nicht als robust angesehen,
+obwohl sie theoretisch essentiell sind.
+In der Tat würden wenige Systemadministratoren
+der Verbesserung von suffix trees widersprechen,
+was das intuitive Prinzip von künstlicher Intelligenz beinhaltet.
+Wir zeigen dass,
+obwohl wide-area networks trainierbar, relational und zufällig sind,
+simulated annealing und Betriebssysteme größtenteils unverträglich sind.
+\vfill
+
+Consistent hashing and voice-over-IP, while essential in theory, have not until recently been considered robust. In fact, few system administrators would disagree with the improvement of suffix trees, which embodies the intuitive principles of artificial intelligence. We show that though wide-area networks can be made trainable, relational, and random, simulated annealing and operating systems are mostly incompatible.
+\vfill
+
+Ist die Arbeit auf englisch, muss die Zusammenfassung in beiden Sprachen sein.
+Ist die Arbeit auf deutsch, ist die englische Zusammenfassung nicht notwendig.
+\todo{Das Titelbild ist von
+\url{http://www.flickr.com/photos/x-ray_delta_one/4665389330/}
+und muss durch ein zum Thema passendes Motiv ausgetauscht werden.}
+\end{abstract}
+
+\tableofcontents
+
+\input{intro.tex}
+\input{basics.tex}
+\input{impl.tex}
+\input{eval.tex}
+\input{conclusion.tex}
+
+\bibliographystyle{ieeetr}
+\bibliography{bib}
+
+\begin{otherlanguage}{ngerman}
+\chapter*{Erklärung}
+\pagestyle{empty}
+
+  \vspace{20mm}
+  Hiermit erkläre ich, \theauthor, dass ich die vorliegende Bachelorarbeit selbst\-ständig
+verfasst habe und keine anderen als die angegebenen Quellen und Hilfsmittel
+benutzt habe, die wörtlich oder inhaltlich übernommenen Stellen als solche kenntlich gemacht und
+die Satzung des KIT zur Sicherung guter wissenschaftlicher Praxis beachtet habe.
+  \vspace{20mm}
+  \begin{tabbing}
+  \rule{7cm}{.4pt}\hspace{1cm} \= \rule{6.8cm}{.4pt} \\
+ Ort, Datum \> Unterschrift
+  \end{tabbing}
+\end{otherlanguage}
+
+\chapter*{Danke}
+\pagestyle{empty}
+
+Ich danke meinen Eltern, meinem Hund und sonst niemandem.
+
+\pagestyle{fancy}
+\appendix
+
+\input{appendix.tex}
+
+\end{document}

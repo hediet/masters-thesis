@@ -1,0 +1,27 @@
+\chapter{Entwurf und Implementierung}\label{sec:impl}
+
+Hier wird die eigene Lösung des Problems vorgestellt,
+sowie interessante Details der Implementierung.
+Was also wurde praktisch in dieser Arbeit geleistet?
+
+\input{fig/ssaconstr.tex}
+
+Für eigene Grafiken und Diagramme empfehlen wir TikZ
+(TikZ ist kein Zeichenprogramm).
+Damit kann man innerhalb von \TeX Dokumenten Zeichenoperationen angeben.
+Im Gegensatz zu externen Grafiken,
+die per png/jpg/pdf eingebunden werden,
+passt mit TikZ die Schrift exakt zum restlichen Dokument.
+Zwar ist die Einarbeitung schwieriger,
+aber die Qualität ist kaum zu überbieten.
+Ein Beispiel aus einem unserer Paper~\cite{braun13cc}
+siehst du in \cref{fig:optimizations}.
+
+\input{fig/firm.tex}
+
+Für Firm-Graphen die bei uns im Compilerbau häufig vorkommen,
+haben wir ein extra TiKZ Paket gebaut.
+Dieses erleichtert das Zeichnen von Graphen,
+die wie yComp aussehen.
+\Cref{fig:firm} zeigt ein Beispiel.
+

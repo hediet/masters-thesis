@@ -1,0 +1,5 @@
+thesis/build
+present/build
+thesis/thesis.pdf
+thesis/*.log
+present/present.pdf

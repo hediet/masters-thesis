@@ -1,0 +1,3 @@
+[submodule "Slicing"]
+	path = Slicing
+	url = ssh-pp.ipd.kit.edu:/ben/local/GIT/Isabelle/Slicing.git
