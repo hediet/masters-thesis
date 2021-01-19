@@ -26,6 +26,7 @@ by finish [stable]
 lemma stable.comp { f1 f2: Φ → Φ } (f1_stable: stable f1) (f2_stable: stable f2): stable (f1 ∘ f2) :=
 by finish [stable]
 
+-- TODO: Kongruenzregeln?
 
 def hom (f: Φ → Φ) := ∀ ty1 ty2: Φ,
     (f (ty1.or ty2)).eval = ((f ty1).or (f ty2)).eval

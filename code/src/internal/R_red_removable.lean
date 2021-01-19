@@ -492,9 +492,6 @@ begin
     
     -- Since `R_red` is a redundant set, it can be removed from `gdt` without
     -- changing the semantics. Note that `R_red` is independent of env.
-    have this: Gdt.eval_option (Gdt.remove_leaves R_red gdt) env = gdt.eval env
-        := redundant_leaves_removable gdt gdt_disjoint env _ red_in_gdt,
-
-    -- This finishes the proof.
-    exact this,
+    show Gdt.eval_option (Gdt.remove_leaves R_red gdt) env = gdt.eval env,
+    from redundant_leaves_removable gdt gdt_disjoint env _ red_in_gdt,
 end

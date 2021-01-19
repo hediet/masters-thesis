@@ -45,10 +45,8 @@ begin
     set p := R (Ant.map can_prove_empty.val (𝒜 gdt)) with p_def,
     cases c,
 
-    
     have Agdt_def := eq.symm (Ant.mark_inactive_leaves_eq_of_eval_leaves_eq (A_eq_𝒜 gdt)),
     
-
     split, {
         assume env leaf h,
         replace Agdt_def := function.funext_iff.1 Agdt_def env,

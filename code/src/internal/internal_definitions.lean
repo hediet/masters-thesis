@@ -64,10 +64,12 @@ def Ant.map { α β: Type } : (α → β) → Ant α → Ant β
 | f (Ant.leaf a leaf) := Ant.leaf (f a) leaf
 | f (Ant.branch tr1 tr2) := (Ant.branch (tr1.map f) (tr2.map f))
 | f (Ant.diverge a tr) := (Ant.diverge (f a) (tr.map f))
+-- TODO: functor implementieren? f <$> ant
 
 def Ant.map_option { α β: Type } : (α → β) → option (Ant α) → option (Ant β)
 | f (some ant) := some (ant.map f)
 | f none := none
+-- TODO: fmap?
 
 def Ant.eval_leaves (ant: Ant Φ) (env: Env) := ant.map (λ ty, ty.eval env)
 
@@ -98,6 +100,7 @@ def Ant.critical_leaf_sets : Ant bool → finset (finset Leaf)
 def Ant.is_redundant_set (a: Ant bool) (leaves: finset Leaf) :=
     leaves ∩ a.leaves ⊆ a.inactive_leaves
     ∧ ∀ c ∈ a.critical_leaf_sets, ∃ l ∈ c, l ∉ leaves
+-- TODO: rcases
 
 -- leaves.redundant_in ant
 -- ant.is_redundant_set leaves
