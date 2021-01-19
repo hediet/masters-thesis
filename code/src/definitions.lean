@@ -134,6 +134,7 @@ def Φ.eval: Φ → Env → bool
 -- ## Uncovered Refinement Types
 def 𝒰_acc : (Φ → Φ) → Gdt → Φ
 | acc (Gdt.leaf _) := acc Φ.false
+-- TODO: Change to (𝒰_acc ((𝒰_acc id tr1).and ∘ acc) tr2)
 | acc (Gdt.branch tr1 tr2) := (𝒰_acc (acc ∘ (𝒰_acc id tr1).and) tr2)
 | acc (Gdt.grd (Grd.bang var) tree) :=
     𝒰_acc (acc ∘ (Φ.var_is_not_bottom var).and) tree
@@ -158,6 +159,8 @@ def 𝒜_acc : (Φ → Φ) → Gdt → Ant Φ
 | acc (Gdt.grd (Grd.xgrd grd) tr) := (𝒜_acc (acc ∘ (Φ.xgrd_in grd)) tr)
 
 def 𝒜 : Gdt → Ant Φ := 𝒜_acc id
+
+-- TODO: define 𝒰𝒜 : (Φ → Φ) → Gdt → (Ant Φ, Φ)
 
 -- # Empty Provers
 
