@@ -1,4 +1,4 @@
-\documentclass[parskip=full,12pt,a4paper,twoside,headings=openright]{scrreprt}
+\documentclass[parskip=no,12pt,a4paper,twoside,headings=openright]{scrreprt}
 % switch to scrbook if you want roman page numbers for the front matter
 % however scrbook has no 'abstract' environment!
 % if your thesis is in english, use "parskip=no" instead
@@ -9,7 +9,14 @@
 
 \usepackage[utf8]{inputenc} % encoding of sources
 \usepackage[T1]{fontenc}
-\usepackage{studarbeit}
+\usepackage{./style/studarbeit}
+\usepackage{listings}
+\usepackage[edges]{forest}
+\usepackage{xspace}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{ifsym}
+\usepackage{wasysym}
 
 \title{Formal Verification of Pattern Matching Analyses}
 \author{Henning Dieterichs}
@@ -17,43 +24,40 @@
 \zweitgutachter{Prof.~Dr.~rer.~nat.~Bernhard~Beckert}
 \betreuer{M.~Sc.~Sebastian~Graf}
 \coverimage{4665389330_d09f3d6b75_z.jpg}
-\abgabedatum{{\year=2021 \month=5 \day=19 \today}}
+\abgabedatum{{\year=2021 \month=3 \day=7 \today}}
 
 
 \begin{document}
 
 \begin{otherlanguage}{ngerman} % Titelseite ist immer auf Deutsch
-\mytitlepage
+	\mytitlepage
 \end{otherlanguage}
 
 \begin{abstract}
-\begin{center}\Huge\textbf{\textsf{Zusammenfassung}}
-\end{center}
-\vfill
+	\begin{center}\Huge\textbf{\textsf{Zusammenfassung}}
+	\end{center}
+	\vfill
 
-Konsistentes Hashen und Voice-over-IP
-wurde bisher nicht als robust angesehen,
-obwohl sie theoretisch essentiell sind.
-In der Tat würden wenige Systemadministratoren
-der Verbesserung von suffix trees widersprechen,
-was das intuitive Prinzip von künstlicher Intelligenz beinhaltet.
-Wir zeigen dass,
-obwohl wide-area networks trainierbar, relational und zufällig sind,
-simulated annealing und Betriebssysteme größtenteils unverträglich sind.
-\vfill
+	\todo{Deutsche Übersetzung einfügen}
 
-Consistent hashing and voice-over-IP, while essential in theory, have not until recently been considered robust. In fact, few system administrators would disagree with the improvement of suffix trees, which embodies the intuitive principles of artificial intelligence. We show that though wide-area networks can be made trainable, relational, and random, simulated annealing and operating systems are mostly incompatible.
-\vfill
+	\vfill
 
-Ist die Arbeit auf englisch, muss die Zusammenfassung in beiden Sprachen sein.
-Ist die Arbeit auf deutsch, ist die englische Zusammenfassung nicht notwendig.
-\todo{Das Titelbild ist von
-\url{http://www.flickr.com/photos/x-ray_delta_one/4665389330/}
-und muss durch ein zum Thema passendes Motiv ausgetauscht werden.}
+	The LYG algorithm analyzes pattern matching expressions and detects uncovered cases and inaccessible or redundant right hand sides.
+	LYG has already been implemented in the Haskell compiler GHC and spotted previously unknown bugs in real world code.
+	While LYG has been validated empirically, its correctness has not been proven yet.
+
+	This thesis presents a formal proof that the LYG algorithm is indeed correct.
+	\vfill
+
+	\todo{
+		Das Titelbild austauschen!
+	}
+
 \end{abstract}
 
 \tableofcontents
 
+\input{macros.tex}
 \input{chapters/1-introduction.tex}
 \input{chapters/2-background.tex}
 \input{chapters/3-formalization.tex}
@@ -64,19 +68,19 @@ und muss durch ein zum Thema passendes Motiv ausgetauscht werden.}
 \bibliography{bib}
 
 \begin{otherlanguage}{ngerman}
-\chapter*{Erklärung}
-\pagestyle{empty}
+	\chapter*{Erklärung}
+	\pagestyle{empty}
 
-  \vspace{20mm}
-  Hiermit erkläre ich, \theauthor, dass ich die vorliegende Bachelorarbeit selbst\-ständig
-verfasst habe und keine anderen als die angegebenen Quellen und Hilfsmittel
-benutzt habe, die wörtlich oder inhaltlich übernommenen Stellen als solche kenntlich gemacht und
-die Satzung des KIT zur Sicherung guter wissenschaftlicher Praxis beachtet habe.
-  \vspace{20mm}
-  \begin{tabbing}
-  \rule{7cm}{.4pt}\hspace{1cm} \= \rule{6.8cm}{.4pt} \\
- Ort, Datum \> Unterschrift
-  \end{tabbing}
+	\vspace{20mm}
+	Hiermit erkläre ich, \theauthor, dass ich die vorliegende Bachelorarbeit selbst\-ständig
+	verfasst habe und keine anderen als die angegebenen Quellen und Hilfsmittel
+	benutzt habe, die wörtlich oder inhaltlich übernommenen Stellen als solche kenntlich gemacht und
+	die Satzung des KIT zur Sicherung guter wissenschaftlicher Praxis beachtet habe.
+	\vspace{20mm}
+	\begin{tabbing}
+		\rule{7cm}{.4pt}\hspace{1cm} \= \rule{6.8cm}{.4pt} \\
+		Ort, Datum \> Unterschrift
+	\end{tabbing}
 \end{otherlanguage}
 
 \chapter*{Danke}

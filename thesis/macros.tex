@@ -1,0 +1,177 @@
+
+
+%%%%%%%%% HERE THE MACROS START
+% Highlight changes and keyword undone
+\newcommand{\highlight}[1]{\setlength{\fboxsep}{2pt}\colorbox[gray]{0.8}{\ensuremath{#1}}} % less height
+
+\newcommand{\TODOI}[1]{\textcolor{red}{#1}}
+\newcommand{\UNDONE}{\begin{color}{red}{\bf UNDONE }\end{color}}
+\newcommand{\DONE}{\begin{color}{green}{\bf DONE}\end{color}}
+\newcommand{\NOTE}[1]{\bf #1}
+\newcommand{\TODO}[1]{{\bf{\begin{color}{red}{TODO: }\end{color} #1}}}
+\newcommand{\lyg}{LYG\xspace}
+\newcommand{\gmtm}{GMTM\xspace}
+
+\newcommand{\cf}{cf.\@\xspace}
+\newcommand{\eg}{e.g.,\@\xspace}
+\newcommand{\ie}{i.e.\@\xspace}
+\newcommand{\vs}{vs.\@\xspace}
+\newcommand{\etc}{etc.\@\xspace}
+\newcommand{\keyword}[1]{\textsf{\textbf{#1}}}
+\newcommand{\id}[1]{\textsf{\textsl{#1}}\xspace}
+
+% Useful macros that are often needed
+\newcommand{\typeeq}{\sim}          % type equality
+\newcommand{\termeq}{\approx}       % positive term equality
+\newcommand{\ntermeq}{\not\approx}  % negative term equality
+
+\newcommand{\ruleform}[1]{\fbox{$#1$}}
+\newcommand{\rulename}[1]{\textsc{[#1]}}
+\newcommand{\freein}{\;\#\;}
+
+\newcommand{\ticket}[1]{\href{https://ghc.haskell.org/trac/ghc/ticket/#1}{\##1}}
+\newcommand{\extension}[1]{\texttt{#1}}
+
+% \newcommand{\sg}[1]{\begin{color}{red}{\bf SG:} #1\end{color}}
+% \newcommand{\simon}[1]{\begin{color}{purple}{\bf SLPJ:} #1\end{color}}
+% \newcommand{\ryan}[1]{\begin{color}{orange}{\bf Ryan:} #1\end{color}}
+\newcommand{\sg}[1]{}
+\newcommand{\simon}[1]{}
+\newcommand{\ryan}[1]{}
+
+\newcommand{\Conid}[1]{\mathit{#1}}
+\newcommand{\Varid}[1]{\mathit{#1}}
+
+% Types and Grd syntax
+\newcommand{\ty}[1]{\textsf{#1}\xspace}
+\newcommand{\Pat}{\ty{Pat}}
+\newcommand{\Grd}{\ty{Grd}}
+\newcommand{\Con}{\ty{Con}}
+\newcommand{\Var}{\ty{Var}}
+\newcommand{\Expr}{\ty{Expr}}
+\newcommand{\Type}{\ty{Type}}
+\newcommand{\Kind}{\ty{Kind}}
+\newcommand{\TyCt}{\ty{TyCt}}
+\newcommand{\NT}{\ty{NT}}
+\newcommand{\PS}{\ty{PS}}
+\newcommand{\CL}{\ty{CL}}
+\newcommand{\grdlet}[2]{\textsf{let}\;#1\,\textsf{=}\,#2}
+\newcommand{\grdbang}[1]{\textsf{!}#1}
+\newcommand{\grdcon}[2]{#1 \leftarrow #2}
+\newcommand{\ctlet}[2]{\textsf{let}\;#1\,\textsf{=}\,#2}
+\newcommand{\ctcon}[2]{#1 \leftarrow #2}
+\newcommand{\genconapp}[4]{#1\;\overline{#2}\;\overline{#3}\;\overline{#4}}
+\newcommand{\expconapp}[4]{#1\;\overline{#2}\;\overline{#3}\;\overline{#4}}
+\newcommand{\deltaconapp}[3]{#1\;\overline{#2}\;\overline{#3}}
+\newcommand{\ntconapp}[3]{#1\;\overline{#2}\;#3}
+\newcommand{\false}{\times}
+\newcommand{\true}{\checked}
+
+% GrdTree Gdt
+\newcommand{\Gdt}{\ty{Gdt}}
+\newcommand{\gdtrhs}[1]{
+	\vcenter{\hbox{\begin{forest}
+				grdtree,
+				[ [{$#1$}] ]
+			\end{forest}}}}
+\newcommand{\gdtseq}[2]{
+	\vcenter{\hbox{\begin{forest}
+				grdtree,
+				for tree={delay={edge={-}}},
+				[ [{$#1$}] [{$#2$}] ]
+			\end{forest}}}}
+\newcommand{\gdtguard}[2]{
+	\vcenter{\hbox{\begin{forest}
+				grdtree,
+				grhs/.style={tier=rhs,edge={-}},
+				[ [{$#1$} [{$#2$}] ] ]
+			\end{forest}}}}
+\newcommand{\gdtempty}{\bullet_{\Gdt}}
+
+% AnnTree Ant
+\newcommand{\Ant}{\ty{Ant}}
+\newcommand{\antrhs}[2]{
+	\vcenter{\hbox{\begin{forest}
+				anttree,
+				[ [{$#1$\,$#2$}] ]
+			\end{forest}}}}
+\newcommand{\antseq}[2]{
+	\vcenter{\hbox{\begin{forest}
+				anttree,
+				for tree={delay={edge={-}}},
+				[ [{$#1$}] [{$#2$}] ]
+			\end{forest}}}}
+\newcommand{\antbang}[2]{
+	\vcenter{\hbox{\begin{forest}
+				anttree,
+				for tree={delay={edge={-}}},
+				[ [{$#1$\,\lightning} [{$#2$}] ] ]
+			\end{forest}}}}
+\newcommand{\antempty}{\bullet_{\Ant}}
+
+% Graphic notation for trees
+\forestset{%
+	clausetree/.style={
+			for tree={
+					grow'=0,
+					calign=first,
+					anchor=parent,
+					line width=0.2mm, % This one only affects layout, not appearance of lines. Hence we set this again in delay
+					inner sep=2pt,
+					s sep=0pt,
+					delay={
+							edge={line width=0.2mm}},
+					l=0em % fix some excessive horizontal space usage for empty nodes
+				},
+			forked edges
+		},
+	grdtree/.style={
+			clausetree,
+			guards/.style={edge={-Bar}},
+			grhs/.style={tier=rhs,edge={->}},
+			% Everything except the root and the leaves is guards
+			for descendants={delay={if n children=0{grhs}{guards}}}
+		},
+	anttree/.style={
+			clausetree,
+			arhs/.style={tier=rhs,edge={->}},
+			for descendants={delay={if n children=0{arhs}{}}}
+		},
+}
+
+% Desugaring function
+\newcommand{\ds}{\mathcal{D}}
+
+% Checking functions
+\newcommand{\unc}{\mathcal{U}}
+\newcommand{\ann}{\mathcal{A}}
+\newcommand{\red}{\mathcal{R}}
+\newcommand{\uncann}{\unc\hspace{-0.35em}\ann}
+
+% Refinement type functions
+\newcommand{\generate}{\mathcal{G}}
+\newcommand{\normalise}{\mathcal{N}}
+\newcommand{\expand}{\mathcal{E}}
+
+% Refinement type syntax
+\newcommand{\reft}[2]{\langle \, #1 \mid #2 \, \rangle}
+\newcommand{\andtheta}{\,\dot{\wedge}\,}
+\newcommand{\uniontheta}{\,\cup\,}
+
+% Normalised refinement types
+\newcommand{\inv}[1]{I#1}
+\newcommand{\nreft}[2]{\langle #1 \!\parallel\! #2 \rangle}
+\newcommand{\adddelta}{\,\oplus_{\delta}\,}
+\newcommand{\restrict}[2]{#1 \! \mid_{#2}}
+\newcommand{\addphi}{\,\oplus_{\varphi}\,}
+\newcommand{\inhabited}[2]{#1 \vdash #2 \, \mathsf{inh}}
+\newcommand{\inhabitedbot}{\textsc{$\vdash$Bot}\xspace}
+\newcommand{\inhabitednocpl}{\textsc{$\vdash$NoCpl}\xspace}
+\newcommand{\inhabitedinst}{\textsc{$\vdash$Inst}\xspace}
+\newcommand{\inhabitednt}{\textsc{$\vdash$NT}\xspace}
+\newcommand{\cons}{\mathsf{Cons}}
+\newcommand{\inst}{\mathsf{Inst}}
+\newcommand{\rep}[2]{#1(#2)}
+\newcommand{\repnt}[2]{#1_{\text{\tiny NT}}(#2)}
+\newcommand{\addphiv}{\,\dot{\oplus}_{\varphi}\,} % "Vectorised" \addphi, hence \addphiv
+\newcommand{\throttle}[2]{\left\lfloor#2\right\rfloor_{#1}}

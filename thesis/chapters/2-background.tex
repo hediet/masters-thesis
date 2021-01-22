@@ -2,17 +2,334 @@
 
 \section{Lower Your Guards}
 
+Lower Your Guards (LYG) is an algorithm that analyzes pattern matching expressions.
+The analysis reports uncovered cases, but also redundant and inaccessible right hand sides.
+
+LYG was designed for use in the Glasgow Haskell Compiler,
+but the algorithm and its data structures are so universal
+that they can be leveraged for other programming languages with pattern matching constructs too.
+
+% Redundant and inaccessible right hand sides are both never evaluated.
+% However, while removing redundant right hand sides does not change the semantics of the pattern matching expression,
+% removing inaccessible right hand sides might lead to observable side effects.
+
 \subsection{Motivation}
 
-\subsection{Strictness}
+In functional programming, pattern matching is a very popular feature.
+This is particularly true for Haskell, where you can define algebraic data types
+and easily match on them in function definitions.
+With increasingly complex data types and function definitions however,
+pattern matching can be yet another source of mistakes.
+
+Listing \ref{lst:haskell} showcases common types of mistakes that can arise with pattern matching.
+
+Most importantly, the function $f$ is not defined on all values.
+The case $f\;\mathrm{Case4}\;\mathrm{False}$ is uncovered and will cause a runtime error.
+Also, the right hand sides (RHS) $3$ and $4$ are inaccessible - $f$ will never evaluate to $3$ or $4$!
+
+\begin{lstlisting}[caption={A Pattern Matching Example In Haskell},label={lst:haskell},language=Haskell]
+data Cases = Case1 | Case2 | Case3 | Case4
+
+f :: Cases -> Bool -> Integer
+f Case1 _ = 1
+f Case2 _ = 2
+f x True    | Case1 <- x = 3
+            | Case2 <- x = 4
+f Case3 _ = 5
+\end{lstlisting}
+
+LYG provides a robust algorithm that is able to detect such mistakes. LYG can also deal with the intricacies of lazy evaluation as discussed in the following chapter.
+
+\subsection{Lazy Evaluation}
+
+A closer look at listing \ref{lst:haskell} reveals that while both RHS 3 and 4 are inaccessible,
+the semantics of $f$ changes if both are removed.
+This means that an automated refactoring is not allowed to just remove all inaccessible leaves!
+
+The reason for this is the term $t := f\;\mathrm{Case3}\;\mathrm{undefined}$ and the fact that Haskell uses a lazy evaluation strategy.
+If both RHSs $3$ and $4$ are removed, $t$ evaluates to $5$ - the term $\mathrm{undefined}$ is never evaluated as no pattern matches against it.
+However, if nothing or only one of the RHSs $3$ or $4$ is removed, $\mathrm{undefined}$ will be matched with $\mathrm{True}$ and thus $t$ will throw an error!
+
+To communicate this difference, LYG introduces the concept of $\mathit{redundant}$ and $\mathit{inaccessible}$ RHSs:
+A redundant RHS can be removed from its pattern matching expression without any observable difference.
+An inaccessible RHS is never evaluated, but its removal might lead to observable changes.
+This definition implies that redundant RHSs are inaccessible.
+
+As of listing \ref{lst:haskell}, LYG will mark RHS $3$ as inaccessible and RHS $4$ as redundant.
+This choice is somewhat arbitrary, as RHS $3$ could be marked as redundant and RHS $4$ as inaccessible as well, and will be discussed in more detail chapter \TODOI{ref}.
 
 \subsection{Guard Trees}
 
+For all analyses, LYG first transforms Haskell specific pattern match expressions to simpler \textit{guard trees}.
+This transformation removes a lot of complexity, as many different Haskell constructs can be desugared
+to the same guard tree. Guard trees also simplify adapting LYG to other programming languages
+and they enable studying LYG mostly independent from Haskell.
+Their syntax is defined in figure \ref{fig:guardTrees}.
+
+Guard trees (Gdts) are made of three elements: Uniquely numbered right hand sides, branches and guarded trees.
+Guarded trees refer to Haskell specific guards (Grd) that control the execution.
+\textit{Let guards} can bind a term to a variable in a new lexical scope,
+\textit{pattern match guards} can destructure a value into variables if the pattern matches or otherwise prevent the
+execution from entering the tree behind the guard
+and \textit{bang guards} can stop the entire execution when the value of a variable does not reduce to a head normal form.
+
+\begin{figure}[htbp]
+	\caption{Definition of Guard Trees}
+	\label{fig:guardTrees}
+	\centering
+	\[ \textbf{Guard Syntax} \]
+	\[
+		\begin{array}{cc}
+			\begin{array}{rlcl}
+				k,n,m       \in & \mathbb{N} &           &                                                 \\
+				K           \in & \Con       &           &                                                 \\
+				x,y,a,b     \in & \Var       &           &                                                 \\
+				\tau,\sigma \in & \Type      & \Coloneqq & a \mid ...                                      \\
+				e \in           & \Expr      & \Coloneqq & x \mid  \genconapp{K}{\tau}{\gamma}{e} \mid ... \\
+			\end{array} &
+			\begin{array}{rlcl}
+				\gamma \in & \TyCt & \Coloneqq & \tau_1 \typeeq \tau_2 \mid ...               \\
+				p \in      & \Pat  & \Coloneqq & \_ \mid K \; \overline{p} \mid ...           \\
+				g \in      & \Grd  & \Coloneqq & \grdlet{x:\tau}{e}                           \\
+				           &       & \mid      & \grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x} \\
+				           &       & \mid      & \grdbang{x}                                  \\
+			\end{array}
+		\end{array}
+	\]
+
+	\[ \textbf{Guard Tree Syntax} \]
+	\[
+		\begin{array}{rcll}
+			t \in \Gdt & \Coloneqq & \gdtrhs{k} \mid \gdtseq{t_1}{t_2} \mid \gdtguard{g}{t} \\
+		\end{array}
+	\]
+\end{figure}
+
+The evaluation of a guard tree selects the first right hand side that execution reaches.
+If the execution stops at a bang guard, the evaluation diverges, otherwise, if execution falls through, the evaluation ends with a no-match.
+A formal semantic for guard trees will be defined in chapter \TODOI{ref}.
+
+The transformation from Haskell pattern matches to guard trees is not of much interest for this thesis and can be found in \TODOI{ref}.
+To preserve semantics, it is important that the transformation inserts bang guards whenever a variable is matched against a data constructor.
+
+The figure \ref{fig:desugaringExample} represents the guard tree of listing \ref{lst:haskell}.
+
+
+\begin{figure}[htbp]
+	\caption{Desugaring Example}
+	\label{fig:desugaringExample}
+	\begin{lstlisting}[language=Haskell]
+data Cases = Case1 | Case2 | Case3 | Case4
+
+f :: Cases -> Bool -> Integer
+f Case1 _ = 1
+f Case2 _ = 2
+f x True    | Case1 <- x = 3
+            | Case2 <- x = 4
+f Case3 _ = 5
+\end{lstlisting}
+
+	$\Downarrow$
+
+	\begin{forest}
+		grdtree
+		[
+		[{$\grdbang{x_1},\, \grdcon{\mathtt{Case1}}{x_1}$} [1]]
+			[
+				[{$\grdbang{x_1},\, \grdcon{\mathtt{Case2}}{x_1}$} [2]]
+					[
+						[{$\grdlet{x}{x_1},\, \grdbang{x_2},\, \grdcon{\mathtt{True}}{x_2}$}
+									[{$\grdbang{x},\, \grdcon{\mathtt{Case1}}{x}$} [3]]
+									[{$\grdbang{x},\, \grdcon{\mathtt{Case2}}{x}$} [4]]
+							]
+							[{$\grdbang{x_1},\, \grdcon{\mathtt{Case3}}{x_1}$} [5]]
+					]
+			]
+		]
+	\end{forest}
+\end{figure}
+
+It is usually straightforward to define a transformation from pattern matching expressions to guard trees
+that also preserves uncovered cases and inaccessible and redundant RHSs.
+This makes guard trees an ideal abstraction for the following analysis steps.
+
 \subsection{Refinement Types}
+
+\textit{Refinement types} describe vectors of values $x_1, ..., x_n$ that satisfy a given predicate $\Phi$.
+Their syntax is defined in figure \ref{fig:refinementTypes}.
+
+\begin{figure}[htbp]
+	\caption{Definition of Refinement Types}
+	\label{fig:refinementTypes}
+	\centering
+	\[
+		\begin{array}{rcll}
+			\Gamma  & \Coloneqq & \varnothing \mid \Gamma, x:\tau \mid \Gamma, a                                                                                                  & \text{Context}         \\
+			\varphi & \Coloneqq & \true \mid \false \mid \ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x} \mid x \ntermeq K \mid x \termeq \bot \mid x \ntermeq \bot \mid \ctlet{x}{e} & \text{Literals}        \\
+			\Phi    & \Coloneqq & \varphi \mid \Phi \wedge \Phi \mid \Phi \vee \Phi                                                                                               & \text{Formula}         \\
+			\Theta  & \Coloneqq & \reft{\Gamma}{\Phi}                                                                                                                             & \text{Refinement type} \\
+		\end{array}
+	\]
+\end{figure}
+
+Refinement types are built from literals $\phi$ and closed under conjunction and disjunction.
+The literal $\true$ means ``true'', while $\false$ means ``false''. For example:
+$$
+	\begin{array}{rcl}
+		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ \true }                                                                                                           & \text{denotes} & \{ \bot, \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}} \}                       \\
+		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ x \ntermeq \bot }                                                                                                 & \text{denotes} & \{ \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}} \}                             \\
+		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ x \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{True}}}{x} }                                                     & \text{denotes} & \{ \ensuremath{\Conid{True}} \}                                                         \\
+		\reft{ mx{:}\ensuremath{\Conid{Maybe}\;\Conid{Bool}}}{ mx \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{Just}\;\Varid{x}}}{mx} \wedge x \ntermeq \bot } & \text{denotes} & \{ \ensuremath{\Conid{Just}\;\Conid{True}}, \ensuremath{\Conid{Just}\;\Conid{False}} \} \\
+	\end{array}
+$$
+
+Unconventionally, a literal can bind one or more variables in a way that such a binding is in scope in all literals on its right.
+Thus, $(\ctlet{x}{y} \land z \ntermeq \bot) \land x \ntermeq \bot$ is equivalent to $z \ntermeq \bot \land y \ntermeq \bot$.
+While this conjunction operator is still associative, it is clearly not commutative!
+
+LYG also describes a partially defined function $\generate$
+with $\generate(\Theta) = \varnothing \implies \Theta \text{ denotes } \varnothing$ for all refinement types $\Theta$.
+$\generate$ is used to $\generate$enerate inhabitants of a refinement type to build elaborate error messages
+and to get a guarantee that a refinement type is empty.
+A precise $\generate$ function is undecidable!
+This thesis just assumes that ``interesting'' correct $\generate$ functions exist,
+so the details of $\generate$ as proposed by LYG do not matter.
 
 \subsection{Uncovered Analysis}
 
+The goal of the uncovered analysis is to detect all cases that are not covered by a given guard tree.
+Refinement types are used to capture the result of this analysis.
+
+The function $\unc(\reft{\Gamma}{\true}, \cdot)$ in figure \ref{fig:U}
+computes a refinement type that captures all uncovered values for a given guard tree.
+This refinement type is empty if and only if there are not any uncovered cases.
+If $\generate$ is used to test for emptiness, this yields an algorithm to test for uncovered cases.
+
+\begin{figure}[htbp]
+	\caption{Definition of $\unc$}
+	\label{fig:U}
+	\[ \ruleform{ \unc(\Theta, t) = \Theta } \]
+	\[
+		\begin{array}{lcl}
+			\unc(\reft{\Gamma}{\Phi}, \gdtrhs{n})                                    & = & \reft{\Gamma}{\false}                                                                                                 \\
+			\unc(\Theta, \gdtseq{t_1}{t_2})                                          & = & \unc(\unc(\Theta, t_1), t_2)                                                                                          \\
+			\unc(\Theta, \gdtguard{\grdbang{x}}{t})                                  & = & \unc(\Theta \andtheta (x \ntermeq \bot), t)                                                                           \\
+			\unc(\Theta, \gdtguard{\grdlet{x}{e}}{t})                                & = & \unc(\Theta \andtheta (\ctlet{x}{e}), t)                                                                              \\
+			\unc(\Theta, \gdtguard{\grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}}{t}) & = & (\Theta \andtheta (x \ntermeq K)) \uniontheta \unc(\Theta \andtheta (\ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}), t) \\
+		\end{array}
+	\]
+\end{figure}
+
+\begin{figure}[htbp]
+	\caption{Example of $\unc$}
+	\label{fig:UEx}
+	\begin{array}{rcl}
+		\unc(
+		\reft{\Gamma}{\true},
+		\begin{forest}
+			grdtree
+			[
+			[{$\grdbang{x_1},\, \grdcon{\mathtt{Case1}}{x_1}$} [1]]
+				[
+					[{$\grdbang{x_1},\, \grdcon{\mathtt{Case2}}{x_1}$} [2]]
+						[
+							[{$\grdlet{x}{x_1},\, \grdbang{x_2},\, \grdcon{\mathtt{True}}{x_2}$}
+										[{$\grdbang{x},\, \grdcon{\mathtt{Case1}}{x}$} [3]]
+										[{$\grdbang{x},\, \grdcon{\mathtt{Case2}}{x}$} [4]]
+								]
+								[{$\grdbang{x_1},\, \grdcon{\mathtt{Case3}}{x_1}$} [5]]
+						]
+				]
+			]
+		\end{forest}
+		) \\
+		= \unc(
+		\unc(
+			\reft{\Gamma}{\true},
+			\begin{forest}
+				grdtree
+				[
+				[{$\grdbang{x_1},\, \grdcon{\mathtt{Case1}}{x_1}$} [1]]
+				]
+			\end{forest}
+			),
+		\begin{forest}
+				grdtree
+				[
+				[
+						[{$\grdbang{x_1},\, \grdcon{\mathtt{Case2}}{x_1}$} [2]]
+							[
+								[{$\grdlet{x}{x_1},\, \grdbang{x_2},\, \grdcon{\mathtt{True}}{x_2}$}
+											[{$\grdbang{x},\, \grdcon{\mathtt{Case1}}{x}$} [3]]
+											[{$\grdbang{x},\, \grdcon{\mathtt{Case2}}{x}$} [4]]
+									]
+									[{$\grdbang{x_1},\, \grdcon{\mathtt{Case3}}{x_1}$} [5]]
+							]
+					]
+				]
+			\end{forest}
+		)
+	\end{array}
+\end{figure}
+
+\subsection{Annotated Guard Trees}
+
+\textit{Annotated guard trees} represent simplified guard trees that have been annotated with refinement types.
+Their syntax is defined in figure \ref{fig:annotatedGuardTree}.
+
+\begin{figure}[htbp]
+	\caption{Definition of Annotated Guard Trees}
+	\label{fig:annotatedGuardTree}
+	\centering
+	\[
+		u \in \Ant \Coloneqq \antrhs{\Theta}{k} \mid \antseq{u_1}{u_2} \mid \antbang{\Theta}{u}
+	\]
+\end{figure}
+
 \subsection{Redundant/Inaccessible Analysis}
+
+The goal of the redundant/inaccessible analysis is to report as much RHSs
+as possible that are guaranteed to be redundant or inaccessible.
+This is done by annotating a guard tree with refinement types and then checking these refinement types for emptiness.
+If a RHS is associated with an empty refinement type, the RHS is inaccessible and in some circumstances even redundant.
+
+\begin{figure}[htbp]
+	\caption{Definition of $\ann$}
+	\label{fig:A}
+	\[ \ruleform{ \ann(\Theta, t) = u } \]
+	\[
+		\begin{array}{lcl}
+			\ann(\Theta,\gdtrhs{n})                                                  & = & \antrhs{\Theta}{n}                                                                       \\
+			\ann(\Theta, \gdtseq{t_1}{t_2})                                          & = & \antseq{\ann(\Theta, t_1)}{\ann(\unc(\Theta, t_1), t_2)}                                 \\
+			\ann(\Theta, \gdtguard{\grdbang{x}}{t})                                  & = & \antbang{\Theta \andtheta (x \termeq \bot)}{\ann(\Theta \andtheta (x \ntermeq \bot), t)} \\
+			\ann(\Theta, \gdtguard{\grdlet{x}{e}}{t})                                & = & \ann(\Theta \andtheta (\ctlet{x}{e}), t)                                                 \\
+			\ann(\Theta, \gdtguard{\grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}}{t}) & = & \ann(\Theta \andtheta (\ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}), t)                  \\
+		\end{array}
+	\]
+\end{figure}
+
+\begin{figure}[htbp]
+	\caption{Definition of $\red$}
+	\centering
+	%\[ \textbf{Collect accessible $(\overline{k})$, inaccessible $(\overline{n})$ and $\red$edundant $(\overline{m})$ RHSs} \]
+	\[ \ruleform{ \red(u) = (\overline{k}, \overline{n}, \overline{m}) } \]
+	\[
+		\begin{array}{lcl}
+			\red(\antrhs{\Theta}{n})  & = & \begin{cases}
+				(\epsilon, \epsilon, n), & \text{if $\generate(\Theta) = \emptyset$} \\
+				(n, \epsilon, \epsilon), & \text{otherwise}                          \\
+			\end{cases}                                                                                                                     \\
+			\red(\antseq{t}{u})       & = & (\overline{k}\,\overline{k'}, \overline{n}\,\overline{n'}, \overline{m}\,\overline{m'}) \hspace{0.5em} \text{where} \begin{array}{l@{\,}c@{\,}l}
+				(\overline{k}, \overline{n}, \overline{m})    & = & \red(t) \\
+				(\overline{k'}, \overline{n'}, \overline{m'}) & = & \red(u) \\
+			\end{array} \\
+			\red(\antbang{\Theta}{t}) & = & \begin{cases}
+				(\epsilon, m, \overline{m'}), & \text{if $\generate(\Theta) \not= \emptyset$ and $\red(t) = (\epsilon, \epsilon, m\,\overline{m'})$} \\
+				\red(t),                      & \text{otherwise}                                                                                     \\
+			\end{cases}                                                                                                                     \\
+		\end{array}
+	\]
+\end{figure}
 
 \section{Lean}
 
