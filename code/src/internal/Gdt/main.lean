@@ -1,6 +1,6 @@
 import tactic
 import data.finset
-import .mark_all_leaves_inactive
+import .mark_all_rhss_inactive
 import .eval
 import .eval_option
 import ..utils
@@ -8,14 +8,14 @@ import ..utils
 variable [GuardModule]
 open GuardModule
 
-lemma Gdt.remove_leaves_branch { leaves: finset Leaf } { gdt₁ gdt₂: Gdt }:
-    (gdt₁.branch gdt₂).remove_leaves leaves ≠ none ↔
-         gdt₁.remove_leaves leaves ≠ none ∨
-         gdt₂.remove_leaves leaves ≠ none :=
+lemma Gdt.remove_rhss_branch { rhss: finset Rhs } { gdt₁ gdt₂: Gdt }:
+    (gdt₁.branch gdt₂).remove_rhss rhss ≠ none ↔
+         gdt₁.remove_rhss rhss ≠ none ∨
+         gdt₂.remove_rhss rhss ≠ none :=
 begin
-    unfold Gdt.remove_leaves,
-    cases gdt₁.remove_leaves leaves;
-    cases gdt₂.remove_leaves leaves;
+    unfold Gdt.remove_rhss,
+    cases gdt₁.remove_rhss rhss;
+    cases gdt₂.remove_rhss rhss;
     simp [Gdt.branch_option],
 end
 
@@ -25,26 +25,26 @@ begin
     simp [Gdt.grd_option],
 end
 
-lemma Gdt.remove_leaves_neq_none { leaves: finset Leaf } { gdt: Gdt } (h: ∃ l ∈ gdt.leaves, l ∉ leaves): (Gdt.remove_leaves leaves gdt) ≠ none :=
+lemma Gdt.remove_rhss_neq_none { rhss: finset Rhs } { gdt: Gdt } (h: ∃ l ∈ gdt.rhss, l ∉ rhss): (Gdt.remove_rhss rhss gdt) ≠ none :=
 begin
-    induction gdt with leaf,
-    case Gdt.leaf {
-        simp only [Gdt.leaves, exists_prop, exists_eq_left, finset.mem_singleton] at h,
-        simp [Gdt.remove_leaves, h],
+    induction gdt with rhs,
+    case Gdt.rhs {
+        simp only [Gdt.rhss, exists_prop, exists_eq_left, finset.mem_singleton] at h,
+        simp [Gdt.remove_rhss, h],
     },
     case Gdt.branch {
-        simp only [Gdt.leaves, exists_prop, finset.mem_union] at h,
+        simp only [Gdt.rhss, exists_prop, finset.mem_union] at h,
 
-        rw Gdt.remove_leaves_branch,
+        rw Gdt.remove_rhss_branch,
         cases h with l h,
         cases h.1 with l_mem, {
-            have : (∃ (l : Leaf) (H : l ∈ gdt_tr1.leaves), l ∉ leaves), {
+            have : (∃ (l : Rhs) (H : l ∈ gdt_tr1.rhss), l ∉ rhss), {
                 use l,
                 simp *,
             },
             simp [gdt_ih_tr1 this],
         }, {
-            have : (∃ (l : Leaf) (H : l ∈ gdt_tr2.leaves), l ∉ leaves), {
+            have : (∃ (l : Rhs) (H : l ∈ gdt_tr2.rhss), l ∉ rhss), {
                 use l,
                 simp *,
             },
@@ -52,8 +52,8 @@ begin
         },
     },
     case Gdt.grd {
-        unfold Gdt.remove_leaves,
-        rw Gdt.leaves at h,
+        unfold Gdt.remove_rhss,
+        rw Gdt.rhss at h,
         rw Gdt.grd_option_neq_none,
         simp [gdt_ih h],
     }

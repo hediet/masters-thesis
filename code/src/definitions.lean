@@ -3,8 +3,8 @@ import data.finset
 
 class GuardModule :=
     -- Represents the result type of evaluating a guard tree.
-    (Leaf : Type)
-    [leaf_decidable: decidable_eq Leaf]
+    (Rhs : Type)
+    [rhs_decidable: decidable_eq Rhs]
 
     -- Represents an environment type that is used to define a semantic for a guard tree.
     (Env : Type)
@@ -30,7 +30,7 @@ class GuardModule :=
 variable [GuardModule]
 open GuardModule
 
-attribute [instance] GuardModule.leaf_decidable
+attribute [instance] GuardModule.rhs_decidable
 
 -- # Guard Trees
 -- ## Syntax
@@ -39,7 +39,7 @@ inductive Grd
 | bang (var: Var)
 
 inductive Gdt
-| leaf (leaf: Leaf)
+| rhs (rhs: Rhs)
 | branch (tr1: Gdt) (tr2: Gdt)
 | grd (grd: Grd) (tr: Gdt)
 
@@ -53,33 +53,33 @@ def Gdt.grd_option : Grd → option Gdt → option Gdt
 | grd (some tr) := some (Gdt.grd grd tr)
 | _ none := none
 
--- Removes a set of leaves from a guard tree.
+-- Removes a set of rhss from a guard tree.
 -- Returns `none` if the guard tree is empty.
-def Gdt.remove_leaves : finset Leaf → Gdt → option Gdt
-| leaves (Gdt.leaf leaf) := if leaf ∈ leaves then none else some (Gdt.leaf leaf)
-| leaves (Gdt.branch tr1 tr2) := Gdt.branch_option (tr1.remove_leaves leaves) (tr2.remove_leaves leaves)
-| leaves (Gdt.grd grd tr) := Gdt.grd_option grd (tr.remove_leaves leaves)
+def Gdt.remove_rhss : finset Rhs → Gdt → option Gdt
+| rhss (Gdt.rhs rhs) := if rhs ∈ rhss then none else some (Gdt.rhs rhs)
+| rhss (Gdt.branch tr1 tr2) := Gdt.branch_option (tr1.remove_rhss rhss) (tr2.remove_rhss rhss)
+| rhss (Gdt.grd grd tr) := Gdt.grd_option grd (tr.remove_rhss rhss)
 
--- Returns a set of all leaves that a guard tree contains.
-def Gdt.leaves: Gdt → finset Leaf
-| (Gdt.leaf leaf) := { leaf }
-| (Gdt.branch tr1 tr2) := tr1.leaves ∪ tr2.leaves
-| (Gdt.grd grd tr) := tr.leaves
+-- Returns a set of all rhss that a guard tree contains.
+def Gdt.rhss: Gdt → finset Rhs
+| (Gdt.rhs rhs) := { rhs }
+| (Gdt.branch tr1 tr2) := tr1.rhss ∪ tr2.rhss
+| (Gdt.grd grd tr) := tr.rhss
 
--- States that all leaves are different in a given guard tree.
-def Gdt.disjoint_leaves: Gdt → Prop
-| (Gdt.leaf leaf) := true
-| (Gdt.branch tr1 tr2) := tr1.disjoint_leaves ∧ tr2.disjoint_leaves ∧ disjoint tr1.leaves tr2.leaves
-| (Gdt.grd grd tr) := tr.disjoint_leaves
+-- States that all rhss are different in a given guard tree.
+def Gdt.disjoint_rhss: Gdt → Prop
+| (Gdt.rhs rhs) := true
+| (Gdt.branch tr1 tr2) := tr1.disjoint_rhss ∧ tr2.disjoint_rhss ∧ disjoint tr1.rhss tr2.rhss
+| (Gdt.grd grd tr) := tr.disjoint_rhss
 
 -- ## Semantic
 inductive Result
-| leaf (leaf: Leaf)
+| rhs (rhs: Rhs)
 | diverged
 | no_match
 
 def Gdt.eval : Gdt → Env → Result
-| (Gdt.leaf leaf) env := Result.leaf leaf
+| (Gdt.rhs rhs) env := Result.rhs rhs
 | (Gdt.branch tr1 tr2) env :=
     match tr1.eval env with
     | Result.no_match := tr2.eval env
@@ -133,7 +133,7 @@ def Φ.eval: Φ → Env → bool
 
 -- ## Uncovered Refinement Types
 def 𝒰_acc : (Φ → Φ) → Gdt → Φ
-| acc (Gdt.leaf _) := acc Φ.false
+| acc (Gdt.rhs _) := acc Φ.false
 -- TODO: Change to (𝒰_acc ((𝒰_acc id tr1).and ∘ acc) tr2)
 | acc (Gdt.branch tr1 tr2) := (𝒰_acc (acc ∘ (𝒰_acc id tr1).and) tr2)
 | acc (Gdt.grd (Grd.bang var) tree) :=
@@ -147,12 +147,12 @@ def 𝒰 : Gdt → Φ := 𝒰_acc id
 
 -- # Annotate
 inductive Ant (α: Type)
-| leaf (a: α) (leaf: Leaf): Ant
+| rhs (a: α) (rhs: Rhs): Ant
 | branch (tr1: Ant) (tr2: Ant): Ant
 | diverge (a: α) (tr: Ant): Ant
 
 def 𝒜_acc : (Φ → Φ) → Gdt → Ant Φ
-| acc (Gdt.leaf leaf) := Ant.leaf (acc Φ.true) leaf
+| acc (Gdt.rhs rhs) := Ant.rhs (acc Φ.true) rhs
 | acc (Gdt.branch tr1 tr2) := Ant.branch (𝒜_acc acc tr1) (𝒜_acc ((𝒰_acc acc tr1).and ∘ acc) tr2)
 | acc (Gdt.grd (Grd.bang var) tr) := Ant.diverge (acc (Φ.var_is_bottom var)) 
                                         (𝒜_acc (acc ∘ ((Φ.var_is_not_bottom var).and)) tr)
@@ -176,9 +176,9 @@ def Gs := { g : Φ → bool // is_empty_prover g }
 
 -- # Definition of ℛ
 
--- returns (accessible, inaccessible, redundant) leaves, given that `can_prove_empty` is correct.
-def ℛ : Ant Φ → list Leaf × list Leaf × list Leaf
-| (Ant.leaf ty n) := if can_prove_empty ty then ([], [], [n]) else ([n], [], [])
+-- returns (accessible, inaccessible, redundant) rhss, given that `can_prove_empty` is correct.
+def ℛ : Ant Φ → list Rhs × list Rhs × list Rhs
+| (Ant.rhs ty n) := if can_prove_empty ty then ([], [], [n]) else ([n], [], [])
 | (Ant.diverge ty tr) := 
     match ℛ tr, can_prove_empty ty with
     | ([], [], m :: ms), ff := ([], [m], ms)

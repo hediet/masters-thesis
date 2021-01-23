@@ -34,10 +34,10 @@ begin
 end
 
 @[simp]
-lemma Gdt.eval_branch_leaf_iff { gdt1: Gdt } { gdt2: Gdt } { env: Env } { leaf: Leaf }:
-    (gdt1.branch gdt2).eval env = Result.leaf leaf
-    ↔ gdt1.eval env = Result.leaf leaf
-        ∨ (gdt1.eval env = Result.no_match ∧ gdt2.eval env = Result.leaf leaf) :=
+lemma Gdt.eval_branch_rhs_iff { gdt1: Gdt } { gdt2: Gdt } { env: Env } { rhs: Rhs }:
+    (gdt1.branch gdt2).eval env = Result.rhs rhs
+    ↔ gdt1.eval env = Result.rhs rhs
+        ∨ (gdt1.eval env = Result.no_match ∧ gdt2.eval env = Result.rhs rhs) :=
 begin
     cases c1: gdt1.eval env;
     cases c2: gdt2.eval env;
@@ -45,7 +45,7 @@ begin
 end
 
 @[simp]
-lemma Gdt.eval_leaf { leaf: Leaf } { env: Env }: (Gdt.leaf leaf).eval env = Result.leaf leaf :=
+lemma Gdt.eval_rhs { rhs: Rhs } { env: Env }: (Gdt.rhs rhs).eval env = Result.rhs rhs :=
 by simp [Gdt.eval]
 
 lemma Gdt.eval_xgrd_of_some { xgrd: XGrd } { tr: Gdt } { env env': Env }
@@ -79,27 +79,27 @@ lemma Gdt.eval_branch_replace_right_env { gdt₁ gdt₂ gdt₂': Gdt } { env: En
 by by_cases x: gdt₁.eval env = Result.no_match; finish [Gdt.eval_branch_left, Gdt.eval_branch_right, x]
 
 
-lemma Gdt.leaf_mem_leaves_of_eval_leaf { gdt: Gdt } { env: Env } { leaf: Leaf } (h: gdt.eval env = Result.leaf leaf): leaf ∈ gdt.leaves :=
+lemma Gdt.rhs_mem_rhss_of_eval_rhs { gdt: Gdt } { env: Env } { rhs: Rhs } (h: gdt.eval env = Result.rhs rhs): rhs ∈ gdt.rhss :=
 begin
-    induction gdt with leaf generalizing env,
-    case Gdt.leaf {
-        finish [Gdt.leaves, Gdt.eval],
+    induction gdt with rhs generalizing env,
+    case Gdt.rhs {
+        finish [Gdt.rhss, Gdt.eval],
     },
     case Gdt.grd {
         cases gdt_grd,
         case Grd.xgrd {
             cases c: xgrd_eval gdt_grd env,
-            { finish [Gdt.leaves, Gdt.eval_xgrd_of_none c, Gdt.eval], },
-            { finish [Gdt.leaves, Gdt.eval_xgrd_of_some c, Gdt.eval], },
+            { finish [Gdt.rhss, Gdt.eval_xgrd_of_none c, Gdt.eval], },
+            { finish [Gdt.rhss, Gdt.eval_xgrd_of_some c, Gdt.eval], },
         },
         case Grd.bang {
             cases c: is_bottom gdt_grd env,
-            { finish [Gdt.leaves, Gdt.eval_bang_of_not_bottom c], },
-            { finish [Gdt.leaves, Gdt.eval_bang_of_bottom c], },
+            { finish [Gdt.rhss, Gdt.eval_bang_of_not_bottom c], },
+            { finish [Gdt.rhss, Gdt.eval_bang_of_bottom c], },
         }
     },
     case Gdt.branch {
         by_cases c: gdt_tr1.eval env = Result.no_match;
-        finish [Gdt.leaves, Gdt.eval_branch_leaf_iff],
+        finish [Gdt.rhss, Gdt.eval_branch_rhs_iff],
     },
 end

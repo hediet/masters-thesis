@@ -25,13 +25,13 @@ do
     ],
     rotate_right 1,
     propagate_tags `[
-        unfold Ant.disjoint_leaves at ant_disjoint,
+        unfold Ant.disjoint_rhss at ant_disjoint,
         try_specialize_all ```(ant_disjoint)
         --clear ant_disjoint
     ],
     rotate_right 1,
     propagate_tags `[
-        unfold Ant.disjoint_leaves at ant_disjoint,
+        unfold Ant.disjoint_rhss at ant_disjoint,
         try_specialize_all ```(ant_disjoint.1),
         try_specialize_all ```(ant_disjoint.2.1),
         replace ant_disjoint := ant_disjoint.2.2

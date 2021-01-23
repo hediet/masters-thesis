@@ -12,7 +12,7 @@ open GuardModule
 lemma U_eq_𝒰_acc { gdt: Gdt } { acc: Φ → Φ } (acc_stable: stable acc) (acc_hom: hom acc) : (acc (U gdt)).eval = (𝒰_acc acc gdt).eval :=
 begin
     induction gdt generalizing acc,
-    case Gdt.leaf {
+    case Gdt.rhs {
         simp [𝒰_acc, U],
     },
     case Gdt.branch {
@@ -51,9 +51,9 @@ by ext env; simp [𝒰, ←U_eq_𝒰_acc (stable.id) (hom.id)]
 theorem U_semantic { gdt: Gdt } { env: Env }:
     (U gdt).eval env = !(gdt.eval env).is_match :=
 begin
-    induction gdt with leaf generalizing env,
+    induction gdt with rhs generalizing env,
 
-    case Gdt.leaf { refl, },
+    case Gdt.rhs { refl, },
     case Gdt.branch {
         simp [U, *, @gdt_ih_tr1 env, @gdt_ih_tr2 env, ←bool.coe_bool_iff],
     },

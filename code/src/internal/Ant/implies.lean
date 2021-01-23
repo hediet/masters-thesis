@@ -1,7 +1,7 @@
 import tactic
 import data.finset
 import ..internal_definitions
-import .leaves
+import .rhss
 import .map
 
 variable [GuardModule]
@@ -11,20 +11,20 @@ open GuardModule
 begin
     induction h1 generalizing c;
     cases h2,
-    { refine Ant.implies.leaf _; tauto, },
+    { refine Ant.implies.rhs _; tauto, },
     { refine Ant.implies.branch _ _; tauto, },
     { refine Ant.implies.diverge _ _; tauto, },
 end
 
 @[refl] lemma Ant.implies_refl (a : Ant bool) : a ⟶ a :=
-by induction a; simp [Ant.implies.leaf, Ant.implies.branch, Ant.implies.diverge, *]
+by induction a; simp [Ant.implies.rhs, Ant.implies.branch, Ant.implies.diverge, *]
 
 lemma Ant.implies_equal_structure { a b: Ant bool } (h: a ⟶ b):
     a.map (λ x, false) = b.map (λ x, false) :=
 by induction h; simp [Ant.map, *]
 
-lemma Ant.implies_same_leaves { a b: Ant bool } (h: a ⟶ b): a.leaves = b.leaves :=
+lemma Ant.implies_same_rhss { a b: Ant bool } (h: a ⟶ b): a.rhss = b.rhss :=
 begin
-    have := congr_arg Ant.leaves (Ant.implies_equal_structure h),
-    finish [Ant.map_leaves],
+    have := congr_arg Ant.rhss (Ant.implies_equal_structure h),
+    finish [Ant.map_rhss],
 end

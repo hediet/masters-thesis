@@ -17,18 +17,18 @@ begin
     simp [U_semantic],
 end
 
-theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_leaves → 
+theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_rhss → 
     (
         let ⟨ a, i, r ⟩ := ℛ can_prove_empty.val (𝒜 gdt)
         in
-                -- Reachable leaves are accessible and neither inaccessible nor redundant.
-                (∀ env: Env, ∀ leaf: Leaf,
-                    gdt.eval env = Result.leaf leaf
-                      → leaf ∈ a \ (i ++ r)
+                -- Reachable rhss are accessible and neither inaccessible nor redundant.
+                (∀ env: Env, ∀ rhs: Rhs,
+                    gdt.eval env = Result.rhs rhs
+                      → rhs ∈ a \ (i ++ r)
                 )
             ∧
-                -- Redundant leaves can be removed without changing semantics.
-                Gdt.eval_option (gdt.remove_leaves r.to_finset)
+                -- Redundant rhss can be removed without changing semantics.
+                Gdt.eval_option (gdt.remove_rhss r.to_finset)
                 = gdt.eval
 
         : Prop
@@ -41,14 +41,14 @@ begin
     dsimp only,
 
     rw ←R_eq_ℛ at c,
-    unfold LeafPartition.to_triple at c,
+    unfold RhsPartition.to_triple at c,
     set p := R (Ant.map can_prove_empty.val (𝒜 gdt)) with p_def,
     cases c,
 
-    have Agdt_def := eq.symm (Ant.mark_inactive_leaves_eq_of_eval_leaves_eq (A_eq_𝒜 gdt)),
+    have Agdt_def := eq.symm (Ant.mark_inactive_rhss_eq_of_eval_rhss_eq (A_eq_𝒜 gdt)),
     
     split, {
-        assume env leaf h,
+        assume env rhs h,
         replace Agdt_def := function.funext_iff.1 Agdt_def env,
         exact R_acc_mem_of_reachable gdt_disjoint can_prove_empty Agdt_def h p_def,
     }, {
