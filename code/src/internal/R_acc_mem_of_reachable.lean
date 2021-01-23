@@ -57,7 +57,7 @@ end
 
 
 lemma gdt_mark_inactive_rhss_inactive_rhss_of_rhs_match { gdt: Gdt } { env: Env } { rhs: Rhs } (gdt_disjoint: gdt.disjoint_rhss):
-    gdt.rhss \ (gdt.mark_inactive_rhss env).inactive_rhss = { rhs } ↔ gdt.eval env = Result.rhs rhs :=
+    gdt.rhss \ (gdt.mark_inactive_rhss env).inactive_rhss = { rhs } ↔ gdt.eval env = Result.value rhs :=
 begin
     induction gdt with l generalizing env,
     case Gdt.rhs {
@@ -152,7 +152,7 @@ lemma R_acc_mem_of_reachable { gdt: Gdt } { env: Env } { rhs: Rhs } { ant: Ant �
     (gdt_disjoint: gdt.disjoint_rhss)
     (can_prove_empty: Gs)
     (ant_def: ant.mark_inactive_rhss env = (A gdt).mark_inactive_rhss env)
-    (h: gdt.eval env = Result.rhs rhs)
+    (h: gdt.eval env = Result.value rhs)
     { r: RhsPartition }
     (r_def: r = R (ant.map can_prove_empty.val)):
     rhs ∈ r.acc \ (r.inacc ++ r.red) :=

@@ -5,7 +5,7 @@ import data.finset
 variable [GuardModule]
 open GuardModule
 
-def Result.is_match : Result → bool
+def Result.is_match { α: Type } : Result α → bool
 | Result.no_match := ff
 | _ := tt
 

@@ -35,9 +35,9 @@ end
 
 @[simp]
 lemma Gdt.eval_branch_rhs_iff { gdt1: Gdt } { gdt2: Gdt } { env: Env } { rhs: Rhs }:
-    (gdt1.branch gdt2).eval env = Result.rhs rhs
-    ↔ gdt1.eval env = Result.rhs rhs
-        ∨ (gdt1.eval env = Result.no_match ∧ gdt2.eval env = Result.rhs rhs) :=
+    (gdt1.branch gdt2).eval env = Result.value rhs
+    ↔ gdt1.eval env = Result.value rhs
+        ∨ (gdt1.eval env = Result.no_match ∧ gdt2.eval env = Result.value rhs) :=
 begin
     cases c1: gdt1.eval env;
     cases c2: gdt2.eval env;
@@ -45,7 +45,7 @@ begin
 end
 
 @[simp]
-lemma Gdt.eval_rhs { rhs: Rhs } { env: Env }: (Gdt.rhs rhs).eval env = Result.rhs rhs :=
+lemma Gdt.eval_rhs { rhs: Rhs } { env: Env }: (Gdt.rhs rhs).eval env = Result.value rhs :=
 by simp [Gdt.eval]
 
 lemma Gdt.eval_xgrd_of_some { xgrd: XGrd } { tr: Gdt } { env env': Env }
@@ -79,7 +79,7 @@ lemma Gdt.eval_branch_replace_right_env { gdt₁ gdt₂ gdt₂': Gdt } { env: En
 by by_cases x: gdt₁.eval env = Result.no_match; finish [Gdt.eval_branch_left, Gdt.eval_branch_right, x]
 
 
-lemma Gdt.rhs_mem_rhss_of_eval_rhs { gdt: Gdt } { env: Env } { rhs: Rhs } (h: gdt.eval env = Result.rhs rhs): rhs ∈ gdt.rhss :=
+lemma Gdt.rhs_mem_rhss_of_eval_rhs { gdt: Gdt } { env: Env } { rhs: Rhs } (h: gdt.eval env = Result.value rhs): rhs ∈ gdt.rhss :=
 begin
     induction gdt with rhs generalizing env,
     case Gdt.rhs {

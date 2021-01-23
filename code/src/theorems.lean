@@ -23,7 +23,7 @@ theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_rhss 
         in
                 -- Reachable rhss are accessible and neither inaccessible nor redundant.
                 (∀ env: Env, ∀ rhs: Rhs,
-                    gdt.eval env = Result.rhs rhs
+                    gdt.eval env = Result.value rhs
                       → rhs ∈ a \ (i ++ r)
                 )
             ∧
