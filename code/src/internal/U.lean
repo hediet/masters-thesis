@@ -16,14 +16,14 @@ begin
         simp [𝒰_acc, U],
     },
     case Gdt.branch {
-        have : (𝒰_acc id gdt_tr1).eval = (id (U gdt_tr1)).eval :=
-        by simp [←gdt_ih_tr1, stable.id, hom.id],
+        have : (𝒰_acc acc gdt_tr1).eval = (acc (U gdt_tr1)).eval :=
+        by simp [←gdt_ih_tr1, acc_stable, acc_hom],
 
-        have : ((𝒰_acc id gdt_tr1).and (U gdt_tr2)).eval = ((id (U gdt_tr1)).and (U gdt_tr2)).eval :=
+        have : ((𝒰_acc acc gdt_tr1).and (acc (U gdt_tr2))).eval = ((acc (U gdt_tr1)).and (acc (U gdt_tr2))).eval :=
         by rw stable.app stable.and_left this,
 
-        simp [𝒰_acc, U, ←gdt_ih_tr2 (stable.comp acc_stable stable.and_right) (hom.comp acc_hom acc_stable hom.and_right stable.and_right),
-            function.comp, stable.app acc_stable this],
+        simp [𝒰_acc, U, this, ←acc_hom _ _,
+            ←gdt_ih_tr2 (stable.comp stable.and_right acc_stable) (hom.comp hom.and_right stable.and_right acc_hom acc_stable)],
     },
     case Gdt.grd {
         cases gdt_grd,

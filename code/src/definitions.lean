@@ -142,14 +142,13 @@ def Φ.eval: Φ → Env → bool
 -- ## Uncovered Refinement Types
 def 𝒰_acc : (Φ → Φ) → Gdt → Φ
 | acc (Gdt.rhs _) := acc Φ.false
--- TODO: Change to (𝒰_acc ((𝒰_acc id tr1).and ∘ acc) tr2)
-| acc (Gdt.branch tr1 tr2) := (𝒰_acc (acc ∘ (𝒰_acc id tr1).and) tr2)
-| acc (Gdt.grd (Grd.bang var) tree) :=
-    𝒰_acc (acc ∘ (Φ.var_is_not_bottom var).and) tree
-| acc (Gdt.grd (Grd.xgrd grd) tree) :=
+| acc (Gdt.branch tr1 tr2) := (𝒰_acc ((𝒰_acc acc tr1).and ∘ acc) tr2)
+| acc (Gdt.grd (Grd.bang var) tr) :=
+    𝒰_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr
+| acc (Gdt.grd (Grd.xgrd grd) tr) :=
             (acc (Φ.not_xgrd grd))
         .or
-            (𝒰_acc (acc ∘ (Φ.xgrd_in grd)) tree)
+            (𝒰_acc (acc ∘ (Φ.xgrd_in grd)) tr)
 
 def 𝒰 : Gdt → Φ := 𝒰_acc id
 
@@ -167,8 +166,6 @@ def 𝒜_acc : (Φ → Φ) → Gdt → Ant Φ
 | acc (Gdt.grd (Grd.xgrd grd) tr) := (𝒜_acc (acc ∘ (Φ.xgrd_in grd)) tr)
 
 def 𝒜 : Gdt → Ant Φ := 𝒜_acc id
-
--- TODO: define 𝒰𝒜 : (Φ → Φ) → Gdt → (Ant Φ, Φ)
 
 -- # Empty Provers
 
@@ -196,3 +193,15 @@ def ℛ : Ant Φ → list Rhs × list Rhs × list Rhs
     match (ℛ tr1, ℛ tr2) with
     | ((k, n, m), (k', n', m')) := (k ++ k', n ++ n', m ++ m')
     end
+
+def 𝒰𝒜_acc : (Φ → Φ) → Gdt → Φ × Ant Φ
+| acc (Gdt.rhs rhs) := (acc Φ.false, Ant.rhs (acc Φ.true) rhs)
+| acc (Gdt.branch tr1 tr2) :=
+    let (U1, A1) := 𝒰𝒜_acc acc tr1, (U2, A2) := 𝒰𝒜_acc (U1.and ∘ acc) tr2 in
+        (U2, Ant.branch A1 A2)
+| acc (Gdt.grd (Grd.bang var) tr) :=
+    let (U, A) := 𝒰𝒜_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr in
+        (U, Ant.diverge (acc (Φ.var_is_bottom var)) A)
+| acc (Gdt.grd (Grd.xgrd grd) tr) := 
+    let (U, A) := 𝒰𝒜_acc (acc ∘ (Φ.xgrd_in grd)) tr in
+        ((acc (Φ.not_xgrd grd)).or U, A)
