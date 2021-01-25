@@ -24,19 +24,23 @@ pattern matching can be yet another source of mistakes.
 Listing \ref{lst:haskell} showcases common types of mistakes that can arise with pattern matching.
 
 Most importantly, the function $f$ is not defined on all values.
-The case $f\;\mathrm{Case4}\;\mathrm{False}$ is uncovered and will cause a runtime error.
+$\mathrm{Case4}$ is uncovered and will cause a runtime error.
 Also, the right hand sides (RHS) $3$ and $4$ are inaccessible - $f$ will never evaluate to $3$ or $4$!
 
-\begin{lstlisting}[caption={A Pattern Matching Example In Haskell},label={lst:haskell},language=Haskell]
-data Cases = Case1 | Case2 | Case3 | Case4
-
-f :: Cases -> Bool -> Integer
-f Case1 _ = 1
-f Case2 _ = 2
-f x True    | Case1 <- x = 3
-            | Case2 <- x = 4
-f Case3 _ = 5
-\end{lstlisting}
+\begin{figure}[htbp]
+	\caption{A Pattern Matching Example In Haskell}
+	\label{lst:haskell}
+    \begin{minted}{Haskell}
+    data Case = Case1 | Case2 | Case3 | Case4
+    
+    f :: Case -> Bool -> Integer
+    f Case1 _ = 1
+    f Case2 _ = 2
+    f x True    | Case1 <- x = 3
+                | Case2 <- x = 4
+    f Case3 _ = 5
+    \end{minted}
+\end{figure}
 
 LYG provides a robust algorithm that is able to detect such mistakes. LYG can also deal with the intricacies of lazy evaluation as discussed in the following chapter.
 
@@ -118,16 +122,16 @@ The figure \ref{fig:desugaringExample} represents the guard tree of listing \ref
 \begin{figure}[htbp]
 	\caption{Desugaring Example}
 	\label{fig:desugaringExample}
-	\begin{lstlisting}[language=Haskell]
-data Cases = Case1 | Case2 | Case3 | Case4
+	\begin{minted}{Haskell}
+data Case = Case1 | Case2 | Case3 | Case4
 
-f :: Cases -> Bool -> Integer
+f :: Case -> Bool -> Integer
 f Case1 _ = 1
 f Case2 _ = 2
 f x True    | Case1 <- x = 3
             | Case2 <- x = 4
 f Case3 _ = 5
-\end{lstlisting}
+\end{minted}
 
 	$\Downarrow$
 
@@ -204,6 +208,8 @@ The function $\unc(\reft{\Gamma}{\true}, \cdot)$ in figure \ref{fig:U}
 computes a refinement type that captures all uncovered values for a given guard tree.
 This refinement type is empty if and only if there are not any uncovered cases.
 If $\generate$ is used to test for emptiness, this yields an algorithm to test for uncovered cases.
+It can be verified that the uncovered refinement type of the guard tree in
+figure \ref{fig:desugaringExample} equals $\reft{ x_1{:}\ensuremath{\Conid{Case}}, \, x_2{:}\ensuremath{\Conid{Bool}}}{ x_1 \ntermeq \bot \andtheta x_1 \ntermeq \mathtt{Case1} \andtheta x_1 \ntermeq \mathtt{Case2} \andtheta x_1 \ntermeq \mathtt{Case3} }$ and denotes $x_1 = \mathtt{Case4}$.
 
 \begin{figure}[htbp]
 	\caption{Definition of $\unc$}
@@ -220,62 +226,10 @@ If $\generate$ is used to test for emptiness, this yields an algorithm to test f
 	\]
 \end{figure}
 
-\begin{figure}[htbp]
-	\caption{Example of $\unc$}
-	\label{fig:UEx}
-	\begin{array}{rcl}
-		\unc(
-		\reft{\Gamma}{\true},
-		\begin{forest}
-			grdtree
-			[
-			[{$\grdbang{x_1},\, \grdcon{\mathtt{Case1}}{x_1}$} [1]]
-				[
-					[{$\grdbang{x_1},\, \grdcon{\mathtt{Case2}}{x_1}$} [2]]
-						[
-							[{$\grdlet{x}{x_1},\, \grdbang{x_2},\, \grdcon{\mathtt{True}}{x_2}$}
-										[{$\grdbang{x},\, \grdcon{\mathtt{Case1}}{x}$} [3]]
-										[{$\grdbang{x},\, \grdcon{\mathtt{Case2}}{x}$} [4]]
-								]
-								[{$\grdbang{x_1},\, \grdcon{\mathtt{Case3}}{x_1}$} [5]]
-						]
-				]
-			]
-		\end{forest}
-		) \\
-		= \unc(
-		\unc(
-			\reft{\Gamma}{\true},
-			\begin{forest}
-				grdtree
-				[
-				[{$\grdbang{x_1},\, \grdcon{\mathtt{Case1}}{x_1}$} [1]]
-				]
-			\end{forest}
-			),
-		\begin{forest}
-				grdtree
-				[
-				[
-						[{$\grdbang{x_1},\, \grdcon{\mathtt{Case2}}{x_1}$} [2]]
-							[
-								[{$\grdlet{x}{x_1},\, \grdbang{x_2},\, \grdcon{\mathtt{True}}{x_2}$}
-											[{$\grdbang{x},\, \grdcon{\mathtt{Case1}}{x}$} [3]]
-											[{$\grdbang{x},\, \grdcon{\mathtt{Case2}}{x}$} [4]]
-									]
-									[{$\grdbang{x_1},\, \grdcon{\mathtt{Case3}}{x_1}$} [5]]
-							]
-					]
-				]
-			\end{forest}
-		)
-	\end{array}
-\end{figure}
-
 \subsection{Annotated Guard Trees}
 
-\textit{Annotated guard trees} represent simplified guard trees that have been annotated with refinement types.
-Their syntax is defined in figure \ref{fig:annotatedGuardTree}.
+\textit{Annotated guard trees} represent simplified guard trees that have been annotated with refinement types $\Theta$.
+They are made of RHSs, branches and bang nodes. Their syntax is defined in figure \ref{fig:annotatedGuardTree}.
 
 \begin{figure}[htbp]
 	\caption{Definition of Annotated Guard Trees}
@@ -289,9 +243,14 @@ Their syntax is defined in figure \ref{fig:annotatedGuardTree}.
 \subsection{Redundant/Inaccessible Analysis}
 
 The goal of the redundant/inaccessible analysis is to report as much RHSs
-as possible that are guaranteed to be redundant or inaccessible.
+as possible that are redundant or inaccessible.
 This is done by annotating a guard tree with refinement types and then checking these refinement types for emptiness.
 If a RHS is associated with an empty refinement type, the RHS is inaccessible and in some circumstances even redundant.
+The refinement type of a bang node describes all values under which an evaluation will diverge.
+Figure \ref{fig:A} defines a function $\ann$ that computes such an annotation for a given guard tree.
+This annotated guard tree is then passed to a function $\red$ as defined in \ref{fig:R}.
+$\red$ uses $\generate$ to compute redundant and inaccessible RHSs. All other RHSs are assumed to be accessible,
+even though, due to the approximative nature of $\generate$, not all of them actually are accessible.
 
 \begin{figure}[htbp]
 	\caption{Definition of $\ann$}
@@ -309,9 +268,48 @@ If a RHS is associated with an empty refinement type, the RHS is inaccessible an
 \end{figure}
 
 \begin{figure}[htbp]
-	\caption{Definition of $\red$}
+	\caption{Example}
+	\label{fig:AExample}
+    $\ann$(
+    \begin{forest}
+		grdtree
+		[
+		[{$\grdbang{x_1},\, \grdcon{\mathtt{Case1}}{x_1}$} [1]]
+			[
+				[{$\grdbang{x_1},\, \grdcon{\mathtt{Case2}}{x_1}$} [2]]
+					[
+						[{$\grdlet{x}{x_1},\, \grdbang{x_2},\, \grdcon{\mathtt{True}}{x_2}$}
+									[{$\grdbang{x},\, \grdcon{\mathtt{Case1}}{x}$} [3]]
+									[{$\grdbang{x},\, \grdcon{\mathtt{Case2}}{x}$} [4]]
+							]
+							[{$\grdbang{x_1},\, \grdcon{\mathtt{Case3}}{x_1}$} [5]]
+					]
+			]
+		]
+	\end{forest}) = \\
+% $\reft{ x_1{:}\ensuremath{\Conid{Case}}, \, x_2{:}\ensuremath{\Conid{Bool}}}{ x_1 \ntermeq \bot \andtheta x_1 \ntermeq \mathtt{Case1} \andtheta x_1 \ntermeq \mathtt{Case2} \andtheta x_1 \ntermeq \mathtt{Case3} }$
+	\begin{forest}
+	    anttree
+		[
+		[{$\reft{\Gamma }{ x_1 \termeq \bot }$ \lightning} [$\reft{\Gamma }{ x_1 \ntermeq \bot, x_1 \termeq \mathtt{Case1} }$ 1]]
+			[
+				[{$\reft{\Gamma }{ x_1 \ntermeq \bot, x_1 \termeq \bot }$ \lightning} [$\reft{\Gamma }{ ..., x_1 \ntermeq \mathtt{Case1}, x_1 \termeq \mathtt{Case2}  }$ 2]]
+					[
+						[{$\reft{\Gamma }{ x_2 \termeq \bot }$ \lightning}
+									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ ..., x_1 \ntermeq \mathtt{Case1}, ..., x_1 \termeq \mathtt{Case1}  }$ 3]]
+									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ ..., x_1 \ntermeq \mathtt{Case2}, ..., x_1 \termeq \mathtt{Case2}  }$ 4]]
+							]
+							[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ ..., x_1 \termeq \mathtt{Case3}  }$ 5]]
+					]
+			]
+		]
+	\end{forest}
+\end{figure}
+
+\begin{figure}[htbp]
+	\caption{Definition of $\red$. $\red$ partitions all RHSs into probably-accessible $(\overline{k})$, inaccessible $(\overline{n})$ and $\red$edundant $(\overline{m})$ RHSs. }
+	\label{fig:R}
 	\centering
-	%\[ \textbf{Collect accessible $(\overline{k})$, inaccessible $(\overline{n})$ and $\red$edundant $(\overline{m})$ RHSs} \]
 	\[ \ruleform{ \red(u) = (\overline{k}, \overline{n}, \overline{m}) } \]
 	\[
 		\begin{array}{lcl}
@@ -331,8 +329,42 @@ If a RHS is associated with an empty refinement type, the RHS is inaccessible an
 	\]
 \end{figure}
 
+\begin{figure}[htbp]
+	\caption{Example R}
+	\label{fig:RExample}
+    $\red$(
+	\begin{forest}
+	    anttree
+		[
+		[{$\reft{\Gamma }{ \true }$ \lightning} [$\reft{\Gamma }{ \true }$ 1]]
+			[
+				[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \true  }$ 2]]
+					[
+						[{$\reft{\Gamma }{ \true }$ \lightning}
+									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \false }$ 3]]
+									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \false }$ 4]]
+							]
+							[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \true }$ 5]]
+					]
+			]
+		]
+	\end{forest}
+	) = (1 2 5, 3, 4)
+\end{figure}
+
 \section{Lean}
 
 \subsection{Lean Prover}
 
+Lean is a theorem prover that is based on the calculus of constructions and developed by Microsoft Research.
+It features dependent types and offers a high degree of automation through tactics.
+
+This thesis uses Lean 3.
+
 \subsection{Mathlib}
+
+Mathlib is a community project written in Lean 3 that offers a rich mathematical foundation for many theories.
+Its theories of finite sets, lists, boolean logic and permutations have been very useful for this thesis.
+
+Mathlib also offers many advanced tactics like $\mathtt{finish}$, $\mathtt{tauto}$ or $\mathtt{linarith}$.
+These tactics help a lot when proving trivial lemmas.
