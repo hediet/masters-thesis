@@ -9,7 +9,7 @@
 
 \usepackage[utf8]{inputenc} % encoding of sources
 \usepackage[T1]{fontenc}
-\usepackage{./style/studarbeit}
+\usepackage{./thesis/style/studarbeit}
 \usepackage{listings}
 \usepackage[edges]{forest}
 \usepackage{xspace}
@@ -17,13 +17,38 @@
 \usepackage{amssymb}
 \usepackage{ifsym}
 \usepackage{wasysym}
+\usepackage{minted}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage{mathdesign}
+
+% https://tex.stackexchange.com/questions/343494/minted-red-box-around-greek-characters/343506#343506
+\makeatletter
+\AtBeginEnvironment{minted}{\dontdofcolorbox}
+\def\dontdofcolorbox{\renewcommand\fcolorbox[4][]{##4}}
+\makeatother
+
+% https://leanprover.github.io/lean4/doc/syntax_highlight_in_latex.html
+\usepackage{newunicodechar}
+\newfontfamily{\freeserif}{DejaVu Sans}
+\newunicodechar{∈}{\freeserif{\smallin}}
+\newunicodechar{∧}{\freeserif{\land}}
+\newunicodechar{∪}{\freeserif{\cup}}
+%\newunicodechar{∘}{\freeserif{\circ}}
+\newunicodechar{��}{\ensuremath{\mathcal{U}}}
+
+\defaultfontfeatures{Scale = MatchLowercase}
+\setmainfont{CMU Serif}[Scale = 1.0]
+\setsansfont{CMU Sans Serif}
+\setmonofont{CMU Typewriter Text}
+\setmathfont{Latin Modern Math}
 
 \title{Formal Verification of Pattern Matching Analyses}
 \author{Henning Dieterichs}
 \thesistype{Masterarbeit}
 \zweitgutachter{Prof.~Dr.~rer.~nat.~Bernhard~Beckert}
 \betreuer{M.~Sc.~Sebastian~Graf}
-\coverimage{4665389330_d09f3d6b75_z.jpg}
+\coverimage{thesis/4665389330_d09f3d6b75_z.jpg}
 \abgabedatum{{\year=2021 \month=3 \day=7 \today}}
 
 
@@ -42,11 +67,11 @@
 
 	\vfill
 
-	The LYG algorithm analyzes pattern matching expressions and detects uncovered cases and inaccessible or redundant right hand sides.
-	LYG has already been implemented in the Haskell compiler GHC and spotted previously unknown bugs in real world code.
-	While LYG has been validated empirically, its correctness has not been proven yet.
+	The algorithms presented in Lower Your Guards (LYG) analyze pattern matching expressions and detect uncovered cases and inaccessible or redundant right hand sides.
+	They already have been implemented in the Haskell compiler GHC and spotted previously unknown bugs in real world code.
+	While these algorithms have been validated empirically, their correctness has not been proven yet.
 
-	This thesis presents a formal proof that the LYG algorithm is indeed correct.
+	This thesis presents formal proofs that these algorithms are indeed correct.
 	\vfill
 
 	\todo{
@@ -57,12 +82,12 @@
 
 \tableofcontents
 
-\input{macros.tex}
-\input{chapters/1-introduction.tex}
-\input{chapters/2-background.tex}
-\input{chapters/3-formalization.tex}
-\input{chapters/4-formalized-proof.tex}
-\input{chapters/5-conclusion.tex}
+\input{thesis/macros.tex}
+\input{thesis/chapters/1-introduction.tex}
+\input{thesis/chapters/2-background.tex}
+\input{thesis/chapters/3-formalization.tex}
+\input{thesis/chapters/4-formalized-proof.tex}
+\input{thesis/chapters/5-conclusion.tex}
 
 \bibliographystyle{ieeetr}
 \bibliography{bib}

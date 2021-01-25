@@ -1,7 +1,290 @@
 \chapter{Formalization}\label{sec:formalization}
 
-\section{Formalization Gap}
+Before any property of LYG can be proven or even stated in Lean, all relevant definitions must be formalized.
+Since nothing can be left vague in Lean, a lof of decisions had to be made to back up LYG by a fully defined model. 
 
 \section{Definitions}
 
+\subsection{Abstracting LYG: The Guard Module}
+LYG does not specify an exact guard or expression syntax.
+Instead, the notation ``$...$'' is often used to indicate a sensible continuation to make guards powerful enough to model all Haskell constructs.
+This is rather problematic for a precise formalization and presented the first big challenge of this thesis.
+As we wanted to avoid formalizing Haskell and its semantics, we had to carefully design an abstraction that is as close as possible to LYG
+while pinning down guards to a closed but extendable theory.
+
+First, we defined an abstract $\mathtt{Result}$ monad to capture the result of an evaluation.
+Due to laziness, evaluation of guard trees can either end with a specific right hand side, not match any guard or diverge:
+
+\begin{minted}{Lean}
+inductive Result (α: Type)
+| value: α → Result
+| diverged: Result
+| no_match: Result
+\end{minted}
+
+A $\mathtt{bind}$ operation can be easily defined on $\mathtt{Result}$ to make it a proper monad with $\mathtt{Result.value}$ as unit function:
+
+\begin{minted}{Lean}
+def Result.bind { α β: Type } (f: α → Result β): Result α → Result β
+| (Result.value val) := f val
+| Result.diverged := Result.diverged
+| Result.no_match := Result.no_match
+\end{minted}
+
+For some abstract environment type $\mathtt{Env}$, we would like to have a denotational semantic $\mathtt{Grd.eval}$ for guards $\mathtt{Grd}$:
+\begin{minted}{Lean}
+Grd.eval : Grd → Env → Result Env
+\end{minted}
+
+Abstracting $\mathtt{Grd.eval}$ would unify all guard constructs available in Haskell and those used by LYG.
+However, LYG needs to recognize all guards that can lead to a diverged evaluation:
+Removing all RHSs behind such a guard would inevitably remove the guard itself.
+As this might change the semantic of the guard tree, LYG cannot mark all such RHSs as redundant unless there is a proof that the guard will never diverge.
+As a consequence, $\mathtt{Grd.eval}$ cannot be abstracted away.
+
+Instead, we explicitly distinguished between non-diverging $\mathtt{xgrd}$s and non-no-matching $\mathtt{bang}$ guards:
+\begin{minted}{Lean}
+inductive Grd
+| xgrd (xgrd: XGrd)
+| bang (var: Var)
+\end{minted}
+
+We postulated functions $\mathtt{xgrd\_eval}$ and $\mathtt{is\_bottom}$ as well as a type $\mathtt{Var}$ that represents variables so that
+a denotational semantic can be defined on $\mathtt{Grd}$. Note that $\mathtt{bang}$ guards cannot change the environment while $\mathtt{xgrd}$s can:
+
+\begin{minted}{Lean}
+def Grd.eval : Grd → Env → Result Env
+| (Grd.xgrd grd) env :=
+    match xgrd_eval grd env with
+    | none := Result.no_match
+    | some env' := Result.value env'
+    end
+| (Grd.bang var) env :=
+    if is_bottom var env
+    then Result.diverged
+    else Result.value env
+\end{minted}
+
+In Lean, type classes provide an ideal mechanism to define such ambient abstractions.
+They can be opened, so that all members of the type class become implicitly available in all definitions and theorems.
+Every implicit usage pulls the type class into its signature so that consumers can provide a concrete implementation of the type class.
+
+We defined and opened a type class \textit{GuardModule} that describes the presented abstraction:
+
+\begin{minted}{Lean}
+class GuardModule :=
+    (Rhs : Type)
+    [rhs_decidable: decidable_eq Rhs]
+    (Env : Type)
+    (XGrd : Type)
+    (xgrd_eval : XGrd → Env → option Env)
+    (Var : Type)
+    (is_bottom : Var → Env → bool)
+
+variable [GuardModule]
+open GuardModule
+\end{minted}
+
+We also postulated a type $\mathtt{Rhs}$ to refer to right hand sides. For technical reasons, equality on this type must be decidable.
+This abstracts from the numbers that are used in LYG to distinguish right hand sides.
+
+All following definitions and theorems implicitly make use of this abstraction.
+
+\subsection{Guard trees}
+
+With the definition of $\mathtt{Grd}$, guard trees are defined as follows:
+
+\begin{minted}{Lean}
+inductive Gdt
+| rhs (rhs: Rhs)
+| branch (tr1: Gdt) (tr2: Gdt)
+| grd (grd: Grd) (tr: Gdt)
+\end{minted}
+
+$\mathtt{Gdt.eval}$ defines a semantic on guard trees, using the semantic of guards:
+
+\begin{minted}{Lean}
+def Gdt.eval : Gdt → Env → Result Rhs
+| (Gdt.rhs rhs) env := Result.value rhs
+| (Gdt.branch tr1 tr2) env :=
+    match tr1.eval env with
+    | Result.no_match := tr2.eval env
+    | r := r
+    end
+| (Gdt.grd grd tr) env := (grd.eval env).bind tr.eval
+\end{minted}
+
+Every guard tree contains a (non-empty) finite set of right hand sides:
+\begin{minted}{Lean}
+def Gdt.rhss: Gdt → finset Rhs
+| (Gdt.rhs rhs) := { rhs }
+| (Gdt.branch tr1 tr2) := tr1.rhss ∪ tr2.rhss
+| (Gdt.grd grd tr) := tr.rhss
+\end{minted}
+
+In LYG, it is implicitly assumed that the right hand sides of a guard tree are numbered unambiguously.
+This has to be stated explicitly in Lean with the following recursive predicate:
+
+\begin{minted}{Lean}
+def Gdt.disjoint_rhss: Gdt → Prop
+| (Gdt.rhs rhs) := true
+| (Gdt.branch tr1 tr2) :=
+        disjoint tr1.rhss tr2.rhss
+        ∧ tr1.disjoint_rhss ∧ tr2.disjoint_rhss
+| (Gdt.grd grd tr) := tr.disjoint_rhss
+\end{minted}
+
+$\mathtt{Gdt.remove\_rhss}$ defines how a set of RHSs can be removed from a guard tree.
+This definition is required to state that all redundant RHSs can be removed without changing semantics.
+Note that the resulting guard tree might be empty when all RHSs are removed!
+
+\begin{minted}{Lean}
+def Gdt.branch_option : option Gdt → option Gdt → option Gdt
+| (some tr1) (some tr2) := some (Gdt.branch tr1 tr2)
+| (some tr1) none := some tr1
+| none (some tr2) := some tr2
+| none none := none
+
+def Gdt.grd_option : Grd → option Gdt → option Gdt
+| grd (some tr) := some (Gdt.grd grd tr)
+| _ none := none
+
+def Gdt.remove_rhss : finset Rhs → Gdt → option Gdt
+| rhss (Gdt.rhs rhs) := if rhs ∈ rhss then none else some (Gdt.rhs rhs)
+| rhss (Gdt.branch tr1 tr2) :=
+    Gdt.branch_option
+        (tr1.remove_rhss rhss)
+        (tr2.remove_rhss rhss)
+| rhss (Gdt.grd grd tr) := Gdt.grd_option grd (tr.remove_rhss rhss)
+\end{minted}
+
+Finally, to deal with such empty guard trees, $\mathtt{Gdt.eval\_option}$ lifts $\mathtt{Gdt.eval}$ to $\mathtt{option\;Gdt}$:
+
+\begin{minted}{Lean}
+def Gdt.eval_option : option Gdt → Env → Result
+| (some gdt) env := gdt.eval env
+| none env := Result.no_match
+\end{minted}
+
+\subsection{Refinement Types}
+
+Refinement types presented another big challenge.
+Defining refinement types through a proper type system would have required to model some Haskell types.
+Instead, we tried to rely entirely on the same abstractions used to define guard trees and their semantics in hope that guard trees and refinement types can be related.
+In this formalization, a refinement type $\Phi$ denotes a predicate on environments:
+
+\begin{minted}{Lean}
+def Φ.eval: Φ → Env → bool
+\end{minted}
+
+Another problem that had to be solved was the formalization of the unconventional binding mechanism of refinement types through conjunctions.
+If shadowing is not excluded, determining the uncovered refinement type of the following guard tree is problematic:
+
+\begin{forest}
+	grdtree
+	[
+	[
+		{$\grdlet{x}{\mathtt{False}},\, \grdlet{y}{\mathtt{False}}$}
+		[{$\grdlet{x}{\mathtt{True}},\, \grdcon{\mathtt{True}}{y}$} [1]]
+		[{$\grdlet{y}{\mathtt{True}},\, \grdcon{\mathtt{True}}{x}$} [2]]
+	]
+	]
+\end{forest}
+
+Since the uncovered refinement type is built syntactically from the guard tree, it must contain all its guards.
+Obviously, $\grdlet{x}{\mathtt{False}}$ and $\grdlet{y}{\mathtt{False}}$ have to be at the very left of it.
+Also, since we do not want to lose the recursive definition of $\unc$, the encoding of $\grdlet{x}{\mathtt{True}},\, \grdcon{\mathtt{True}}{y}$
+must occur in the uncovered refinement type either left or right to the encoding of $\grdlet{y}{\mathtt{True}},\, \grdcon{\mathtt{True}}{x}$.
+In both cases, the inner let guards shadow an outer let guard for the guards to its right.
+
+Shadowing is unproblematic for the semantic of guard trees though: If the first guard tree of a branch fails, its environment and thus possible shadowing bindings are discarded.
+The second branch is always evaluated with the same environment that the first guard tree has been evaluated with.
+
+\begin{minted}{Lean}
+inductive Φ
+| false
+| true
+| xgrd_in (xgrd: XGrd) (ty: Φ)
+| not_xgrd (xgrd: XGrd)
+| var_is_bottom (var: Var)
+| var_is_not_bottom (var: Var)
+| or (ty1: Φ) (ty2: Φ)
+| and (ty1: Φ) (ty2: Φ)
+\end{minted}
+
+\begin{minted}{Lean}
+def Φ.eval: Φ → Env → bool
+| Φ.false env := ff
+| Φ.true env := tt
+| (Φ.xgrd_in grd ty) env := match xgrd_eval grd env with
+    | some env := ty.eval env
+    | none := ff
+    end
+| (Φ.not_xgrd grd) env :=
+    match xgrd_eval grd env with
+    | some env := ff
+    | none := tt
+    end
+| (Φ.var_is_bottom var) env := is_bottom var env
+| (Φ.var_is_not_bottom var) env := !is_bottom var env
+| (Φ.or t1 t2) env := t1.eval env || t2.eval env
+| (Φ.and t1 t2) env := t1.eval env && t2.eval env
+\end{minted}
+
+\begin{minted}{Lean}
+def ��_acc : (Φ → Φ) → Gdt → Φ
+| acc (Gdt.rhs _) := acc Φ.false
+-- TODO: Change to (��_acc ((��_acc id tr1).and ∘ acc) tr2)
+| acc (Gdt.branch tr1 tr2) := (��_acc (acc ∘ (��_acc id tr1).and) tr2)
+| acc (Gdt.grd (Grd.bang var) tree) :=
+    ��_acc (acc ∘ (Φ.var_is_not_bottom var).and) tree
+| acc (Gdt.grd (Grd.xgrd grd) tree) :=
+            (acc (Φ.not_xgrd grd))
+        .or
+            (��_acc (acc ∘ (Φ.xgrd_in grd)) tree)
+
+def �� : Gdt → Φ := ��_acc id
+\end{minted}
+
+\begin{minted}{Lean}
+
+\end{minted}
+
+\begin{minted}{Lean}
+
+\end{minted}
+
 \section{Correctness Statements}
+
+\subsection{Semantic of $\unc$}
+
+$\unc$ should compute a refinement type that denotes all values that are not covered by a given guard tree.
+
+\begin{minted}{Lean}
+theorem ��_semantic: ∀ gdt: Gdt, ∀ env: Env,
+        (�� gdt).eval env ↔ (gdt.eval env = Result.no_match)
+\end{minted}
+
+\subsection{Semantic of $\red$}
+
+For a given guard tree and a given function $\generate$ (here $\mathtt{can_prove_empty}$), $\red$
+should compute a triple $(a, i, r)$ of accessible, inaccessible and redundant right hand sides.
+Whenever the given guard tree evaluates to a RHS, this RHS must be accessible and neither inaccessible nor redundant.
+Also, RHSs that are redundant can be removed without changing semantics.
+
+\begin{minted}{Lean}
+theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_rhss → 
+    (
+        let ⟨ a, i, r ⟩ := ℛ can_prove_empty.val (�� gdt)
+        in
+                (∀ env: Env, ∀ rhs: Rhs,
+                    gdt.eval env = Result.value rhs
+                      → rhs ∈ a \ (i ++ r)
+                )
+            ∧
+                Gdt.eval_option (gdt.remove_rhss r.to_finset)
+                = gdt.eval
+
+        : Prop
+    )
+\end{minted}
