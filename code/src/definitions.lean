@@ -73,8 +73,8 @@ def Gdt.disjoint_rhss: Gdt → Prop
 | (Gdt.grd grd tr) := tr.disjoint_rhss
 
 -- ## Semantic
-inductive Result (Value: Type)
-| value: Value → Result
+inductive Result (α: Type)
+| value: α → Result
 | diverged: Result
 | no_match: Result
 
@@ -82,12 +82,17 @@ def Grd.eval : Grd → Env → Result Env
 | (Grd.xgrd grd) env :=
     match xgrd_eval grd env with
     | none := Result.no_match
-    | some val := Result.value val
+    | some env' := Result.value env'
     end
 | (Grd.bang var) env :=
     if is_bottom var env
     then Result.diverged
     else Result.value env
+
+def Result.bind { α β: Type } (f: α → Result β): Result α → Result β
+| (Result.value val) := f val
+| Result.diverged := Result.diverged
+| Result.no_match := Result.no_match
 
 def Gdt.eval : Gdt → Env → Result Rhs
 | (Gdt.rhs rhs) env := Result.value rhs
@@ -96,15 +101,7 @@ def Gdt.eval : Gdt → Env → Result Rhs
     | Result.no_match := tr2.eval env
     | r := r
     end
-| (Gdt.grd (Grd.xgrd grd) tr) env :=
-    match xgrd_eval grd env with
-    | none := Result.no_match
-    | some val := tr.eval val
-    end
-| (Gdt.grd (Grd.bang var) tr) env :=
-    if is_bottom var env
-    then Result.diverged
-    else tr.eval env
+| (Gdt.grd grd tr) env := (grd.eval env).bind tr.eval
 
 -- This continues `gdt_eval` to `option Gdt`.
 def Gdt.eval_option : option Gdt → Env → Result Rhs

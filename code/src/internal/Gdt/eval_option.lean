@@ -49,4 +49,4 @@ by cases tr; simp [Gdt.grd_option, Gdt.eval_option, Gdt.eval_bang_of_not_bottom 
 lemma Gdt.eval_option_of_is_bottom_tt { var: Var } { tr: option Gdt } { env: Env }
   (h: is_bottom var env = tt) (g: tr ≠ none):
     Gdt.eval_option (Gdt.grd_option (Grd.bang var) tr) env = Result.diverged :=
-by cases tr; finish [Gdt.grd_option, Gdt.eval_option, Gdt.eval, h]
+by cases tr; finish [Gdt.grd_option, Gdt.eval_option, Gdt.eval, Grd.eval, Result.bind, h]

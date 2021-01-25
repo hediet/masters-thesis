@@ -19,7 +19,7 @@ lemma Gdt.eval_branch_no_match_iff { gdt1: Gdt } { gdt2: Gdt } { env: Env }:
 begin
     cases c1: gdt1.eval env;
     cases c2: gdt2.eval env;
-    finish [Gdt.eval, Gdt.eval._match_2, Gdt.eval._match_1],
+    finish [Gdt.eval, Gdt.eval._match_1],
 end
 
 @[simp]
@@ -30,7 +30,7 @@ lemma Gdt.eval_branch_diverge_iff { gdt1: Gdt } { gdt2: Gdt } { env: Env }:
 begin
     cases c1: gdt1.eval env;
     cases c2: gdt2.eval env;
-    finish [Gdt.eval, Gdt.eval._match_2, Gdt.eval._match_1],
+    finish [Gdt.eval, Gdt.eval._match_1],
 end
 
 @[simp]
@@ -41,7 +41,7 @@ lemma Gdt.eval_branch_rhs_iff { gdt1: Gdt } { gdt2: Gdt } { env: Env } { rhs: Rh
 begin
     cases c1: gdt1.eval env;
     cases c2: gdt2.eval env;
-    finish [Gdt.eval, Gdt.eval._match_2, Gdt.eval._match_1],
+    finish [Gdt.eval, Gdt.eval._match_1],
 end
 
 @[simp]
@@ -51,27 +51,27 @@ by simp [Gdt.eval]
 lemma Gdt.eval_xgrd_of_some { xgrd: XGrd } { tr: Gdt } { env env': Env }
     (h: xgrd_eval xgrd env = some env'):
     (Gdt.grd (Grd.xgrd xgrd) tr).eval env = tr.eval env' :=
-by simp [Gdt.eval, h]
+by simp [Gdt.eval, Grd.eval, Result.bind, h]
 
 lemma Gdt.eval_xgrd_of_none { xgrd: XGrd } { tr: Gdt } { env: Env }
     (h: xgrd_eval xgrd env = none):
     (Gdt.grd (Grd.xgrd xgrd) tr).eval env = Result.no_match :=
-by simp [Gdt.eval, h]
+by simp [Gdt.eval, Grd.eval, Result.bind, h]
 
 lemma Gdt.eval_bang_of_bottom { var: Var } { tr: Gdt } { env: Env }
     (h: is_bottom var env = tt):
     (Gdt.grd (Grd.bang var) tr).eval env = Result.diverged :=
-by simp [Gdt.eval, h]
+by simp [Gdt.eval, Grd.eval, Result.bind, h]
 
 lemma Gdt.eval_bang_of_not_bottom { var: Var } { tr: Gdt } { env: Env }
     (h: is_bottom var env = ff):
     (Gdt.grd (Grd.bang var) tr).eval env = tr.eval env :=
-by simp [Gdt.eval, h]
+by simp [Gdt.eval, Grd.eval, Result.bind, h]
 
 @[simp]
 lemma Gdt.eval_bang_no_match_iff { var: Var } { tr: Gdt } { env: Env }:
     (Gdt.grd (Grd.bang var) tr).eval env = Result.no_match ↔ is_bottom var env = ff ∧ tr.eval env = Result.no_match :=
-by cases c: is_bottom var env; simp [Gdt.eval, c]
+by cases c: is_bottom var env; simp [Gdt.eval, Grd.eval, Result.bind, c]
 
 lemma Gdt.eval_branch_replace_right_env { gdt₁ gdt₂ gdt₂': Gdt } { env: Env }
     (h: gdt₂.eval env = gdt₂'.eval env ∨ gdt₁.eval env ≠ Result.no_match):
@@ -89,8 +89,8 @@ begin
         cases gdt_grd,
         case Grd.xgrd {
             cases c: xgrd_eval gdt_grd env,
-            { finish [Gdt.rhss, Gdt.eval_xgrd_of_none c, Gdt.eval], },
-            { finish [Gdt.rhss, Gdt.eval_xgrd_of_some c, Gdt.eval], },
+            { finish [Gdt.rhss, Gdt.eval_xgrd_of_none c, Gdt.eval, Grd.eval, Result.bind], },
+            { finish [Gdt.rhss, Gdt.eval_xgrd_of_some c, Gdt.eval, Grd.eval, Result.bind], },
         },
         case Grd.bang {
             cases c: is_bottom gdt_grd env,
