@@ -17,7 +17,7 @@ begin
     simp [U_semantic],
 end
 
-theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_rhss → 
+theorem ℛ_semantic : ∀ can_prove_empty: CorrectCanProveEmpty, ∀ gdt: Gdt, gdt.disjoint_rhss → 
     (
         let ⟨ a, i, r ⟩ := ℛ can_prove_empty.val (𝒜 gdt)
         in

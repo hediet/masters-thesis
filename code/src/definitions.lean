@@ -173,11 +173,11 @@ def Φ.is_empty (ty: Φ): Prop := ∀ env: Env, ¬(ty.eval env)
 
 variable can_prove_empty: Φ → bool
 
-def is_empty_prover : (Φ → bool) → Prop
+def correct_can_prove_empty : (Φ → bool) → Prop
 | g := ∀ ty: Φ, g ty = tt → ty.is_empty
 
 -- Represents all correct G functions from the paper.
-def Gs := { g : Φ → bool // is_empty_prover g }
+def CorrectCanProveEmpty := { g : Φ → bool // correct_can_prove_empty g }
 
 -- # Definition of ℛ
 

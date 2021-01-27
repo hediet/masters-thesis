@@ -162,7 +162,7 @@ begin
     },
 end
 
-lemma can_prove_empty_implies_inactive (can_prove_empty: Gs) (ant: Ant Φ) (env: Env):
+lemma can_prove_empty_implies_inactive (can_prove_empty: CorrectCanProveEmpty) (ant: Ant Φ) (env: Env):
     (ant.map (can_prove_empty.val)) ⟶ (ant.mark_inactive_rhss env) :=
 begin
     have : ∀ ty: Φ, (can_prove_empty.val ty) → !ty.eval env := begin
@@ -170,7 +170,7 @@ begin
         simp only [bnot_eq_true_eq_eq_ff],
         assume ty h,
         have := can_prove_empty.property,
-        finish [is_empty_prover, Φ.is_empty, is_empty_prover],
+        finish [correct_can_prove_empty, Φ.is_empty, correct_can_prove_empty],
     end,
 
     induction ant,
@@ -453,7 +453,7 @@ begin
 end
 
 theorem R_red_removable
-    (can_prove_empty: Gs)
+    (can_prove_empty: CorrectCanProveEmpty)
     { gdt: Gdt } (gdt_disjoint: gdt.disjoint_rhss)
     { Agdt: Ant Φ }
     (ant_def: Agdt.mark_inactive_rhss = (A gdt).mark_inactive_rhss):

@@ -150,7 +150,7 @@ end
 
 lemma R_acc_mem_of_reachable { gdt: Gdt } { env: Env } { rhs: Rhs } { ant: Ant Φ }
     (gdt_disjoint: gdt.disjoint_rhss)
-    (can_prove_empty: Gs)
+    (can_prove_empty: CorrectCanProveEmpty)
     (ant_def: ant.mark_inactive_rhss env = (A gdt).mark_inactive_rhss env)
     (h: gdt.eval env = Result.value rhs)
     { r: RhsPartition }
