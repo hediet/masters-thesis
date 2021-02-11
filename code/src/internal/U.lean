@@ -13,7 +13,7 @@ lemma U_eq_𝒰_acc { gdt: Gdt } { acc: Φ → Φ } (acc_stable: stable acc) (ac
 begin
     induction gdt generalizing acc,
     case Gdt.rhs {
-        simp [𝒰_acc, U],
+        simp [𝒰_acc, U, acc_hom.2],
     },
     case Gdt.branch {
         have : (𝒰_acc acc gdt_tr1).eval = (acc (U gdt_tr1)).eval :=
@@ -22,7 +22,7 @@ begin
         have : ((𝒰_acc acc gdt_tr1).and (acc (U gdt_tr2))).eval = ((acc (U gdt_tr1)).and (acc (U gdt_tr2))).eval :=
         by rw stable.app stable.and_left this,
 
-        simp [𝒰_acc, U, this, ←acc_hom _ _,
+        simp [𝒰_acc, U, this, ←acc_hom.1 _ _,
             ←gdt_ih_tr2 (stable.comp stable.and_right acc_stable) (hom.comp hom.and_right stable.and_right acc_hom acc_stable)],
     },
     case Gdt.grd {
@@ -30,7 +30,7 @@ begin
         case Grd.tgrd {
             ext env,
             unfold 𝒰_acc U,
-            rw (acc_hom _ _).1,
+            rw (acc_hom.1 _ _).1,
 
             have : (𝒰_acc (acc ∘ Φ.tgrd_in gdt_grd) gdt_tr).eval = (acc (Φ.tgrd_in gdt_grd (U gdt_tr))).eval :=
             by simp [←gdt_ih (stable.comp acc_stable (stable.tgrd_in _))

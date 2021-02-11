@@ -33,7 +33,7 @@ begin
             (hom.comp hom.and_right stable.and_right acc_hom acc_stable),
         rw ←gdt_ih_tr2,
 
-        simp [Ant.map, A, Ant.eval_rhss, Ant.map_associative, function.comp, Φ.eval, (acc_hom _ _).2, U_eq_𝒰_acc acc_stable acc_hom],
+        simp [Ant.map, A, Ant.eval_rhss, Ant.map_associative, function.comp, Φ.eval, (acc_hom.1 _ _).2, U_eq_𝒰_acc acc_stable acc_hom],
     },
     case Gdt.grd {
         cases gdt_grd,        

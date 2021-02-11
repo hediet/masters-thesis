@@ -141,7 +141,7 @@ def Φ.eval: Φ → Env → bool
 
 -- ## Uncovered Refinement Types
 def 𝒰_acc : (Φ → Φ) → Gdt → Φ
-| acc (Gdt.rhs _) := acc Φ.false
+| acc (Gdt.rhs _) := Φ.false
 | acc (Gdt.branch tr1 tr2) := (𝒰_acc ((𝒰_acc acc tr1).and ∘ acc) tr2)
 | acc (Gdt.grd (Grd.bang var) tr) :=
     𝒰_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr
@@ -194,7 +194,7 @@ def ℛ : Ant Φ → list Rhs × list Rhs × list Rhs
     end
 
 def 𝒰𝒜_acc : (Φ → Φ) → Gdt → Φ × Ant Φ
-| acc (Gdt.rhs rhs) := (acc Φ.false, Ant.rhs (acc Φ.true) rhs)
+| acc (Gdt.rhs rhs) := (Φ.false, Ant.rhs (acc Φ.true) rhs)
 | acc (Gdt.branch tr1 tr2) :=
     let (U1, A1) := 𝒰𝒜_acc acc tr1, (U2, A2) := 𝒰𝒜_acc (U1.and ∘ acc) tr2 in
         (U2, Ant.branch A1 A2)
