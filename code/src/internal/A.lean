@@ -37,11 +37,11 @@ begin
     },
     case Gdt.grd {
         cases gdt_grd,        
-        case Grd.xgrd {
+        case Grd.tgrd {
             unfold A 𝒜_acc Ant.map,
-            specialize @gdt_ih (acc ∘ Φ.xgrd_in gdt_grd) env
-                (stable.comp acc_stable (stable.xgrd_in gdt_grd))
-                (hom.comp acc_hom acc_stable (hom.xgrd_in gdt_grd) (stable.xgrd_in gdt_grd)),
+            specialize @gdt_ih (acc ∘ Φ.tgrd_in gdt_grd) env
+                (stable.comp acc_stable (stable.tgrd_in gdt_grd))
+                (hom.comp acc_hom acc_stable (hom.tgrd_in gdt_grd) (stable.tgrd_in gdt_grd)),
             rw ←gdt_ih,
             rw Ant.map_associative,
         },

@@ -206,18 +206,18 @@ begin
     },
     case Gdt.grd {
         cases gdt_grd,
-        case Grd.xgrd {
+        case Grd.tgrd {
             unfold A,
-            cases c: xgrd_eval gdt_grd env,
+            cases c: tgrd_eval gdt_grd env,
             case option.none {
-                rw [Ant.mark_inactive_rhss_of_map_xgrd_in_none c, Gdt.mark_inactive_rhss_of_xgrd_none c],
+                rw [Ant.mark_inactive_rhss_of_map_tgrd_in_none c, Gdt.mark_inactive_rhss_of_tgrd_none c],
                 rw ←Gdt.mark_inactive_rhss_map_tt _ env,
                 rw ←gdt_ih env,
                 simp [Ant.mark_inactive_rhss],
             },
             case option.some {
-                rw Ant.mark_inactive_rhss_of_map_xgrd_in_some c,
-                rw Gdt.mark_inactive_rhss_of_xgrd_some c,
+                rw Ant.mark_inactive_rhss_of_map_tgrd_in_some c,
+                rw Gdt.mark_inactive_rhss_of_tgrd_some c,
                 exact gdt_ih val,
             },
         },
@@ -402,10 +402,10 @@ begin
     case Gdt.grd {
         unfold Gdt.disjoint_rhss at gdt_disjoint,
         cases gdt_grd with gdt_grd var,
-        case Grd.xgrd {
-            cases c: xgrd_eval gdt_grd env with env',
+        case Grd.tgrd {
+            cases c: tgrd_eval gdt_grd env with env',
             case option.some {
-                simp only [Gdt.eval_xgrd_of_some c],
+                simp only [Gdt.eval_tgrd_of_some c],
                 unfold Ant.is_redundant_set at rhss_def,
                 simp only [Gdt.mark_inactive_rhss, Gdt.mark_inactive_rhss._match_1, c] at rhss_def,
                 have : (gdt_tr.mark_inactive_rhss env').is_redundant_set rhss :=
@@ -416,13 +416,13 @@ begin
                 
                 specialize gdt_ih gdt_disjoint env' this,
                 unfold Gdt.remove_rhss,
-                rw Gdt.eval_option_of_xgrd_eval_some c,
+                rw Gdt.eval_option_of_tgrd_eval_some c,
                 exact gdt_ih,
             },
             case option.none {
-                simp only [Gdt.eval_xgrd_of_none c],
+                simp only [Gdt.eval_tgrd_of_none c],
                 unfold Gdt.remove_rhss,
-                exact Gdt.eval_option_of_xgrd_eval_none c,
+                exact Gdt.eval_option_of_tgrd_eval_none c,
             },
         },
         case Grd.bang {

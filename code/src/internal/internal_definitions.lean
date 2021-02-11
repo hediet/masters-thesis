@@ -16,15 +16,15 @@ def U : Gdt → Φ
 | (Gdt.rhs _) := Φ.false
 | (Gdt.branch tr1 tr2) := (U tr1).and (U tr2)
 | (Gdt.grd (Grd.bang var) tree) := ((Φ.var_is_not_bottom var).and (U tree))
-| (Gdt.grd (Grd.xgrd grd) tree) :=
-                (Φ.not_xgrd grd)
+| (Gdt.grd (Grd.tgrd grd) tree) :=
+                (Φ.not_tgrd grd)
             .or
-                (Φ.xgrd_in grd (U tree))
+                (Φ.tgrd_in grd (U tree))
 
 def Gdt.mark_all_rhss_inactive: Gdt → Ant bool
 | (Gdt.rhs rhs) := Ant.rhs tt rhs 
 | (Gdt.branch tr1 tr2) := Ant.branch tr1.mark_all_rhss_inactive tr2.mark_all_rhss_inactive
-| (Gdt.grd (Grd.xgrd _) tr) := tr.mark_all_rhss_inactive
+| (Gdt.grd (Grd.tgrd _) tr) := tr.mark_all_rhss_inactive
 | (Gdt.grd (Grd.bang _) tr) := Ant.diverge tt tr.mark_all_rhss_inactive
 
 def Gdt.mark_inactive_rhss : Gdt → Env → Ant bool
@@ -36,8 +36,8 @@ def Gdt.mark_inactive_rhss : Gdt → Env → Ant bool
         else
             (tr2.mark_inactive_rhss env)
     )
-| (Gdt.grd (Grd.xgrd grd) tr) env :=
-    match xgrd_eval grd env with
+| (Gdt.grd (Grd.tgrd grd) tr) env :=
+    match tgrd_eval grd env with
     | none := tr.mark_all_rhss_inactive
     | some env' := tr.mark_inactive_rhss env'
     end
@@ -110,7 +110,7 @@ def A : Gdt → Ant Φ
 | (Gdt.rhs rhs) := Ant.rhs Φ.true rhs
 | (Gdt.branch tr1 tr2) := Ant.branch (A tr1) $ (A tr2).map ((U tr1).and)
 | (Gdt.grd (Grd.bang var) tr) := Ant.diverge (Φ.var_is_bottom var) $ (A tr).map ((Φ.var_is_not_bottom var).and)
-| (Gdt.grd (Grd.xgrd grd) tr) := (A tr).map (Φ.xgrd_in grd)
+| (Gdt.grd (Grd.tgrd grd) tr) := (A tr).map (Φ.tgrd_in grd)
 
 -- ######################## R ########################
 

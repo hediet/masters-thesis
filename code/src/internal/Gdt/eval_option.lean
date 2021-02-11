@@ -31,15 +31,15 @@ lemma Gdt.eval_option_branch_option_some (gdt₁ gdt₂: Gdt) (env: Env):
   Gdt.eval_option (Gdt.branch_option (some gdt₁) (some gdt₂)) env = (gdt₁.branch gdt₂).eval env :=
 by simp [Gdt.branch_option, Gdt.eval_option]
 
-lemma Gdt.eval_option_of_xgrd_eval_some { grd: XGrd } { tr: option Gdt } { env env': Env }
-    (h: xgrd_eval grd env = some env'):
-    Gdt.eval_option (Gdt.grd_option (Grd.xgrd grd) tr) env = Gdt.eval_option tr env' :=
-by cases tr; simp [Gdt.eval_option, Gdt.grd_option, Gdt.eval_xgrd_of_some h, *]
+lemma Gdt.eval_option_of_tgrd_eval_some { grd: TGrd } { tr: option Gdt } { env env': Env }
+    (h: tgrd_eval grd env = some env'):
+    Gdt.eval_option (Gdt.grd_option (Grd.tgrd grd) tr) env = Gdt.eval_option tr env' :=
+by cases tr; simp [Gdt.eval_option, Gdt.grd_option, Gdt.eval_tgrd_of_some h, *]
 
-lemma Gdt.eval_option_of_xgrd_eval_none { grd: XGrd } { tr: option Gdt } { env: Env }
-    (h: xgrd_eval grd env = none):
-    Gdt.eval_option (Gdt.grd_option (Grd.xgrd grd) tr) env = Result.no_match :=
-by cases tr; simp [Gdt.eval_option, Gdt.grd_option, Gdt.eval_xgrd_of_none h, *]
+lemma Gdt.eval_option_of_tgrd_eval_none { grd: TGrd } { tr: option Gdt } { env: Env }
+    (h: tgrd_eval grd env = none):
+    Gdt.eval_option (Gdt.grd_option (Grd.tgrd grd) tr) env = Result.no_match :=
+by cases tr; simp [Gdt.eval_option, Gdt.grd_option, Gdt.eval_tgrd_of_none h, *]
 
 lemma Gdt.eval_option_of_is_bottom_ff { var: Var } { tr: option Gdt } { env: Env }
   (h: is_bottom var env = ff):

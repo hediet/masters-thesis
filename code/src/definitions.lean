@@ -14,12 +14,12 @@ class GuardModule :=
     -- If it passes, it can modify the environment.
     -- The semantic of guards is defined in a way that allows for direct reuse in
     -- so called refinement types.
-    (XGrd : Type)
+    (TGrd : Type)
 
     -- Describes a semantic for guards.
     -- None is returned if the guard fails. Guards can modify the environment.
     -- This abstraction allows for "let x = expr", "x == 1" or "let (Cons x:xs) = list" guards.
-    (xgrd_eval : XGrd → Env → option Env)
+    (tgrd_eval : TGrd → Env → option Env)
 
     -- Represents the type of variables that can be compared against bottom.
     (Var : Type)
@@ -35,7 +35,7 @@ attribute [instance] GuardModule.rhs_decidable
 -- # Guard Trees
 -- ## Syntax
 inductive Grd
-| xgrd (xgrd: XGrd)
+| tgrd (tgrd: TGrd)
 | bang (var: Var)
 
 inductive Gdt
@@ -79,8 +79,8 @@ inductive Result (α: Type)
 | no_match: Result
 
 def Grd.eval : Grd → Env → Result Env
-| (Grd.xgrd grd) env :=
-    match xgrd_eval grd env with
+| (Grd.tgrd grd) env :=
+    match tgrd_eval grd env with
     | none := Result.no_match
     | some env' := Result.value env'
     end
@@ -113,8 +113,8 @@ def Gdt.eval_option : option Gdt → Env → Result Rhs
 inductive Φ
 | false
 | true
-| xgrd_in (xgrd: XGrd) (ty: Φ)
-| not_xgrd (xgrd: XGrd)
+| tgrd_in (tgrd: TGrd) (ty: Φ)
+| not_tgrd (tgrd: TGrd)
 | var_is_bottom (var: Var)
 | var_is_not_bottom (var: Var)
 | or (ty1: Φ) (ty2: Φ)
@@ -124,12 +124,12 @@ inductive Φ
 def Φ.eval: Φ → Env → bool
 | Φ.false env := ff
 | Φ.true env := tt
-| (Φ.xgrd_in grd ty) env := match xgrd_eval grd env with
+| (Φ.tgrd_in grd ty) env := match tgrd_eval grd env with
     | some env := ty.eval env
     | none := ff
     end
-| (Φ.not_xgrd grd) env :=
-    match xgrd_eval grd env with
+| (Φ.not_tgrd grd) env :=
+    match tgrd_eval grd env with
     | some env := ff
     | none := tt
     end
@@ -145,10 +145,10 @@ def 𝒰_acc : (Φ → Φ) → Gdt → Φ
 | acc (Gdt.branch tr1 tr2) := (𝒰_acc ((𝒰_acc acc tr1).and ∘ acc) tr2)
 | acc (Gdt.grd (Grd.bang var) tr) :=
     𝒰_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr
-| acc (Gdt.grd (Grd.xgrd grd) tr) :=
-            (acc (Φ.not_xgrd grd))
+| acc (Gdt.grd (Grd.tgrd grd) tr) :=
+            (acc (Φ.not_tgrd grd))
         .or
-            (𝒰_acc (acc ∘ (Φ.xgrd_in grd)) tr)
+            (𝒰_acc (acc ∘ (Φ.tgrd_in grd)) tr)
 
 def 𝒰 : Gdt → Φ := 𝒰_acc id
 
@@ -163,7 +163,7 @@ def 𝒜_acc : (Φ → Φ) → Gdt → Ant Φ
 | acc (Gdt.branch tr1 tr2) := Ant.branch (𝒜_acc acc tr1) (𝒜_acc ((𝒰_acc acc tr1).and ∘ acc) tr2)
 | acc (Gdt.grd (Grd.bang var) tr) := Ant.diverge (acc (Φ.var_is_bottom var)) 
                                         (𝒜_acc (acc ∘ ((Φ.var_is_not_bottom var).and)) tr)
-| acc (Gdt.grd (Grd.xgrd grd) tr) := (𝒜_acc (acc ∘ (Φ.xgrd_in grd)) tr)
+| acc (Gdt.grd (Grd.tgrd grd) tr) := (𝒜_acc (acc ∘ (Φ.tgrd_in grd)) tr)
 
 def 𝒜 : Gdt → Ant Φ := 𝒜_acc id
 
@@ -201,6 +201,6 @@ def 𝒰𝒜_acc : (Φ → Φ) → Gdt → Φ × Ant Φ
 | acc (Gdt.grd (Grd.bang var) tr) :=
     let (U, A) := 𝒰𝒜_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr in
         (U, Ant.diverge (acc (Φ.var_is_bottom var)) A)
-| acc (Gdt.grd (Grd.xgrd grd) tr) := 
-    let (U, A) := 𝒰𝒜_acc (acc ∘ (Φ.xgrd_in grd)) tr in
-        ((acc (Φ.not_xgrd grd)).or U, A)
+| acc (Gdt.grd (Grd.tgrd grd) tr) := 
+    let (U, A) := 𝒰𝒜_acc (acc ∘ (Φ.tgrd_in grd)) tr in
+        ((acc (Φ.not_tgrd grd)).or U, A)

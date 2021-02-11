@@ -27,14 +27,14 @@ begin
     },
     case Gdt.grd {
         cases gdt_grd,
-        case Grd.xgrd {
+        case Grd.tgrd {
             ext env,
             unfold 𝒰_acc U,
             rw (acc_hom _ _).1,
 
-            have : (𝒰_acc (acc ∘ Φ.xgrd_in gdt_grd) gdt_tr).eval = (acc (Φ.xgrd_in gdt_grd (U gdt_tr))).eval :=
-            by simp [←gdt_ih (stable.comp acc_stable (stable.xgrd_in _))
-                    (hom.comp acc_hom acc_stable (hom.xgrd_in gdt_grd) (stable.xgrd_in gdt_grd))],
+            have : (𝒰_acc (acc ∘ Φ.tgrd_in gdt_grd) gdt_tr).eval = (acc (Φ.tgrd_in gdt_grd (U gdt_tr))).eval :=
+            by simp [←gdt_ih (stable.comp acc_stable (stable.tgrd_in _))
+                    (hom.comp acc_hom acc_stable (hom.tgrd_in gdt_grd) (stable.tgrd_in gdt_grd))],
 
             rw stable.app stable.or_right this,
         },
@@ -59,11 +59,11 @@ begin
     },
     case Gdt.grd {
         rw ←bool.coe_bool_iff,
-        cases gdt_grd with xgrd var,
-        case Grd.xgrd {
-            cases c: (xgrd_eval xgrd env) with env',
-            { simp [Gdt.eval_xgrd_of_none c, U, Φ_eval_not_xgrd_none c], },
-            { simp [Gdt.eval_xgrd_of_some c, U, Φ_eval_not_xgrd_some c, Φ_eval_xgrd_some c, @gdt_ih env'], },
+        cases gdt_grd with tgrd var,
+        case Grd.tgrd {
+            cases c: (tgrd_eval tgrd env) with env',
+            { simp [Gdt.eval_tgrd_of_none c, U, Φ_eval_not_tgrd_none c], },
+            { simp [Gdt.eval_tgrd_of_some c, U, Φ_eval_not_tgrd_some c, Φ_eval_tgrd_some c, @gdt_ih env'], },
         },
         case Grd.bang {
             cases c: is_bottom var env,

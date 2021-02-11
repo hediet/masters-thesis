@@ -13,13 +13,13 @@ lemma Ant.mark_inactive_rhss_of_map_ty_and (ant: Ant Φ) (ty: Φ) (env: Env):
     (ant.map ty.and).mark_inactive_rhss env = (ant.mark_inactive_rhss env).map (bor (!ty.eval env)) :=
 by simp [Ant.mark_inactive_rhss, Ant.map_associative, function.comp, bool.bor_comm]
 
-lemma Ant.mark_inactive_rhss_of_map_xgrd_in_some { xgrd: XGrd } { env env': Env } (h: xgrd_eval xgrd env = some env') (ant: Ant Φ):
-    (ant.map (Φ.xgrd_in xgrd)).mark_inactive_rhss env = ant.mark_inactive_rhss env' :=
-by simp [Ant.mark_inactive_rhss, Ant.map_associative, function.comp, Φ_eval_xgrd_some h]
+lemma Ant.mark_inactive_rhss_of_map_tgrd_in_some { tgrd: TGrd } { env env': Env } (h: tgrd_eval tgrd env = some env') (ant: Ant Φ):
+    (ant.map (Φ.tgrd_in tgrd)).mark_inactive_rhss env = ant.mark_inactive_rhss env' :=
+by simp [Ant.mark_inactive_rhss, Ant.map_associative, function.comp, Φ_eval_tgrd_some h]
 
-lemma Ant.mark_inactive_rhss_of_map_xgrd_in_none { xgrd: XGrd } { env: Env } (h: xgrd_eval xgrd env = none) (ant: Ant Φ):
-    (ant.map (Φ.xgrd_in xgrd)).mark_inactive_rhss env = ant.map (λ r, tt) :=
-by simp [Ant.mark_inactive_rhss, Ant.map_associative, function.comp, Φ_eval_xgrd_none h]
+lemma Ant.mark_inactive_rhss_of_map_tgrd_in_none { tgrd: TGrd } { env: Env } (h: tgrd_eval tgrd env = none) (ant: Ant Φ):
+    (ant.map (Φ.tgrd_in tgrd)).mark_inactive_rhss env = ant.map (λ r, tt) :=
+by simp [Ant.mark_inactive_rhss, Ant.map_associative, function.comp, Φ_eval_tgrd_none h]
 
 lemma Ant.mark_inactive_rhss_of_diverge (ty: Φ) (tr: Ant Φ) (env: Env):
     (Ant.diverge ty tr).mark_inactive_rhss env = (Ant.diverge (!ty.eval env) (tr.mark_inactive_rhss env)) :=

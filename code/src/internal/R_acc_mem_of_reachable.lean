@@ -26,10 +26,10 @@ begin
     case Gdt.grd {
         unfold Gdt.disjoint_rhss at gdt_disjoint,
         cases gdt_grd,
-        case Grd.xgrd {
-            cases c: xgrd_eval gdt_grd env,
-            { simp [Gdt.rhss, Gdt.eval_xgrd_of_none c, Gdt.mark_inactive_rhss, c], },
-            { simp [Gdt.rhss, Gdt.eval_xgrd_of_some c, Gdt.mark_inactive_rhss, *], },
+        case Grd.tgrd {
+            cases c: tgrd_eval gdt_grd env,
+            { simp [Gdt.rhss, Gdt.eval_tgrd_of_none c, Gdt.mark_inactive_rhss, c], },
+            { simp [Gdt.rhss, Gdt.eval_tgrd_of_some c, Gdt.mark_inactive_rhss, *], },
         },
         case Grd.bang {
             cases c: is_bottom gdt_grd env,
@@ -66,10 +66,10 @@ begin
     case Gdt.grd {
         unfold Gdt.disjoint_rhss at gdt_disjoint,
         cases gdt_grd,
-        case Grd.xgrd {
-            cases c: xgrd_eval gdt_grd env,
-            { simp [Gdt.rhss, Gdt.eval_xgrd_of_none c, Gdt.mark_inactive_rhss, c, ne.symm (finset.singleton_ne_empty _)], },
-            { simp [Gdt.rhss, Gdt.eval_xgrd_of_some c, Gdt.mark_inactive_rhss, @gdt_ih gdt_disjoint val, *], },
+        case Grd.tgrd {
+            cases c: tgrd_eval gdt_grd env,
+            { simp [Gdt.rhss, Gdt.eval_tgrd_of_none c, Gdt.mark_inactive_rhss, c, ne.symm (finset.singleton_ne_empty _)], },
+            { simp [Gdt.rhss, Gdt.eval_tgrd_of_some c, Gdt.mark_inactive_rhss, @gdt_ih gdt_disjoint val, *], },
         },
         case Grd.bang {
             cases c: is_bottom gdt_grd env,
