@@ -44,6 +44,9 @@ begin
     },
 end
 
+lemma U'_acc_eq_U (gdt: Gdt) (acc: Φ → Φ): U'_acc acc gdt = acc (U gdt) :=
+by induction gdt generalizing acc; try { cases gdt_grd }; simp [U'_acc, U, *]
+
 lemma U_eq_𝒰 { gdt: Gdt } : (U gdt).eval = (𝒰 gdt).eval :=
 by ext env; simp [𝒰, ←U_eq_𝒰_acc (stable.id) (hom.id)]
 

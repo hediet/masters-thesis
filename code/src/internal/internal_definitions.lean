@@ -21,6 +21,20 @@ def U : Gdt → Φ
             .or
                 (Φ.tgrd_in grd (U tree))
 
+def U'_acc : (Φ → Φ) → Gdt → Φ
+| acc (Gdt.rhs _) := acc Φ.false
+| acc (Gdt.branch tr1 tr2) := acc (U'_acc ((U'_acc id tr1).and) tr2)
+| acc (Gdt.grd (Grd.bang var) tr) :=
+    U'_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr
+| acc (Gdt.grd (Grd.tgrd grd) tr) :=
+		acc (
+				((Φ.not_tgrd grd))
+			.or
+				(U'_acc (Φ.tgrd_in grd) tr)
+		)
+
+def U' := U'_acc id
+
 def Gdt.mark_all_rhss_inactive: Gdt → Ant bool
 | (Gdt.rhs rhs) := Ant.rhs tt rhs 
 | (Gdt.branch tr1 tr2) := Ant.branch tr1.mark_all_rhss_inactive tr2.mark_all_rhss_inactive
@@ -101,9 +115,6 @@ def Ant.is_redundant_set (a: Ant bool) (rhss: finset Rhs) :=
     rhss ∩ a.rhss ⊆ a.inactive_rhss
     ∧ ∀ c ∈ a.critical_rhs_sets, ∃ l ∈ c, l ∉ rhss
 -- TODO: rcases
-
--- rhss.redundant_in ant
--- ant.is_redundant_set rhss
 
 -- This is a simpler definition of 𝒜 that is semantically equivalent.
 def A : Gdt → Ant Φ

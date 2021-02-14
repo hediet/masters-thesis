@@ -58,5 +58,5 @@ begin
     },
 end
 
-lemma 𝒰𝒜_acc_eq (acc: Φ → Φ) (gdt: Gdt): 𝒰𝒜_acc acc gdt = (𝒰_acc acc gdt, 𝒜_acc acc gdt) :=
+theorem 𝒰𝒜_acc_eq (acc: Φ → Φ) (gdt: Gdt): 𝒰𝒜_acc acc gdt = (𝒰_acc acc gdt, 𝒜_acc acc gdt) :=
 by induction gdt generalizing acc; try { cases gdt_grd }; simp [𝒰𝒜_acc, 𝒰_acc, 𝒜_acc, *]
