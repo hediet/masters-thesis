@@ -1,0 +1,441 @@
+<svg host="65bd71144e" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1093px" height="1177px" viewBox="-0.5 -0.5 1093 1177" content="&lt;mxfile scale=&quot;1&quot; border=&quot;0&quot; disableSvgWarning=&quot;true&quot;&gt;&lt;diagram id=&quot;x0C81p5PeuRV2gKFjfFq&quot; name=&quot;Page-1&quot;&gt;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&lt;/diagram&gt;&lt;/mxfile&gt;">
+    <defs/>
+    <g>
+        <ellipse cx="438.92" cy="1040.31" rx="107.215" ry="83.31" fill="none" stroke="#000000" transform="rotate(45,438.92,1040.31)" pointer-events="all"/>
+        <ellipse cx="841.21" cy="754.31" rx="107.215" ry="83.31" fill="none" stroke="#000000" transform="rotate(-45,841.21,754.31)" pointer-events="all"/>
+        <ellipse cx="843.21" cy="274.31" rx="107.215" ry="83.31" fill="none" stroke="#000000" transform="rotate(-45,843.21,274.31)" pointer-events="all"/>
+        <ellipse cx="438.92" cy="957.69" rx="107.215" ry="83.31" fill="none" stroke="#000000" transform="rotate(-45,438.92,957.69)" pointer-events="all"/>
+        <rect x="87" y="11" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 31px; margin-left: 88px;">
+                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
+                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                x = 1?
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="137" y="35" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">
+                    x = 1?
+                </text>
+            </switch>
+        </g>
+        <rect x="327" y="11" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 31px; margin-left: 328px;">
+                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
+                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                Leaf 1
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="377" y="35" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">
+                    Leaf 1
+                </text>
+            </switch>
+        </g>
+        <rect x="207" y="91" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 111px; margin-left: 208px;">
+                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
+                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                Leaf 2
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="257" y="115" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">
+                    Leaf 2
+                </text>
+            </switch>
+        </g>
+        <path d="M 187 31 L 207 31 L 187 31 L 200.63 31" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 205.88 31 L 198.88 34.5 L 200.63 31 L 198.88 27.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="87" y="91" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 111px; margin-left: 88px;">
+                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
+                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                bang y
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="137" y="115" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">
+                    bang y
+                </text>
+            </switch>
+        </g>
+        <path d="M 307 31 L 327 31 L 307 31 L 320.63 31" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 325.88 31 L 318.88 34.5 L 320.63 31 L 318.88 27.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="207" y="11" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g transform="translate(-0.5 -0.5)">
+            <switch>
+                <foreignObject style="overflow: visible; text-align: left;" pointer-events="none" width="100%" height="100%" requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 98px; height: 1px; padding-top: 31px; margin-left: 208px;">
+                        <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
+                            <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
+                                x = 2?
+                            </div>
+                        </div>
+                    </div>
+                </foreignObject>
+                <text x="257" y="35" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">
+                    x = 2?
+                </text>
+            </switch>
+        </g>
+        <path d="M 57 31 L 77 31 L 67 31 L 80.63 31" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 85.88 31 L 78.88 34.5 L 80.63 31 L 78.88 27.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 7 31 L 57 31 L 57 111 L 80.63 111" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 85.88 111 L 78.88 114.5 L 80.63 111 L 78.88 107.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="37" y="281" width="110" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="16px">
+            <text x="38.5" y="297.5">
+                $\mathcal{A}$
+            </text>
+        </g>
+        <rect x="37" y="771" width="350" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="9px">
+            <text x="38.5" y="784">
+                $\mathrm{ant}_1 := \mathcal{A}(\mathrm{gdt}).\mathrm{map}(\mathrm{can\_prove\_empty})$
+            </text>
+        </g>
+        <rect x="758.92" y="11" width="290" height="80" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="903.42" y="85.5">
+                \shortstack{\\ \textbf{env} \\$x = 1$\\$y=\bot$\\{}}
+            </text>
+        </g>
+        <rect x="458" y="95" width="450" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="13px">
+            <text x="459.5" y="110">
+                $\mathrm{ant_3} := \mathrm{gdt}.\mathrm{mark\_inactive}_{\mathrm{env}}$
+            </text>
+        </g>
+        <path d="M 57 511 L 80.63 511" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 85.88 511 L 78.88 514.5 L 80.63 511 L 78.88 507.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="87" y="491" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="136.5" y="515.5">
+                Leaf 1
+            </text>
+        </g>
+        <rect x="207" y="571" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="256.5" y="595.5">
+                Leaf 2
+            </text>
+        </g>
+        <path d="M 187 591 L 207 591 L 187 591 L 200.63 591" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 205.88 591 L 198.88 594.5 L 200.63 591 L 198.88 587.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="87" y="571" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="136.5" y="595.5">
+                diverge
+            </text>
+        </g>
+        <path d="M 7 511 L 57 511 L 57 591 L 80.63 591" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 85.88 591 L 78.88 594.5 L 80.63 591 L 78.88 587.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 110.84 601 L 197.26 601 L 212.26 616 L 212.26 641 L 110.84 641 L 110.84 601 Z" fill="#fff2cc" stroke="#d6b656" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 197.26 601 L 197.26 616 L 212.26 616 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 197.26 601 L 197.26 616 L 212.26 616" fill="none" stroke="#d6b656" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="161.05" y="624.5">
+                $y = \bot$
+            </text>
+        </g>
+        <path d="M 110.84 521 L 245.84 521 L 260.84 536 L 260.84 561 L 110.84 561 L 110.84 521 Z" fill="#fff2cc" stroke="#d6b656" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 245.84 521 L 245.84 536 L 260.84 536 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 245.84 521 L 245.84 536 L 260.84 536" fill="none" stroke="#d6b656" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="185.34" y="544.5">
+                $x = 1 \land x = 2$
+            </text>
+        </g>
+        <path d="M 238 601 L 372 601 L 387 616 L 387 641 L 238 641 L 238 601 Z" fill="#fff2cc" stroke="#d6b656" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 372 601 L 372 616 L 387 616 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 372 601 L 372 616 L 387 616" fill="none" stroke="#d6b656" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="312" y="624.5">
+                $\neg\mathrm{false} \land y \neq \bot$
+            </text>
+        </g>
+        <rect x="459" y="593" width="280" height="10" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="6px">
+            <text x="460.5" y="599.5">
+                $\mathrm{ant_2} := \mathcal{A}(\mathrm{gdt}).\mathrm{map}(\neg \circ \Phi.\mathrm{eval}_{\mathrm{env}})$
+            </text>
+        </g>
+        <rect x="6.84" y="0" width="120" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="16px">
+            <text x="8.34" y="16.5">
+                $\mathrm{gdt}$
+            </text>
+        </g>
+        <rect x="399" y="1061" width="350" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="13px">
+            <text x="400.5" y="1076">
+                $\mathcal{R}(\mathcal{A}(\mathrm{gdt}))\mathrm{.red} =$
+            </text>
+        </g>
+        <rect x="7.84" y="481" width="160" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="16px">
+            <text x="9.34" y="497.5">
+                $\mathcal{A}(\mathrm{gdt})$
+            </text>
+        </g>
+        <rect x="377" y="921" width="310" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="13px">
+            <text x="378.5" y="936">
+                $\mathrm{is\_redundant}_{\mathrm{ant_1}}(\cdot)$
+            </text>
+        </g>
+        <path d="M 47 161 Q 7 301 44.22 431.27" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 46.69 439.93 L 37.63 430.04 L 44.22 431.27 L 49.17 426.74 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 47.16 651 Q 7 781 44.22 911.27" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 46.69 919.93 L 37.63 910.04 L 44.22 911.27 L 49.17 906.74 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 457 621 Q 597 621 669.85 693.85" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 676.21 700.21 L 663.48 695.97 L 669.85 693.85 L 671.97 687.48 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 559.1 1065.83 L 551.07 1059.87 L 579.83 1021.11 L 554.42 989.35 L 546.22 995.91 L 546.45 971.39 L 570.43 976.54 L 562.23 983.1 L 587.64 1014.87 Q 592.45 1020.89 587.86 1027.07 Z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 554.42 989.35 L 546.22 995.91 L 546.45 971.39 L 570.43 976.54 L 562.23 983.1" fill="none" stroke="#000000" stroke-linejoin="flat" stroke-miterlimit="4" pointer-events="all"/>
+        <rect x="598.92" y="1011" width="490" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="14px">
+            <text x="600.42" y="1026.5">
+                P2: $\mathrm{removable}_{\mathrm{ant_1}}(R(\mathrm{ant}).\mathrm{red})$
+            </text>
+        </g>
+        <path d="M 187 111 L 200.63 111" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 205.88 111 L 198.88 114.5 L 200.63 111 L 198.88 107.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 737 311 L 760.63 311" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 765.88 311 L 758.88 314.5 L 760.63 311 L 758.88 307.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="767" y="291" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="816.5" y="315.5">
+                Leaf 1
+            </text>
+        </g>
+        <rect x="887" y="371" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="936.5" y="395.5">
+                Leaf 2
+            </text>
+        </g>
+        <path d="M 867 391 L 887 391 L 867 391 L 880.63 391" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 885.88 391 L 878.88 394.5 L 880.63 391 L 878.88 387.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="767" y="371" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="816.5" y="395.5">
+                diverge
+            </text>
+        </g>
+        <path d="M 687 311 L 737 311 L 737 391 L 760.63 391" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 765.88 391 L 758.88 394.5 L 760.63 391 L 758.88 387.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 790.84 401 L 877.26 401 L 892.26 416 L 892.26 441 L 790.84 441 L 790.84 401 Z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 877.26 401 L 877.26 416 L 892.26 416 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 877.26 401 L 877.26 416 L 892.26 416" fill="none" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="841.05" y="424.5">
+                active
+            </text>
+        </g>
+        <path d="M 790.84 321 L 872 321 L 887 336 L 887 361 L 790.84 361 L 790.84 321 Z" fill="#d5e8d4" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 872 321 L 872 336 L 887 336 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 872 321 L 872 336 L 887 336" fill="none" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="838.42" y="344.5">
+                inactive
+            </text>
+        </g>
+        <path d="M 914 401 L 1005.16 401 L 1020.16 416 L 1020.16 441 L 914 441 L 914 401 Z" fill="#d5e8d4" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 1005.16 401 L 1005.16 416 L 1020.16 416 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 1005.16 401 L 1005.16 416 L 1020.16 416" fill="none" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="966.58" y="424.5">
+                inactive
+            </text>
+        </g>
+        <rect x="687.84" y="281" width="140" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="16px">
+            <text x="689.34" y="297.5">
+                $\mathrm{ant_3}$
+            </text>
+        </g>
+        <path d="M 57 991 L 360.63 991" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 365.88 991 L 358.88 994.5 L 360.63 991 L 358.88 987.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="367" y="971" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="416.5" y="995.5">
+                Leaf 1
+            </text>
+        </g>
+        <rect x="207" y="1051" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="256.5" y="1075.5">
+                Leaf 2
+            </text>
+        </g>
+        <path d="M 187 1071 L 207 1071 L 187 1071 L 200.63 1071" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 205.88 1071 L 198.88 1074.5 L 200.63 1071 L 198.88 1067.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="87" y="1051" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="136.5" y="1075.5">
+                diverge
+            </text>
+        </g>
+        <path d="M 7 991 L 57 991 L 57 1071 L 80.63 1071" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 85.88 1071 L 78.88 1074.5 L 80.63 1071 L 78.88 1067.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 110.84 1081 L 197.26 1081 L 212.26 1096 L 212.26 1121 L 110.84 1121 L 110.84 1081 Z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 197.26 1081 L 197.26 1096 L 212.26 1096 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 197.26 1081 L 197.26 1096 L 212.26 1096" fill="none" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="161.05" y="1104.5">
+                false
+            </text>
+        </g>
+        <path d="M 390.84 1001 L 472 1001 L 487 1016 L 487 1041 L 390.84 1041 L 390.84 1001 Z" fill="#d5e8d4" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 472 1001 L 472 1016 L 487 1016 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 472 1001 L 472 1016 L 487 1016" fill="none" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="438.42" y="1024.5">
+                true
+            </text>
+        </g>
+        <path d="M 234 1081 L 325.16 1081 L 340.16 1096 L 340.16 1121 L 234 1121 L 234 1081 Z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 325.16 1081 L 325.16 1096 L 340.16 1096 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 325.16 1081 L 325.16 1096 L 340.16 1096" fill="none" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="286.58" y="1104.5">
+                false
+            </text>
+        </g>
+        <rect x="7.84" y="961" width="140" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="16px">
+            <text x="9.34" y="977.5">
+                $\mathrm{ant_1}$
+            </text>
+        </g>
+        <path d="M 737 791 L 760.63 791" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 765.88 791 L 758.88 794.5 L 760.63 791 L 758.88 787.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="767" y="771" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="816.5" y="795.5">
+                Leaf 1
+            </text>
+        </g>
+        <rect x="887" y="851" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="936.5" y="875.5">
+                Leaf 2
+            </text>
+        </g>
+        <path d="M 867 871 L 887 871 L 867 871 L 880.63 871" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 885.88 871 L 878.88 874.5 L 880.63 871 L 878.88 867.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="767" y="851" width="100" height="40" fill="#ffffff" stroke="#000000" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="12px">
+            <text x="816.5" y="875.5">
+                diverge
+            </text>
+        </g>
+        <path d="M 687 791 L 737 791 L 737 871 L 760.63 871" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 765.88 871 L 758.88 874.5 L 760.63 871 L 758.88 867.5 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 790.84 881 L 877.26 881 L 892.26 896 L 892.26 921 L 790.84 921 L 790.84 881 Z" fill="#f8cecc" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 877.26 881 L 877.26 896 L 892.26 896 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 877.26 881 L 877.26 896 L 892.26 896" fill="none" stroke="#b85450" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="841.05" y="904.5">
+                false
+            </text>
+        </g>
+        <path d="M 790.84 801 L 872 801 L 887 816 L 887 841 L 790.84 841 L 790.84 801 Z" fill="#d5e8d4" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 872 801 L 872 816 L 887 816 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 872 801 L 872 816 L 887 816" fill="none" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="838.42" y="824.5">
+                true
+            </text>
+        </g>
+        <path d="M 914 881 L 1005.16 881 L 1020.16 896 L 1020.16 921 L 914 921 L 914 881 Z" fill="#d5e8d4" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 1005.16 881 L 1005.16 896 L 1020.16 896 Z" fill-opacity="0.05" fill="#000000" stroke="none" pointer-events="all"/>
+        <path d="M 1005.16 881 L 1005.16 896 L 1020.16 896" fill="none" stroke="#82b366" stroke-miterlimit="10" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="10px">
+            <text x="966.58" y="904.5">
+                true
+            </text>
+        </g>
+        <rect x="687.84" y="761" width="140" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="16px">
+            <text x="689.34" y="777.5">
+                $\mathrm{ant_2}$
+            </text>
+        </g>
+        <path d="M 230.59 934.52 L 224.18 926.84 L 342.41 828.32 Q 345.19 826 348.81 826 L 657.5 826 L 657.5 815.5 L 676.5 831 L 657.5 846.5 L 657.5 836 L 348.81 836 Z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 657.5 826 L 657.5 815.5 L 676.5 831 L 657.5 846.5 L 657.5 836" fill="none" stroke="#000000" stroke-linejoin="flat" stroke-miterlimit="4" pointer-events="all"/>
+        <rect x="779.29" y="717.62" width="310" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="13px">
+            <text x="780.79" y="732.62">
+                $\mathrm{is\_redundant}_{\mathrm{ant_2}}(\cdot)$
+            </text>
+        </g>
+        <rect x="781.29" y="237.62" width="310" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="13px">
+            <text x="782.79" y="252.62">
+                $\mathrm{is\_redundant}_{\mathrm{ant_3}}(\cdot)$
+            </text>
+        </g>
+        <rect x="675.29" y="137" width="370" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" text-anchor="middle" font-size="13px">
+            <text x="859.79" y="152">
+                P5: Can be removed from $\mathrm{gdt}$ without side-effects!
+            </text>
+        </g>
+        <path d="M 960.89 254.18 L 953.82 247.11 L 982 218.93 L 982 190.5 L 971.5 190.5 L 987 171.5 L 1002.5 190.5 L 992 190.5 L 992 218.93 Q 992 223.07 989.07 226 Z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 982 190.5 L 971.5 190.5 L 987 171.5 L 1002.5 190.5 L 992 190.5" fill="none" stroke="#000000" stroke-linejoin="flat" stroke-miterlimit="4" pointer-events="all"/>
+        <rect x="652.84" y="971" width="220" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="10px">
+            <text x="654.34" y="984.5">
+                P3: ``$\Rightarrow$'' preserves removable sets
+            </text>
+        </g>
+        <path d="M 547.5 962 L 547.5 952 L 1042 952 L 1042 804.39 L 963.25 772.88 L 959.35 782.63 L 947.46 761.19 L 970.86 753.85 L 966.96 763.6 L 1045.71 795.1 Q 1052 797.61 1052 804.39 L 1052 952 Q 1052 962 1042 962 Z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 963.25 772.88 L 959.35 782.63 L 947.46 761.19 L 970.86 753.85 L 966.96 763.6" fill="none" stroke="#000000" stroke-linejoin="flat" stroke-miterlimit="4" pointer-events="all"/>
+        <rect x="390.84" y="801" width="290" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="10px">
+            <text x="392.34" y="814.5">
+                P1: $\mathrm{ant_1}\Rightarrow \mathrm{ant_2}$ (pointwise)
+            </text>
+        </g>
+        <path d="M 457 131 Q 597 131 669.85 203.85" fill="none" stroke="#000000" stroke-miterlimit="10" pointer-events="stroke"/>
+        <path d="M 676.21 210.21 L 663.48 205.97 L 669.85 203.85 L 671.97 197.48 Z" fill="#000000" stroke="#000000" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 948.92 695.65 L 946.04 686.07 L 1042 657.28 L 1042 334.39 L 963.25 302.88 L 959.35 312.63 L 947.46 291.19 L 970.86 283.85 L 966.96 293.6 L 1045.71 325.1 Q 1052 327.61 1052 334.39 L 1052 657.28 Q 1052 664.72 1044.87 666.86 Z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/>
+        <path d="M 963.25 302.88 L 959.35 312.63 L 947.46 291.19 L 970.86 283.85 L 966.96 293.6" fill="none" stroke="#000000" stroke-linejoin="flat" stroke-miterlimit="4" pointer-events="all"/>
+        <rect x="874" y="501" width="170" height="30" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="17px">
+            <text x="875.5" y="523">
+                P4: (trees are equal)
+            </text>
+        </g>
+        <path d="M 795.84 615.5 L 785.84 615.5 L 785.84 515.5 L 775.34 515.5 L 790.84 496.5 L 806.34 515.5 L 795.84 515.5 Z" fill="none" stroke="#000000" stroke-linejoin="round" stroke-miterlimit="10" pointer-events="all"/>
+        <rect x="810.16" y="561" width="230" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="12px">
+            <text x="811.66" y="575.5">
+                P3: $\mathrm{ant_2} = \mathrm{ant_3}$
+            </text>
+        </g>
+        <rect x="400" y="1085" width="220" height="20" fill="none" stroke="none" pointer-events="all"/>
+        <g fill="#000000" font-family="Helvetica" font-size="13px">
+            <text x="401.5" y="1100">
+                $R(\mathrm{ant_1})\mathrm{.red}$
+            </text>
+        </g>
+    </g>
+</svg>

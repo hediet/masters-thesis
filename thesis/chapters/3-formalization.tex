@@ -2,6 +2,7 @@
 
 Before any property of LYG can be proven or even stated in Lean, all relevant definitions must be formalized.
 Since nothing can be left vague in Lean, a lof of decisions had to be made to back up LYG by a fully defined model. 
+This chapter discusses these decisions.
 
 \section{Definitions}
 
@@ -12,7 +13,9 @@ This is rather problematic for a precise formalization and presented the first b
 As we wanted to avoid formalizing Haskell and its semantics, we had to carefully design an abstraction that is as close as possible to LYG
 while pinning down guards to a closed but extendable theory.
 
-First, we defined an abstract $\mathtt{Result}$ monad to capture the result of an evaluation.
+\subsubsection{The Result Monad}
+
+First, we defined a generic $\mathtt{Result}$ monad to capture the result of an evaluation.
 Due to laziness, evaluation of guard trees can either end with a specific right hand side, not match any guard or diverge:
 
 \begin{minted}{Lean}
@@ -31,6 +34,8 @@ def Result.bind { α β: Type } (f: α → Result β): Result α → Result β
 | Result.no_match := Result.no_match
 \end{minted}
 
+\subsubsection{Denotational Semantic for Guards}
+
 For some abstract environment type $\mathtt{Env}$, we would like to have a denotational semantic $\mathtt{Grd.eval}$ for guards $\mathtt{Grd}$:
 \begin{minted}{Lean}
 Grd.eval : Grd → Env → Result Env
@@ -42,20 +47,24 @@ Removing all RHSs behind such a guard would inevitably remove the guard itself.
 As this might change the semantic of the guard tree, LYG cannot mark all such RHSs as redundant unless there is a proof that the guard will never diverge.
 As a consequence, $\mathtt{Grd.eval}$ cannot be abstracted away.
 
-Instead, we explicitly distinguished between non-diverging $\mathtt{xgrd}$s and non-no-matching $\mathtt{bang}$ guards:
+Instead, we explicitly distinguished between non-diverging (\textit{total}) $\mathtt{tgrd}$s and non-no-matching $\mathtt{bang}$ guards:
 \begin{minted}{Lean}
 inductive Grd
-| xgrd (xgrd: XGrd)
+| tgrd (tgrd: TGrd)
 | bang (var: Var)
 \end{minted}
 
-We postulated functions $\mathtt{xgrd\_eval}$ and $\mathtt{is\_bottom}$ as well as a type $\mathtt{Var}$ that represents variables so that
-a denotational semantic can be defined on $\mathtt{Grd}$. Note that $\mathtt{bang}$ guards cannot change the environment while $\mathtt{xgrd}$s can:
+While $\mathtt{TGrd}$s classically represent guards and $\mathtt{Grd}$s represent guards with side effects in this context,
+we decided to follow the naming conventions of LYG and chose the name $\mathtt{TGrd}$ for side-effect free (non-diverging) guards
+rather than renaming $\mathtt{Grd}$.
+
+In order to define a denotational semantic on $\mathtt{Grd}$, we postulated the functions $\mathtt{tgrd\_eval}: \mathtt{TGrd} \to \mathtt{Env} \to \mathtt{option}\;\mathtt{Env}$ and $\mathtt{is\_bottom}: \mathtt{Var} \to \mathtt{Env} \to \mathtt{bool}$ as well as a type $\mathtt{Var}$ that represents variables. While $\mathtt{tgrd}$s can change the environment,
+$\mathtt{bang}$ guards cannot:
 
 \begin{minted}{Lean}
 def Grd.eval : Grd → Env → Result Env
-| (Grd.xgrd grd) env :=
-    match xgrd_eval grd env with
+| (Grd.tgrd grd) env :=
+    match tgrd_eval grd env with
     | none := Result.no_match
     | some env' := Result.value env'
     end
@@ -65,6 +74,22 @@ def Grd.eval : Grd → Env → Result Env
     else Result.value env
 \end{minted}
 
+Alternatively,
+we can set $\mathtt{Var} := \mathtt{Env} → \mathtt{bool}$ and $\mathtt{TGrd} := \mathtt{Env} → \mathtt{bool}$ and replace $\mathtt{is\_bottom}$ and $\mathtt{tgrd\_eval}$ with $\mathtt{id}$,
+yielding the following definition:
+\begin{minted}{Lean}
+inductive Grd'
+| tgrd (grd: Env → option Env)
+| bang (test: Env → bool)
+\end{minted}
+However, this could make the set of guard trees and refinement types uncountable.
+While this is not problematic for aspects explored by this thesis,
+it could make implementing a correct function $\mathcal{G}$ impossible, as it cannot reason anymore about guards in a computable way if $\mathtt{Env}$ is instantiated with a non-finite type.
+
+\bigskip
+
+\subsubsection{The Guard Module}
+
 In Lean, type classes provide an ideal mechanism to define such ambient abstractions.
 They can be opened, so that all members of the type class become implicitly available in all definitions and theorems.
 Every implicit usage pulls the type class into its signature so that consumers can provide a concrete implementation of the type class.
@@ -72,13 +97,17 @@ Every implicit usage pulls the type class into its signature so that consumers c
 We defined and opened a type class \textit{GuardModule} that describes the presented abstraction:
 
 \begin{minted}{Lean}
+
 class GuardModule :=
     (Rhs : Type)
     [rhs_decidable: decidable_eq Rhs]
+    [rhs_inhabited: inhabited Rhs]
     (Env : Type)
-    (XGrd : Type)
-    (xgrd_eval : XGrd → Env → option Env)
+    (TGrd : Type)
+    [tgrd_inhabited: inhabited TGrd]
+    (tgrd_eval : TGrd → Env → option Env)
     (Var : Type)
+    [var_inhabited: inhabited Var]
     (is_bottom : Var → Env → bool)
 
 variable [GuardModule]
@@ -87,12 +116,15 @@ open GuardModule
 
 We also postulated a type $\mathtt{Rhs}$ to refer to right hand sides. For technical reasons, equality on this type must be decidable.
 This abstracts from the numbers that are used in LYG to distinguish right hand sides.
+We also require most types to be inhabited so that we can construct module-independent examples.
 
 All following definitions and theorems implicitly make use of this abstraction.
 
-\subsection{Guard trees}
+\subsection{Guard Trees}\label{chap:formalGuardTrees}
 
-With the definition of $\mathtt{Grd}$, guard trees are defined as follows:
+\subsubsection{Syntax of Guard Trees}
+
+With the definition of $\mathtt{Grd}$, guard trees are defined as inductive data type:
 
 \begin{minted}{Lean}
 inductive Gdt
@@ -101,7 +133,10 @@ inductive Gdt
 | grd (grd: Grd) (tr: Gdt)
 \end{minted}
 
-$\mathtt{Gdt.eval}$ defines a semantic on guard trees, using the semantic of guards:
+\subsubsection{Semantic of Guard Trees}
+
+$\mathtt{Gdt.eval}$ defines a denotational semantic on guard trees, using the semantic of guards.
+It returns the first RHS that matches a given environment. If a guard diverges, the entire evaluation diverges. Otherwise, if no RHSs matches, \textit{no-match} is returned.
 
 \begin{minted}{Lean}
 def Gdt.eval : Gdt → Env → Result Rhs
@@ -113,6 +148,8 @@ def Gdt.eval : Gdt → Env → Result Rhs
     end
 | (Gdt.grd grd tr) env := (grd.eval env).bind tr.eval
 \end{minted}
+
+\subsubsection{RHSs in Guard Trees}
 
 Every guard tree contains a (non-empty) finite set of right hand sides:
 \begin{minted}{Lean}
@@ -133,6 +170,8 @@ def Gdt.disjoint_rhss: Gdt → Prop
         ∧ tr1.disjoint_rhss ∧ tr2.disjoint_rhss
 | (Gdt.grd grd tr) := tr.disjoint_rhss
 \end{minted}
+
+\subsubsection{Removing RHSs in Guard Trees}
 
 $\mathtt{Gdt.remove\_rhss}$ defines how a set of RHSs can be removed from a guard tree.
 This definition is required to state that all redundant RHSs can be removed without changing semantics.
@@ -158,7 +197,8 @@ def Gdt.remove_rhss : finset Rhs → Gdt → option Gdt
 | rhss (Gdt.grd grd tr) := Gdt.grd_option grd (tr.remove_rhss rhss)
 \end{minted}
 
-Finally, to deal with such empty guard trees, $\mathtt{Gdt.eval\_option}$ lifts $\mathtt{Gdt.eval}$ to $\mathtt{option\;Gdt}$:
+Finally, to deal with the semantic of empty guard trees,
+$\mathtt{Gdt.eval\_option}$ lifts $\mathtt{Gdt.eval}$ to $\mathtt{option\;Gdt}$:
 
 \begin{minted}{Lean}
 def Gdt.eval_option : option Gdt → Env → Result
@@ -167,61 +207,104 @@ def Gdt.eval_option : option Gdt → Env → Result
 \end{minted}
 
 \subsection{Refinement Types}
+\label{sec:formalizationRefinementTypes}
 
-Refinement types presented another big challenge.
+Refinement types presented another challenge.
 Defining refinement types through a proper type system would have required to model some Haskell types.
-Instead, we tried to rely entirely on the same abstractions used to define guard trees and their semantics in hope that guard trees and refinement types can be related.
+Instead, we tried to rely on the same abstractions used to define guard trees in hope that guard trees and refinement types can be related.
+
 In this formalization, a refinement type $\Phi$ denotes a predicate on environments:
 
 \begin{minted}{Lean}
 def Φ.eval: Φ → Env → bool
 \end{minted}
 
-Another problem that had to be solved was the formalization of the unconventional binding mechanism of refinement types through conjunctions.
-If shadowing is not excluded, determining the uncovered refinement type of the following guard tree is problematic:
+With a proper $\mathtt{GuardModule}$ instantiation, the environment can be used to not only carry runtime values, but also their type!
+A (well) typed environment can assist in proving a refinement type to be empty.
 
-\begin{forest}
-	grdtree
-	[
-	[
-		{$\grdlet{x}{\mathtt{False}},\, \grdlet{y}{\mathtt{False}}$}
-		[{$\grdlet{x}{\mathtt{True}},\, \grdcon{\mathtt{True}}{y}$} [1]]
-		[{$\grdlet{y}{\mathtt{True}},\, \grdcon{\mathtt{True}}{x}$} [2]]
-	]
-	]
-\end{forest}
 
-Since the uncovered refinement type is built syntactically from the guard tree, it must contain all its guards.
-Obviously, $\grdlet{x}{\mathtt{False}}$ and $\grdlet{y}{\mathtt{False}}$ have to be at the very left of it.
-Also, since we do not want to lose the recursive definition of $\unc$, the encoding of $\grdlet{x}{\mathtt{True}},\, \grdcon{\mathtt{True}}{y}$
-must occur in the uncovered refinement type either left or right to the encoding of $\grdlet{y}{\mathtt{True}},\, \grdcon{\mathtt{True}}{x}$.
-In both cases, the inner let guards shadow an outer let guard for the guards to its right.
+\subsubsection{Variable Binding Rules}
+\label{sec:formalizationVariableBindingRules}
 
-Shadowing is unproblematic for the semantic of guard trees though: If the first guard tree of a branch fails, its environment and thus possible shadowing bindings are discarded.
+Another problem that had to be solved was the formalization of the unconventional binding mechanism of refinement types through conjunctions, as described in chapter \ref{chap:bckgrndRefinementTypesBinding}.
+In particular, this causes $\mathcal{U}$ to be not correct (for some intuitive notion of correctness)
+with regards to the guard tree semantic we defined in chapter \ref{chap:formalGuardTrees}.
+While the following guard tree $gdt$ does not match for any environment, its uncovered refinement type $\Theta$ computed by $\mathcal{U}$ is empty (the empty vector does not match)!
+
+\[
+    \mathit{gdt} :=
+    \vcenter{\hbox{
+    \begin{forest}
+    	grdtree
+    	[
+    	[
+    		{$\grdlet{x}{\mathtt{False}}$}
+    		[{$\grdlet{x}{\mathtt{True}},\, \grdcon{\mathtt{False}}{x}$} [1]]
+    		[{$\grdcon{\mathtt{False}}{x}$} [2]]
+    	]
+    	]
+    \end{forest}
+    }}
+\]
+\begin{align*}
+    \Theta := \mathcal{U}(\true, \mathit{gdt}) =& \reft{}{
+        (((\grdlet{x}{\Conid{False}} \andtheta \grdlet{x}{\Conid{True}}) \andtheta
+        x \ntermeq \Conid{False}) \andtheta x \ntermeq \Conid{False}
+    } \\
+    =& \reft{}{
+        \grdlet{x}{\Conid{False}} \land (\grdlet{x}{\Conid{True}} \land
+        (x \ntermeq \Conid{False} \land x \ntermeq \Conid{False}))
+    }
+\end{align*}
+
+Shadowing is unproblematic for the semantic of guard trees though: If the first guard tree of a branch fails to match, its environment just before the failing guard is discarded and with it possible shadowing bindings.
 The second branch is always evaluated with the same environment that the first guard tree has been evaluated with.
+
+This imbalance between refinement types and the semantic of guard trees could be fixed by either adjusting the semantics of guard trees or by
+introducing a guard operator for refinement types with a restricted binding scope.
+However, if the semantic of guard trees would not undo the effect of no-matching branches to the environment,
+an inner let binding would prevent an inaccessible right hand side from being redundant. Even though it never matches, the let binding would always have an effect
+on the final environment and removing it would be observable!
+
+This problem does not arise in the GHC implementation of LYG as it uses a different encoding for refinement types.
+
+We introduced a data constructor $\mathtt{Φ.tgrd\_in}: \mathtt{TGrd} \to Φ \to Φ$ that limits the scope of the guard to the nested refinement type and removed any scoping behaviour of the $\land$-operator.
+This simplifies the scoping mechanism and allows to fix the problem of shadowing bindings in $\mathcal{U}$.
+
+\subsubsection{Syntax of Refinement Types}
+
+Finally, this is our formalized syntax of refinement types:
 
 \begin{minted}{Lean}
 inductive Φ
 | false
 | true
-| xgrd_in (xgrd: XGrd) (ty: Φ)
-| not_xgrd (xgrd: XGrd)
+| tgrd_in (tgrd: TGrd) (ty: Φ)
+| not_tgrd (tgrd: TGrd)
 | var_is_bottom (var: Var)
 | var_is_not_bottom (var: Var)
 | or (ty1: Φ) (ty2: Φ)
 | and (ty1: Φ) (ty2: Φ)
 \end{minted}
 
+Since the negation of a guard cannot bind variables,
+it does not need to have a nested refinement type that would see bound variables.
+The same applies to $\mathtt{var\_is\_bottom}$ and its negation.
+
+\subsubsection{Semantic of Refinement Types}
+
+The semantic of refinement types is easily defined and implicitly uses the guard module:
+
 \begin{minted}{Lean}
 def Φ.eval: Φ → Env → bool
 | Φ.false env := ff
 | Φ.true env := tt
-| (Φ.xgrd_in grd ty) env := match xgrd_eval grd env with
+| (Φ.tgrd_in grd ty) env := match tgrd_eval grd env with
     | some env := ty.eval env
     | none := ff
     end
-| (Φ.not_xgrd grd) env :=
-    match xgrd_eval grd env with
+| (Φ.not_tgrd grd) env :=
+    match tgrd_eval grd env with
     | some env := ff
     | none := tt
     end
@@ -231,51 +314,245 @@ def Φ.eval: Φ → Env → bool
 | (Φ.and t1 t2) env := t1.eval env && t2.eval env
 \end{minted}
 
-\begin{minted}{Lean}
-def ��_acc : (Φ → Φ) → Gdt → Φ
-| acc (Gdt.rhs _) := acc Φ.false
--- TODO: Change to (��_acc ((��_acc id tr1).and ∘ acc) tr2)
-| acc (Gdt.branch tr1 tr2) := (��_acc (acc ∘ (��_acc id tr1).and) tr2)
-| acc (Gdt.grd (Grd.bang var) tree) :=
-    ��_acc (acc ∘ (Φ.var_is_not_bottom var).and) tree
-| acc (Gdt.grd (Grd.xgrd grd) tree) :=
-            (acc (Φ.not_xgrd grd))
-        .or
-            (��_acc (acc ∘ (Φ.xgrd_in grd)) tree)
+With this definition the evaluation of the second operand of a conjunction is obviously independent
+of any environment effects applied in the evaluation of the first operand!
 
-def �� : Gdt → Φ := ��_acc id
-\end{minted}
+\subsubsection{Definition of \texttt{is\_empty}}
+
+A refinement type $\Phi$ is called \textit{empty} if it does not match any environment.
+This is formalized by the predicate $\Phi\mathtt{.is\_empty}$:
 
 \begin{minted}{Lean}
-
+def Φ.is_empty (ty: Φ): Prop := ∀ env: Env, ¬(ty.eval env)
 \end{minted}
+
+\subsubsection{Definition of \texttt{can\_prove\_empty}}
+
+Instead of a partial function $\generate$ with $\generate(Φ) = \varnothing$ if and only if $Φ$ is empty,
+we define a total function $\mathtt{can\_prove\_empty}$ and a predicate $\mathtt{correct\_can\_prove\_empty}$ that ensures
+its correctness. This abstracts from the in this context unneeded generation of inhabitants. It also avoids dealing with partial functions, which are not supported by Lean.
+\begin{minted}{Lean}
+variable can_prove_empty: Φ → bool
+def correct_can_prove_empty : Prop :=
+    ∀ ty: Φ, can_prove_empty ty = tt → ty.is_empty
+\end{minted}
+
+The subtype $\mathtt{CorrectCanProveEmpty}$ bundles a correct $\mathtt{can\_prove\_empty}$ function:
+\begin{minted}{Lean}
+def CorrectCanProveEmpty := {
+    can_prove_empty : Φ → bool
+    // correct_can_prove_empty can_prove_empty
+}
+\end{minted}
+
+\subsection{$\mathcal{U}$ncovered Analysis}
+\label{sec:formalizationUncoveredAnalysis}
+
+As discussed in chapter \ref{sec:formalizationRefinementTypes}, LYG's definition of
+$\mathcal{U}$ has problems with guard trees that define shadowing bindings.
+LYG defined $\mathcal{U}$ as follows (see chapter \ref{chap:bckgrdUncoveredAnalysis} for the discussion of this definition):
+
+\[
+\begin{array}{lcl}
+	\unc(\reft{\Gamma}{\Phi}, \gdtrhs{n})                                    & = & \reft{\Gamma}{\false}                                                                                                 \\
+	\unc(\Theta, \gdtseq{t_1}{t_2})                                          & = & \unc(\unc(\Theta, t_1), t_2)                                                                                          \\
+	\unc(\Theta, \gdtguard{\grdbang{x}}{t})                                  & = & \unc(\Theta \andtheta (x \ntermeq \bot), t)                                                                           \\
+	\unc(\Theta, \gdtguard{\grdlet{x}{e}}{t})                                & = & \unc(\Theta \andtheta (\ctlet{x}{e}), t)                                                                              \\
+	\unc(\Theta, \gdtguard{\grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}}{t}) & = & \Theta \andtheta (x \ntermeq K) \uniontheta \unc(\Theta \andtheta (\ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}), t) \\
+\end{array}
+\]
+
+Equipped with the data constructor $\mathtt{Φ.tgrd\_in}$ we can fix the shadowing problem problem and formalize $\mathcal{U}$ now.
+Instead of using $\Phi$ as accumulator type, our formalization uses the type $\Phi \to \Phi$:
+The new accumulator explicitly applies a context to a refinement type.
+This happens implicitly in LYG's definition through the use of $\Theta \andtheta \cdot$.
+Note that all occuring accumulator functions are homomorphic under the semantic of refinement types.
+We carefully make use of this to get formalized definitions of $\mathcal{U}$ and $\mathcal{A}$ that can be interleaved, as done in LYG.
 
 \begin{minted}{Lean}
+def ω_acc : (Φ → Φ) → Gdt → Φ
+| acc (Gdt.rhs _) := Φ.false
+| acc (Gdt.branch tr1 tr2) := (ω_acc ((ω_acc acc tr1).and ∘ acc) tr2)
+| acc (Gdt.grd (Grd.bang var) tr) :=
+    ω_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr
+| acc (Gdt.grd (Grd.tgrd grd) tr) :=
+            (acc (Φ.not_tgrd grd))
+        .or (ω_acc (acc ∘ (Φ.tgrd_in grd)) tr)
 
+def ω : Gdt → Φ := ω_acc id
 \end{minted}
+
+\subsection{$\mathcal{R}$edundant / Inaccessible Analysis}
+
+\subsubsection{Formalization of Annotated Trees}
+
+The formalization of annotated trees is straightforward.
+However, we allow arbitrary annotations rather than only accepting refinement types.
+This will become useful in formal proofs when we no longer care about
+the specific refinement types but only if they are empty.
+
+\begin{minted}{Lean}
+inductive Ant (α: Type)
+| rhs (a: α) (rhs: Rhs): Ant
+| branch (tr1: Ant) (tr2: Ant): Ant
+| diverge (a: α) (tr: Ant): Ant
+\end{minted}
+
+\subsubsection{Formalization of $\mathcal{A}$}
+
+Similar to the formalization of $\mathcal{U}$ in chapter \ref{sec:formalizationUncoveredAnalysis}, we also need to address the shadowing problem when formalizing $\mathcal{A}$.
+This is LYG's definition of $\mathcal{A}$ as stated in chapter \ref{chap:backgrdRedundantInaccAnalysis}:
+
+\[
+	\begin{array}{lcl}
+		\ann(\Theta,\gdtrhs{n})                                                  & = & \antrhs{\Theta}{n}                                                                       \\
+		\ann(\Theta, \gdtseq{t_1}{t_2})                                          & = & \antseq{\ann(\Theta, t_1)}{\ann(\unc(\Theta, t_1), t_2)}                                 \\
+		\ann(\Theta, \gdtguard{\grdbang{x}}{t})                                  & = & \antbang{\Theta \andtheta (x \termeq \bot)}{\ann(\Theta \andtheta (x \ntermeq \bot), t)} \\
+		\ann(\Theta, \gdtguard{\grdlet{x}{e}}{t})                                & = & \ann(\Theta \andtheta (\ctlet{x}{e}), t)                                                 \\
+		\ann(\Theta, \gdtguard{\grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}}{t}) & = & \ann(\Theta \andtheta (\ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}), t)                  \\
+	\end{array}
+\]
+
+Our formalization in Lean follows. Analogous to our formalization of $\mathcal{U}$, instead of contextualizing refinement types by
+combining them with the accumulator through $\andtheta$, we model the accumulator as an explicit function
+that contextualizes its argument:
+
+\begin{minted}{Lean}
+def π_acc : (Φ → Φ) → Gdt → Ant Φ
+| acc (Gdt.rhs rhs) := Ant.rhs (acc Φ.true) rhs
+| acc (Gdt.branch tr1 tr2) :=
+    Ant.branch
+        (π_acc acc tr1)
+        (π_acc ((ω_acc acc tr1).and ∘ acc) tr2)
+| acc (Gdt.grd (Grd.bang var) tr) :=
+    Ant.diverge
+        (acc (Φ.var_is_bottom var)) 
+        (π_acc (acc ∘ ((Φ.var_is_not_bottom var).and)) tr)
+| acc (Gdt.grd (Grd.tgrd grd) tr) :=
+    (π_acc (acc ∘ (Φ.tgrd_in grd)) tr)
+
+def π : Gdt → Ant Φ := π_acc id
+\end{minted}
+
+Note that in the branch case, $\mathcal{A}\mathtt{\_acc}$ and $\mathcal{U}\mathtt{\_acc}$
+are called with the same arguments. Even more, both functions have the same recursion structure, which
+makes it possible to interleave both functions.
+This is done in chapter \ref{sec:formalizationInterleaving}.
+
+
+%-- returns (accessible, inaccessible, redundant) rhss, given that `can_prove_empty` is correct.
+
+\subsubsection{Formalization of $\mathcal{R}$}
+
+It remains to formalize the function $\mathcal{R}$ that partitions
+all right hand sides of an annotated guard tree into accessible, inaccessible and redundant right hand sides,
+by using the function $\mathtt{can\_prove\_empty}$.
+
+This is $\mathcal{R}$ as presented in LYG and chapter \ref{chap:backgrdRedundantInaccAnalysis}:
+\[
+	\begin{array}{lcl}
+		\red(\antrhs{\Theta}{n})  & = & \begin{cases}
+			(\epsilon, \epsilon, n), & \text{if $\generate(\Theta) = \emptyset$} \\
+			(n, \epsilon, \epsilon), & \text{otherwise}                          \\
+		\end{cases}                                                                                                                     \\
+		\red(\antseq{t}{u})       & = & (\overline{k}\,\overline{k'}, \overline{n}\,\overline{n'}, \overline{m}\,\overline{m'}) \hspace{0.5em} \text{where} \begin{array}{l@{\,}c@{\,}l}
+			(\overline{k}, \overline{n}, \overline{m})    & = & \red(t) \\
+			(\overline{k'}, \overline{n'}, \overline{m'}) & = & \red(u) \\
+		\end{array} \\
+		\red(\antbang{\Theta}{t}) & = & \begin{cases}
+			(\epsilon, m, \overline{m'}), & \text{if $\generate(\Theta) \not= \emptyset$ and $\red(t) = (\epsilon, \epsilon, m\,\overline{m'})$} \\
+			\red(t),                      & \text{otherwise}                                                                                     \\
+		\end{cases}                                                                                                                     \\
+	\end{array}
+\]
+
+This definition has a surprisingly direct representation in Lean:
+\begin{minted}{Lean}
+def ρ : Ant Φ → list Rhs × list Rhs × list Rhs
+| (Ant.rhs ty n) :=
+    if can_prove_empty ty
+    then ([], [], [n])
+    else ([n], [], [])
+| (Ant.branch tr1 tr2) :=
+    match (ρ tr1, ρ tr2) with
+    | ((k, n, m), (k', n', m')) := (k ++ k', n ++ n', m ++ m')
+    end 
+| (Ant.diverge ty tr) :=
+    match ρ tr, can_prove_empty ty with
+    | ([], [], m :: ms), ff := ([], [m], ms)
+    | r, _ := r
+    end
+\end{minted}
+
+\subsection{Interleaving $\mathcal{U}$ and $\mathcal{A}$}
+\label{sec:formalizationInterleaving}
+
+Since $\mathcal{A}\mathtt{\_acc}$ and $\mathcal{U}\mathtt{\_acc}$ have
+the same recursion structure, they can be combined into a single function that shares the recursive invocations.
+The following function $\mathcal{UA}\mathtt{\_acc}$ computes the uncovered refinement type and the annotated guard tree for a given guard tree at the same time.
+This improves performance if a lazy evaluation strategy is used in combination with sharing as the accumulator can be fully shared.
+
+\begin{minted}{Lean}
+def ωπ_acc : (Φ → Φ) → Gdt → Φ × Ant Φ
+| acc (Gdt.rhs rhs) := (Φ.false, Ant.rhs (acc Φ.true) rhs)
+| acc (Gdt.branch tr1 tr2) :=
+    let (U1, A1) := ωπ_acc acc tr1,
+        (U2, A2) := ωπ_acc (U1.and ∘ acc) tr2
+    in  (U2, Ant.branch A1 A2)
+| acc (Gdt.grd (Grd.bang var) tr) :=
+    let (U, A) := ωπ_acc (acc ∘ (Φ.var_is_not_bottom var).and) tr
+    in (U, Ant.diverge (acc (Φ.var_is_bottom var)) A)
+| acc (Gdt.grd (Grd.tgrd grd) tr) := 
+    let (U, A) := ωπ_acc (acc ∘ (Φ.tgrd_in grd)) tr
+    in ((acc (Φ.not_tgrd grd)).or U, A)
+\end{minted}
+
+It is surprisingly easy to show that this function is really interleaving $\mathcal{A}\mathtt{\_acc}$ and $\mathcal{U}\mathtt{\_acc}$:
+
+\begin{minted}{Lean}
+theorem ωπ_acc_eq (acc: Φ → Φ) (gdt: Gdt):
+    ωπ_acc acc gdt = (ω_acc acc gdt, π_acc acc gdt) :=
+by induction gdt generalizing acc;
+    try { cases gdt_grd }; simp [ωπ_acc, ω_acc, π_acc, *]
+\end{minted}
+
 
 \section{Correctness Statements}
+\label{sec:formalizationCorrectnessStmts}
 
-\subsection{Semantic of $\unc$}
+As we have all the required definitions at this point, we can state and formalize what we expect of the presented pattern match analyses to be considered correct.
+We provide proofs for all correctness propositions on GitHub \cite{leanProof}. Chapter \ref{sec:proof} will discuss parts of these proofs in more detail.
 
-$\unc$ should compute a refinement type that denotes all values that are not covered by a given guard tree.
+\subsection{Correctness of the $\mathcal{U}$ncovered Analysis}
+\label{sec:formalizationSemanticU}
+
+$\unc$ should compute a refinement type that denotes exactly all values that are not covered by a given guard tree.
+This does not include values under which the execution diverges!
 
 \begin{minted}{Lean}
-theorem ��_semantic: ∀ gdt: Gdt, ∀ env: Env,
-        (�� gdt).eval env ↔ (gdt.eval env = Result.no_match)
+theorem ω_semantic: ∀ gdt: Gdt, ∀ env: Env,
+        (ω gdt).eval env ↔ (gdt.eval env = Result.no_match)
 \end{minted}
 
-\subsection{Semantic of $\red$}
+As an obvious consequence, a guard tree always matches (or diverges) if and only if this refinement type is empty. If a correct function $\mathcal{G}$ or $\mathtt{can\_prove\_empty}$ proves emptiness of such a computed refinement type, there clearly are no uncovered cases. Otherwise, a warning of potential uncovered cases should be issued! Hence, this theorem implies correctness of the uncovered analysis:
+The uncovered analysis should rather report a false positive than not detect an uncovered case.
 
-For a given guard tree and a given function $\generate$ (here $\mathtt{can_prove_empty}$), $\red$
+Note that this theorem carries over to all semantically equivalent definitions of $\mathcal{U}$.
+
+\subsection{Correctness of the $\mathcal{R}$edundant/Inaccessible Analysis}
+\label{sec:formalizationSemanticRA}
+
+For a given guard tree and a given correct function $\mathtt{can\_prove\_empty}$ (which corresponds to $\generate$ in LYG), $\red$
 should compute a triple $(a, i, r)$ of accessible, inaccessible and redundant right hand sides.
 Whenever the given guard tree evaluates to a RHS, this RHS must be accessible and neither inaccessible nor redundant.
-Also, RHSs that are redundant can be removed without changing semantics.
+RHSs that are redundant can be removed without changing the semantic of the guard tree.
+This expresses correctness of the redundant and inaccessible analysis.
 
 \begin{minted}{Lean}
-theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_rhss → 
-    (
-        let ⟨ a, i, r ⟩ := ℛ can_prove_empty.val (�� gdt)
+theorem ρ_semantic:
+    ∀ can_prove_empty: CorrectCanProveEmpty,
+    ∀ gdt: Gdt, gdt.disjoint_rhss → (
+        let ⟨ a, i, r ⟩ := ρ can_prove_empty.val (π gdt)
         in
                 (∀ env: Env, ∀ rhs: Rhs,
                     gdt.eval env = Result.value rhs
@@ -288,3 +565,6 @@ theorem ℛ_semantic : ∀ can_prove_empty: Gs, ∀ gdt: Gdt, gdt.disjoint_rhss 
         : Prop
     )
 \end{minted}
+
+Note that redundant RHSs could be marked as inaccessible or even accessible instead without violating this theorem.
+The opposite is not true: Not all accessible RHSs can be marked as inaccessible and not all inaccessible RHSs can be marked as redundant - see chapters \ref{sec:intro} and \ref{sec:background} for counterexamples. However, we conjecture that $a$ contains no inaccessible and $i$ no redundant RHSs if $\mathtt{can\_prove\_empty}$ is both correct and complete.

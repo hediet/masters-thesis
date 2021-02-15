@@ -2,57 +2,23 @@
 
 \section{Lower Your Guards}
 
-Lower Your Guards (LYG) is an algorithm that analyzes pattern matching expressions.
-The analysis reports uncovered cases, but also redundant and inaccessible right hand sides.
+Lower Your Guards (LYG) \cite{10.1145/3408989} describes algorithms that analyze pattern matching expressions and report uncovered cases, but also redundant and inaccessible right hand sides.
 
 LYG was designed for use in the Glasgow Haskell Compiler,
 but the algorithm and its data structures are so universal
 that they can be leveraged for other programming languages with pattern matching constructs too.
 
-% Redundant and inaccessible right hand sides are both never evaluated.
-% However, while removing redundant right hand sides does not change the semantics of the pattern matching expression,
-% removing inaccessible right hand sides might lead to observable side effects.
+All definitions and some examples of this chapter are taken from LYG \cite{10.1145/3408989}.
 
-\subsection{Motivation}
+\subsection{Inaccessible vs. Redundant RHSs}
 
-In functional programming, pattern matching is a very popular feature.
-This is particularly true for Haskell, where you can define algebraic data types
-and easily match on them in function definitions.
-With increasingly complex data types and function definitions however,
-pattern matching can be yet another source of mistakes.
+A closer look at figure \ref{lst:haskell} reveals that while both RHS 3 and 4 are inaccessible,
+the semantics of $\mathtt{f}$ changes if both are removed.
+This means that an automated refactoring cannot just remove all inaccessible leaves!
 
-Listing \ref{lst:haskell} showcases common types of mistakes that can arise with pattern matching.
-
-Most importantly, the function $f$ is not defined on all values.
-$\mathrm{Case4}$ is uncovered and will cause a runtime error.
-Also, the right hand sides (RHS) $3$ and $4$ are inaccessible - $f$ will never evaluate to $3$ or $4$!
-
-\begin{figure}[htbp]
-	\caption{A Pattern Matching Example In Haskell}
-	\label{lst:haskell}
-    \begin{minted}{Haskell}
-    data Case = Case1 | Case2 | Case3 | Case4
-    
-    f :: Case -> Bool -> Integer
-    f Case1 _ = 1
-    f Case2 _ = 2
-    f x True    | Case1 <- x = 3
-                | Case2 <- x = 4
-    f Case3 _ = 5
-    \end{minted}
-\end{figure}
-
-LYG provides a robust algorithm that is able to detect such mistakes. LYG can also deal with the intricacies of lazy evaluation as discussed in the following chapter.
-
-\subsection{Lazy Evaluation}
-
-A closer look at listing \ref{lst:haskell} reveals that while both RHS 3 and 4 are inaccessible,
-the semantics of $f$ changes if both are removed.
-This means that an automated refactoring is not allowed to just remove all inaccessible leaves!
-
-The reason for this is the term $t := f\;\mathrm{Case3}\;\mathrm{undefined}$ and the fact that Haskell uses a lazy evaluation strategy.
-If both RHSs $3$ and $4$ are removed, $t$ evaluates to $5$ - the term $\mathrm{undefined}$ is never evaluated as no pattern matches against it.
-However, if nothing or only one of the RHSs $3$ or $4$ is removed, $\mathrm{undefined}$ will be matched with $\mathrm{True}$ and thus $t$ will throw an error!
+The reason for this is the term $t := \mathtt{f}\;\mathtt{Case3}\;\mathtt{undefined}$ and the fact that Haskell uses a lazy evaluation strategy.
+If both RHSs $3$ and $4$ are removed, $t$ evaluates to $5$ - the term $\mathtt{undefined}$ is never evaluated as no pattern matches against it.
+However, if nothing or only one of the RHSs $3$ or $4$ is removed, $\mathtt{undefined}$ will be matched with $\mathtt{True}$ and thus $t$ will throw a runtime error!
 
 To communicate this difference, LYG introduces the concept of $\mathit{redundant}$ and $\mathit{inaccessible}$ RHSs:
 A redundant RHS can be removed from its pattern matching expression without any observable difference.
@@ -70,12 +36,12 @@ to the same guard tree. Guard trees also simplify adapting LYG to other programm
 and they enable studying LYG mostly independent from Haskell.
 Their syntax is defined in figure \ref{fig:guardTrees}.
 
-Guard trees (Gdts) are made of three elements: Uniquely numbered right hand sides, branches and guarded trees.
-Guarded trees refer to Haskell specific guards (Grd) that control the execution.
-\textit{Let guards} can bind a term to a variable in a new lexical scope,
+Guard trees (\textit{Gdt}s) are made of three elements: Uniquely numbered right hand sides, \textit{branches} and \textit{guarded trees}.
+Guarded trees refer to Haskell specific guards (\textit{Grd}) that control the execution.
+\textit{Let guards} can bind a term to a variable in a new lexical scope.
 \textit{pattern match guards} can destructure a value into variables if the pattern matches or otherwise prevent the
-execution from entering the tree behind the guard
-and \textit{bang guards} can stop the entire execution when the value of a variable does not reduce to a head normal form.
+execution from entering the tree behind the guard.
+Finally, \textit{bang guards} can stop the entire execution when the value of a variable does not reduce to a head normal form.
 
 \begin{figure}[htbp]
 	\caption{Definition of Guard Trees}
@@ -110,26 +76,27 @@ and \textit{bang guards} can stop the entire execution when the value of a varia
 \end{figure}
 
 The evaluation of a guard tree selects the first right hand side that execution reaches.
-If the execution stops at a bang guard, the evaluation diverges, otherwise, if execution falls through, the evaluation ends with a no-match.
-A formal semantic for guard trees will be defined in chapter \TODOI{ref}.
+If the execution stops at a bang guard, the evaluation is said to \textit{diverge}, otherwise, if execution falls through, the evaluation ends with a \textit{no-match}.
+A formal semantic for guard trees will be defined in chapter \ref{chap:formalGuardTrees}.
 
-The transformation from Haskell pattern matches to guard trees is not of much interest for this thesis and can be found in \TODOI{ref}.
+The transformation from Haskell pattern matches to guard trees is not of much interest for this thesis and can be found in LYG \cite{10.1145/3408989}.
 To preserve semantics, it is important that the transformation inserts bang guards whenever a variable is matched against a data constructor.
 
-The figure \ref{fig:desugaringExample} represents the guard tree of listing \ref{lst:haskell}.
+Figure \ref{fig:desugaringExample} presents the transformation of figure \ref{lst:haskell} into a guard tree.
 
 
 \begin{figure}[htbp]
 	\caption{Desugaring Example}
 	\label{fig:desugaringExample}
+	\centering
 	\begin{minted}{Haskell}
 data Case = Case1 | Case2 | Case3 | Case4
 
 f :: Case -> Bool -> Integer
 f Case1 _ = 1
 f Case2 _ = 2
-f x True    | Case1 <- x = 3
-            | Case2 <- x = 4
+f x True | Case1 <- x = 3
+         | Case2 <- x = 4
 f Case3 _ = 5
 \end{minted}
 
@@ -153,6 +120,8 @@ f Case3 _ = 5
 	\end{forest}
 \end{figure}
 
+\vspace{\baselineskip}
+
 It is usually straightforward to define a transformation from pattern matching expressions to guard trees
 that also preserves uncovered cases and inaccessible and redundant RHSs.
 This makes guard trees an ideal abstraction for the following analysis steps.
@@ -169,47 +138,71 @@ Their syntax is defined in figure \ref{fig:refinementTypes}.
 	\[
 		\begin{array}{rcll}
 			\Gamma  & \Coloneqq & \varnothing \mid \Gamma, x:\tau \mid \Gamma, a                                                                                                  & \text{Context}         \\
-			\varphi & \Coloneqq & \true \mid \false \mid \ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x} \mid x \ntermeq K \mid x \termeq \bot \mid x \ntermeq \bot \mid \ctlet{x}{e} & \text{Literals}        \\
+			\varphi & \Coloneqq & \true \mid \false \mid \ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x} \mid x \ntermeq K \\
+			        &           & \mid x \termeq \bot \mid x \ntermeq \bot \mid \ctlet{x}{e} & \text{Literals}        \\
 			\Phi    & \Coloneqq & \varphi \mid \Phi \wedge \Phi \mid \Phi \vee \Phi                                                                                               & \text{Formula}         \\
 			\Theta  & \Coloneqq & \reft{\Gamma}{\Phi}                                                                                                                             & \text{Refinement type} \\
 		\end{array}
 	\]
+    \[ \textbf{Operations on $\Theta$} \]
+    \[
+    \begin{array}{lcl}
+        \Phi \andtheta \varphi &=&
+        \begin{cases}
+            \varphi_1 \wedge (\varphi_2 \andtheta \varphi) \; \textrm{if }\Phi = \varphi_1 \wedge \varphi_2 \\
+            \Phi \wedge \varphi \; \textrm{otherwise} \\
+        \end{cases}\\
+        \reft{\Gamma}{\Phi} \andtheta \varphi &=&
+            \reft{\Gamma}{\varphi \andtheta \varphi}\\
+        \reft{\Gamma}{\Phi_1} \uniontheta \reft{\Gamma}{\Phi_2} &=& \reft{\Gamma}{\Phi_1 \vee \Phi_2} \\
+    \end{array}
+    \]
 \end{figure}
 
-Refinement types are built from literals $\phi$ and closed under conjunction and disjunction.
-The literal $\true$ means ``true'', while $\false$ means ``false''. For example:
+Refinement predicates are built from literals $\phi$ and closed under conjunction and disjunction.
+The literal $\true$ refers to ``true'', while $\false$ refers to ``false''. For example:
 $$
 	\begin{array}{rcl}
 		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ \true }                                                                                                           & \text{denotes} & \{ \bot, \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}} \}                       \\
 		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ x \ntermeq \bot }                                                                                                 & \text{denotes} & \{ \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}} \}                             \\
 		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ x \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{True}}}{x} }                                                     & \text{denotes} & \{ \ensuremath{\Conid{True}} \}                                                         \\
-		\reft{ mx{:}\ensuremath{\Conid{Maybe}\;\Conid{Bool}}}{ mx \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{Just}\;\Varid{x}}}{mx} \wedge x \ntermeq \bot } & \text{denotes} & \{ \ensuremath{\Conid{Just}\;\Conid{True}}, \ensuremath{\Conid{Just}\;\Conid{False}} \} \\
+		\reft{ mx{:}\ensuremath{\Conid{Maybe}\;\Conid{Bool}}}{ mx \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{Just}\;\Varid{x}}}{mx}  } & \text{denotes} & \ensuremath{\Conid{Just}\;}\{ \ensuremath{\bot}, \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}}, \} \\
 	\end{array}
 $$
 
-Unconventionally, a literal can bind one or more variables in a way that such a binding is in scope in all literals on its right.
-Thus, $(\ctlet{x}{y} \land z \ntermeq \bot) \land x \ntermeq \bot$ is equivalent to $z \ntermeq \bot \land y \ntermeq \bot$.
-While this conjunction operator is still associative, it is clearly not commutative!
+\subsection{Binding Mechanism Of Refinement Types}\label{chap:bckgrndRefinementTypesBinding}
 
-LYG also describes a partially defined function $\generate$
-with $\generate(\Theta) = \varnothing \implies \Theta \text{ denotes } \varnothing$ for all refinement types $\Theta$.
+Refinement type literals, such as the let-literal or the pattern-match-literal can bind one or more variables.
+Unconventionally however, a binding is in scope of a literal if and only if
+the binding literal is the left operand of a parent conjunction.
+
+Thus, $(\ctlet{x}{y} \land x \ntermeq \bot) \land x \ntermeq \bot$ is semantically equivalent to $y \ntermeq \bot \land x \ntermeq \bot$.
+Clearly, $\land$ is not associative!
+
+To utilize this behaviour, the operator $\andtheta$ replaces the rightmost operand of the top conjunction tree of the left argument (figure \ref{fig:refinementTypes}).
+
+\subsection{$\generate$enerating Inhabitants}
+LYG also describes a partial function $\generate$
+with $\generate(\Theta) = \varnothing \Rightarrow (\Theta \text{ denotes } \varnothing)$ for all refinement types $\Theta$.
 $\generate$ is used to $\generate$enerate inhabitants of a refinement type to build elaborate error messages
 and to get a guarantee that a refinement type is empty.
-A precise $\generate$ function is undecidable!
-This thesis just assumes that ``interesting'' correct $\generate$ functions exist,
+A total correct function $\generate$ is uncomputable, since refinement types can make use of recursively defined functions!
+This thesis just assumes that ``interesting'' computable and correct functions $\generate$ exist,
 so the details of $\generate$ as proposed by LYG do not matter.
+In general, all proposed correctness statements should allow for an empty function $\mathcal{G}$.
 
 \subsection{Uncovered Analysis}
+\label{chap:bckgrdUncoveredAnalysis}
 
-The goal of the uncovered analysis is to detect all cases that are not covered by a given guard tree.
+The goal of the uncovered analysis is to detect all cases that are not handled by a given guard tree.
 Refinement types are used to capture the result of this analysis.
 
 The function $\unc(\reft{\Gamma}{\true}, \cdot)$ in figure \ref{fig:U}
 computes a refinement type that captures all uncovered values for a given guard tree.
 This refinement type is empty if and only if there are not any uncovered cases.
-If $\generate$ is used to test for emptiness, this yields an algorithm to test for uncovered cases.
+If $\generate$ is used to test for emptiness, this already yields an algorithm to test for uncovered cases.
 It can be verified that the uncovered refinement type of the guard tree in
-figure \ref{fig:desugaringExample} equals $\reft{ x_1{:}\ensuremath{\Conid{Case}}, \, x_2{:}\ensuremath{\Conid{Bool}}}{ x_1 \ntermeq \bot \andtheta x_1 \ntermeq \mathtt{Case1} \andtheta x_1 \ntermeq \mathtt{Case2} \andtheta x_1 \ntermeq \mathtt{Case3} }$ and denotes $x_1 = \mathtt{Case4}$.
+figure \ref{fig:desugaringExample} ``semantically'' equals $\reft{ x_1{:}\ensuremath{\Conid{Case}}, \, x_2{:}\ensuremath{\Conid{Bool}}}{ x_1 \ntermeq \bot \andtheta x_1 \ntermeq \mathtt{Case1} \andtheta x_1 \ntermeq \mathtt{Case2} \andtheta x_1 \ntermeq \mathtt{Case3} }$ and denotes $x_1 = \mathtt{Case4}$.
 
 \begin{figure}[htbp]
 	\caption{Definition of $\unc$}
@@ -221,7 +214,7 @@ figure \ref{fig:desugaringExample} equals $\reft{ x_1{:}\ensuremath{\Conid{Case}
 			\unc(\Theta, \gdtseq{t_1}{t_2})                                          & = & \unc(\unc(\Theta, t_1), t_2)                                                                                          \\
 			\unc(\Theta, \gdtguard{\grdbang{x}}{t})                                  & = & \unc(\Theta \andtheta (x \ntermeq \bot), t)                                                                           \\
 			\unc(\Theta, \gdtguard{\grdlet{x}{e}}{t})                                & = & \unc(\Theta \andtheta (\ctlet{x}{e}), t)                                                                              \\
-			\unc(\Theta, \gdtguard{\grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}}{t}) & = & (\Theta \andtheta (x \ntermeq K)) \uniontheta \unc(\Theta \andtheta (\ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}), t) \\
+			\unc(\Theta, \gdtguard{\grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}}{t}) & = & \Theta \andtheta (x \ntermeq K) \uniontheta \unc(\Theta \andtheta (\ctcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x}), t) \\
 		\end{array}
 	\]
 \end{figure}
@@ -241,6 +234,7 @@ They are made of RHSs, branches and bang nodes. Their syntax is defined in figur
 \end{figure}
 
 \subsection{Redundant/Inaccessible Analysis}
+\label{chap:backgrdRedundantInaccAnalysis}
 
 The goal of the redundant/inaccessible analysis is to report as much RHSs
 as possible that are redundant or inaccessible.
@@ -248,9 +242,16 @@ This is done by annotating a guard tree with refinement types and then checking 
 If a RHS is associated with an empty refinement type, the RHS is inaccessible and in some circumstances even redundant.
 The refinement type of a bang node describes all values under which an evaluation will diverge.
 Figure \ref{fig:A} defines a function $\ann$ that computes such an annotation for a given guard tree.
-This annotated guard tree is then passed to a function $\red$ as defined in \ref{fig:R}.
+Figure \ref{fig:AExample} shows the annotated tree of the introductory example in figure \ref{lst:haskell} with abbreviated refinement types.
+
+Such an annotated guard tree is then passed to a function $\red$ as defined in figure \ref{fig:R}.
 $\red$ uses $\generate$ to compute redundant and inaccessible RHSs. All other RHSs are assumed to be accessible,
-even though, due to the approximative nature of $\generate$, not all of them actually are accessible.
+even though, due to $\generate$ being a partial function, not all of them actually are accessible.
+
+Figure \ref{fig:RExample} computes inaccessible and redundant leaves for an annotated tree that is
+$(\mathcal{G}=\varnothing)$-equivalent to the annotated tree from figure $\ref{fig:AExample}$
+for sensible functions $\mathcal{G}$.
+It states that RHS 4 in \ref{lst:haskell} is redundant and can be removed, while RHS 3 is just inaccessible.
 
 \begin{figure}[htbp]
 	\caption{Definition of $\ann$}
@@ -268,9 +269,10 @@ even though, due to the approximative nature of $\generate$, not all of them act
 \end{figure}
 
 \begin{figure}[htbp]
-	\caption{Example}
+	\caption{Examplary Evaluation of $\mathcal{A}$}
 	\label{fig:AExample}
-    $\ann$(
+    \[\ann(\true,
+    \vcenter{\hbox{
     \begin{forest}
 		grdtree
 		[
@@ -286,8 +288,9 @@ even though, due to the approximative nature of $\generate$, not all of them act
 					]
 			]
 		]
-	\end{forest}) = \\
-% $\reft{ x_1{:}\ensuremath{\Conid{Case}}, \, x_2{:}\ensuremath{\Conid{Bool}}}{ x_1 \ntermeq \bot \andtheta x_1 \ntermeq \mathtt{Case1} \andtheta x_1 \ntermeq \mathtt{Case2} \andtheta x_1 \ntermeq \mathtt{Case3} }$
+	\end{forest}}}
+	) = \]
+	\[
 	\begin{forest}
 	    anttree
 		[
@@ -304,10 +307,11 @@ even though, due to the approximative nature of $\generate$, not all of them act
 			]
 		]
 	\end{forest}
+	\]
 \end{figure}
 
 \begin{figure}[htbp]
-	\caption{Definition of $\red$. $\red$ partitions all RHSs into probably-accessible $(\overline{k})$, inaccessible $(\overline{n})$ and $\red$edundant $(\overline{m})$ RHSs. }
+	\caption{Definition of $\red$. $\red$ partitions all RHSs into could-be-accessible $(\overline{k})$, inaccessible $(\overline{n})$ and $\red$edundant $(\overline{m})$ RHSs. }
 	\label{fig:R}
 	\centering
 	\[ \ruleform{ \red(u) = (\overline{k}, \overline{n}, \overline{m}) } \]
@@ -330,41 +334,101 @@ even though, due to the approximative nature of $\generate$, not all of them act
 \end{figure}
 
 \begin{figure}[htbp]
-	\caption{Example R}
+	\caption{Examplary Evaluation of $\mathcal{R}$}
 	\label{fig:RExample}
-    $\red$(
-	\begin{forest}
-	    anttree
-		[
-		[{$\reft{\Gamma }{ \true }$ \lightning} [$\reft{\Gamma }{ \true }$ 1]]
-			[
-				[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \true  }$ 2]]
-					[
-						[{$\reft{\Gamma }{ \true }$ \lightning}
-									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \false }$ 3]]
-									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \false }$ 4]]
-							]
-							[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \true }$ 5]]
-					]
-			]
-		]
-	\end{forest}
+    \[
+    \red(
+    \vcenter{\hbox{
+    	\begin{forest}
+    	    anttree
+    		[
+    		[{$\reft{\Gamma }{ \true }$ \lightning} [$\reft{\Gamma }{ \true }$ 1]]
+    			[
+    				[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \true  }$ 2]]
+    					[
+    						[{$\reft{\Gamma }{ \true }$ \lightning}
+    									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \false }$ 3]]
+    									[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \false }$ 4]]
+    							]
+    							[{$\reft{\Gamma }{ \false }$ \lightning} [$\reft{\Gamma }{ \true }$ 5]]
+    					]
+    			]
+    		]
+    	\end{forest}
+	}}
 	) = (1 2 5, 3, 4)
+	\]
 \end{figure}
+
+\clearpage
 
 \section{Lean}
 
-\subsection{Lean Prover}
+\subsection{The Lean Theorem Prover}
 
-Lean is a theorem prover that is based on the calculus of constructions and developed by Microsoft Research.
-It features dependent types and offers a high degree of automation through tactics.
+Lean is an interactive theorem prover that is based on the calculus of inductive constructions \cite{leanWebsite} \cite{moura15} and is developed by Microsoft Research.
+It features dependent types, offers a high degree of automation through tactics and can also be used as a programming language.
+Due to the Curry-Howard isomorphism, writing functional definitions intended to be used in proofs,
+writing proofs and writing proof-generating custom tactics is very similar.
 
-This thesis uses Lean 3.
+We use Lean 3 for this thesis and want to give a brief overview of its syntax. See \cite{leanDocs} for a detailed documentation.
 
-\subsection{Mathlib}
+Inductive data types can be defined with the keyword $\mathtt{inductive}$. The $\mathtt{\#check}$ instruction can be used to type-check terms:
+\begin{minted}{Lean}
+inductive my_nat : Type
+| zero : my_nat
+| succ : my_nat → my_nat
 
-Mathlib is a community project written in Lean 3 that offers a rich mathematical foundation for many theories.
+#check my_nat.succ my_nat.zero
+#check my_nat.zero.succ -- equivalent term, using dot notation
+\end{minted}
+
+The keyword $\mathtt{def}$ can be used to bind terms and define recursive functions:
+\begin{minted}{Lean}
+def my_nat.add : my_nat → my_nat → my_nat
+-- Patterns can be used in definitions
+| my_nat.zero b := b
+| (my_nat.succ a) b := (a.add b).succ
+\end{minted}
+
+Likewise, $\mathtt{def}$ can be used to bind proof terms to propositions.
+Propositions are stated as type and proved by constructing a term of that type.
+$\Pi$-types are used to introduce generalized type variables:
+\begin{minted}{Lean}
+-- This type states that for all a, a + zero = a
+def my_nat.add_zero_eq : Π a: my_nat, a.add my_nat.zero = a :=
+    -- Proof by induction
+    @my_nat.rec
+        -- Induction Hypothesis
+        (λ a, a.add my_nat.zero = a)
+        -- Case Zero
+        (my_nat.add.equations._eqn_1 my_nat.zero)
+        -- Case Succ
+        (λ a h,
+            @eq.subst my_nat
+                (λ x, (my_nat.succ a).add my_nat.zero = x.succ)
+                (a.add my_nat.zero)
+                a
+                h
+                (my_nat.add.equations._eqn_2 a my_nat.zero)
+        )
+\end{minted}
+
+Proofs are usually much shorter when using Leans tactic mode.
+Also, definitions can be parametrized (which generalizes the parameter) and the keywords $\mathtt{lemma}$ and $\mathtt{theorem}$ can be used instead of $\mathtt{def}$:
+\begin{minted}{Lean}
+lemma my_nat.add_zero' (a: my_nat): a.add my_nat.zero = a :=
+begin
+    induction a,
+    { refl, },
+    { simp [my_nat.add, *], },
+end
+\end{minted}
+
+\subsection{The Lean Mathematical Library}
+
+\textit{Mathlib} \cite{mathlibOverview} is a community project that offers a rich mathematical foundation for many theories in Lean 3.
 Its theories of finite sets, lists, boolean logic and permutations have been very useful for this thesis.
 
 Mathlib also offers many advanced tactics like $\mathtt{finish}$, $\mathtt{tauto}$ or $\mathtt{linarith}$.
-These tactics help a lot when proving trivial lemmas.
+These tactics help significantly in proving trivial lemmas.
