@@ -1,2 +1,62 @@
 \chapter{Introduction}\label{sec:intro}
 
+In functional programming, pattern matching is a very popular feature.
+This is particularly true for Haskell, where you can define algebraic data types
+and easily match on them in function definitions.
+With increasingly complex data types and function definitions however,
+pattern matching can be yet another source of mistakes.
+
+Figure \ref{lst:haskell} showcases common types of mistakes that can arise with pattern matching.
+
+Most importantly, the function $\mathtt{f}$ is not defined on all values:
+Evaluating $\mathtt{f}\;\mathtt{Case4}$ will cause a runtime error!
+In other words, the pattern match used to define $\mathtt{f}$ is not exhaustive,
+as the input $\mathtt{Case4}$ is uncovered.
+This is usually an oversight by the programmer and should be brought to their attention with an appropriate warning.
+
+Also, $\mathtt{f}$ will never evaluate to $3$ or $4$ - replacing these values with any other value would not change any observable behaviour of $\mathtt{f}$. Such right hand sides (\textit{RHS}s) are called \textit{inaccessible}.
+Inaccessible RHSs indicate a code smell and should be avoided too. Sometimes, such RHSs can simply be removed from the pattern.
+
+\begin{figure}[htbp]
+	\caption{A Pattern Matching Example In Haskell}
+	\label{lst:haskell}
+    \begin{minted}{Haskell}
+    data Case = Case1 | Case2 | Case3 | Case4
+    
+    f :: Case -> Bool -> Integer
+    f Case1 _ = 1
+    f Case2 _ = 2
+    f x True | Case1 <- x = 3
+             | Case2 <- x = 4
+    f Case3 _ = 5
+    \end{minted}
+\end{figure}
+
+
+Lower Your Guards (LYG) \cite{10.1145/3408989} is a compiler analysis that is able to detect such mistakes and also can deal with the intricacies of lazy evaluation.
+
+However, LYG is only checked empirically so far: Its implementation in the Glasgow Haskell Compiler just \textit{seems to work}.
+
+Obviously, LYG would be incorrect if it marks a RHS as inaccessible even though it actually
+is accessible. This could have fatal consequences: A programmer acting on such misinformation
+might delete a RHS that is very much in use!
+
+As LYG does not give a complete characterization of correctness,
+we first want to establish a precise notion of correctness and then check that these algorithms indeed comply with it. At the very least, a verifying tool should be verified itself!
+
+The large number of case distinctions made in the algorithms motivates the use of a theorem prover;
+a natural proof would not be very trustworthy due to the high technical demand and risk of missing edge cases.
+
+\vspace{\baselineskip}
+
+The main contributions of this thesis are as follows:
+\begin{itemize}
+\item We formalized the uncovered and redundant/inaccessible analysis of LYG in Lean 3. This formalization is discussed in detail in chapter \ref{sec:formalization}.
+We noticed an inaccuracy in how variable scopes are handled in refinement types
+and present a counter-example to $\mathcal{U}$'s correctness in chapter \ref{sec:formalizationVariableBindingRules} by exploiting shadowing variable bindings.
+We suggest a more explicit variable scoping mechanism of refinement types.
+\item We establish a notion of correctness of LYG. Its formalization in Lean is discussed in chapter \ref{sec:formalizationCorrectnessStmts}. This notion of correctness is more precise and more complete than the notion of correctness presented in LYG.
+\item We present formal proofs that the redundant/inaccessible analysis of LYG satisfies
+    this notion of correctness if our suggestion of a more explicit scoping operator is applied. Details of this proof are discussed in chapter \ref{sec:proof}.
+
+\end{itemize}

@@ -21,6 +21,7 @@
 \usepackage{fontspec}
 \usepackage{unicode-math}
 \usepackage{mathdesign}
+\usepackage{svg}
 
 % https://tex.stackexchange.com/questions/343494/minted-red-box-around-greek-characters/343506#343506
 \makeatletter
@@ -34,8 +35,22 @@
 \newunicodechar{∈}{\freeserif{\smallin}}
 \newunicodechar{∧}{\freeserif{\land}}
 \newunicodechar{∪}{\freeserif{\cup}}
-%\newunicodechar{∘}{\freeserif{\circ}}
-\newunicodechar{��}{\ensuremath{\mathcal{U}}}
+\newunicodechar{∘}{\freeserif{\circ}}
+\newunicodechar{ω}{\ensuremath{\mathcal{U}}}
+\newunicodechar{ρ}{\ensuremath{\mathcal{R}}}
+\newunicodechar{π}{\ensuremath{\mathcal{A}}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{↔}{\ensuremath{\leftrightarrow}}
+\newunicodechar{⟨}{\ensuremath{\langle}}
+\newunicodechar{⟩}{\ensuremath{\rangle}}
+\newunicodechar{∅}{\ensuremath{\varnothing}}
+\newunicodechar{∉}{\ensuremath{\not\in}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+
+
 
 \defaultfontfeatures{Scale = MatchLowercase}
 \setmainfont{CMU Serif}[Scale = 1.0]
@@ -48,7 +63,7 @@
 \thesistype{Masterarbeit}
 \zweitgutachter{Prof.~Dr.~rer.~nat.~Bernhard~Beckert}
 \betreuer{M.~Sc.~Sebastian~Graf}
-\coverimage{thesis/4665389330_d09f3d6b75_z.jpg}
+\coverimage{thesis/cover.png}
 \abgabedatum{{\year=2021 \month=3 \day=7 \today}}
 
 
@@ -67,16 +82,14 @@
 
 	\vfill
 
-	The algorithms presented in Lower Your Guards (LYG) analyze pattern matching expressions and detect uncovered cases and inaccessible or redundant right hand sides.
-	They already have been implemented in the Haskell compiler GHC and spotted previously unknown bugs in real world code.
-	While these algorithms have been validated empirically, their correctness has not been proven yet.
+	The algorithms presented in Lower Your Guards \cite{10.1145/3408989} analyze pattern matching expressions and detect uncovered cases and inaccessible or redundant right hand sides.
+	They already have been implemented in the Glasgow Haskell Compiler and spotted previously unknown bugs in real world code.
+	While these algorithms have been validated empirically, their correctness has not been precisely defined nor proven yet.
 
-	This thesis presents formal proofs that these algorithms are indeed correct.
+	This thesis establishes a precise notion of correctness and
+	presents formal proofs that these algorithms are indeed correct.
+	These proofs are formalized in Lean 3.
 	\vfill
-
-	\todo{
-		Das Titelbild austauschen!
-	}
 
 \end{abstract}
 
@@ -90,7 +103,7 @@
 \input{thesis/chapters/5-conclusion.tex}
 
 \bibliographystyle{ieeetr}
-\bibliography{bib}
+\bibliography{thesis/bib}
 
 \begin{otherlanguage}{ngerman}
 	\chapter*{Erklärung}
@@ -111,7 +124,7 @@
 \chapter*{Danke}
 \pagestyle{empty}
 
-Ich danke meinen Eltern, meinem Hund und sonst niemandem.
+Ich danke meinen Betreuern Sebastian Graf und Sebastian Ullrich, die mich in jeglicher Hinsicht unterstützt haben.
 
 \pagestyle{fancy}
 

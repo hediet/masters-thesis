@@ -1,15 +1,224 @@
-\chapter{Formalized Proof}\label{sec:proof}
+\chapter{Formalized Proofs}\label{sec:proof}
 
-\section{Overview}
+This chapter gives an overview of the formal proofs of the correctness statements from the previous chapter.
+The full Lean proofs can be found on GitHub \cite{leanProof}.
 
-\section{Definitions}
 
-\section{R is not monotonous}
+To reduce the complexity of the definitions from chapter \ref{sec:formalization}, we came up with several internal definitions.
+They include accumulator-free alternatives $\mathtt{U}$ and $\mathtt{A}$ for the functions $\mathcal{U}$ and $\mathcal{A}$.
 
-\section{R is not monotonous}
+%However, these alternatives might compute syntactically different refinement types that are only semantically equivalent to the source definition.
+%Since $\mathtt{can\_prove\_empty}$ might yield different results for refinement types that describe the same set of values, care needs to be taken.
 
-\section{Definition of is\_reduntant\_set}
+Correctness of $\mathtt{U}$ can be shown directly and this result can be transferred easily to $\mathcal{U}$ too, as $\mathcal{U}$'s correctness only depends on the semantic of the computed refinement type (see chapter \ref{sec:formalizationSemanticU}).
+It is much more difficult to show correctness of $\red$/$\mathcal{A}$ though, so we will discuss this in more detail.
 
-\section{Main Proof}
+In chapter \ref{sec:proofRedRemovable}, we show that redundant RHSs can be removed without changing semantics.
+Then, in chapter \ref{sec:proofAcc}, we show that if a guard tree evaluates to a RHS, this RHS must be marked as accessible. Together, these properties form the correctness statement as presented in chapter \ref{sec:formalizationSemanticRA}.
 
-\section{Alternative Proof Ideas}
+\section{Simplification $A$ of $\mathcal{A}$}\label{chap:A_A}
+
+It is difficult to reason about $\mathcal{A}\_acc$ and thus $\mathcal{A}$,
+as we are only interested in certain well behaving accumulator values (in particular homomorphisms) and not arbitrary functions.
+Let us have another look at the definition of $\mathcal{A}$:
+
+\begin{minted}{Lean}
+def π_acc : (Φ → Φ) → Gdt → Ant Φ
+| acc (Gdt.rhs rhs) := Ant.rhs (acc Φ.true) rhs
+| acc (Gdt.branch tr1 tr2) := Ant.branch
+        (π_acc acc tr1)
+        (π_acc ((ω_acc acc tr1).and ∘ acc) tr2)
+| acc (Gdt.grd (Grd.bang var) tr) := Ant.diverge
+        (acc (Φ.var_is_bottom var)) 
+        (π_acc (acc ∘ ((Φ.var_is_not_bottom var).and)) tr)
+| acc (Gdt.grd (Grd.tgrd grd) tr) :=
+    (π_acc (acc ∘ (Φ.tgrd_in grd)) tr)
+
+def π : Gdt → Ant Φ := π_acc id
+\end{minted}
+
+Since $\mathcal{A}$ is central to many propositions, we define a much simpler function $A$ that does not need an accumulator:
+
+\begin{minted}{Lean}
+def A : Gdt → Ant Φ
+| (Gdt.rhs rhs) := Ant.rhs Φ.true rhs
+| (Gdt.branch tr1 tr2) := Ant.branch (A tr1) $ (A tr2).map ((U tr1).and)
+| (Gdt.grd (Grd.bang var) tr) := Ant.diverge (Φ.var_is_bottom var)
+                    $ (A tr).map ((Φ.var_is_not_bottom var).and)
+| (Gdt.grd (Grd.tgrd grd) tr) := (A tr).map (Φ.tgrd_in grd)
+\end{minted}
+
+However, $\mathcal{A}(\mathrm{gdt})$ is not syntactically equal to $A(\mathrm{gdt})$ for every $\mathrm{gdt}$, as the following counter-example demonstrates:
+
+\begin{minted}{Lean}
+def my_gdt := Gdt.grd (Grd.tgrd (default TGrd))
+    (
+                (Gdt.rhs (default Rhs))
+        .branch (Gdt.rhs (default Rhs))
+    )
+
+theorem A_neq_π: (A my_gdt ≠ π my_gdt) :=
+by simp [A, π, π_acc, my_gdt, Ant.map]
+\end{minted}
+
+Instead, we define a semantic on $\mathtt{Ant}\;\Phi$ and show that $A$ and $\mathcal{A}$ have the same semantic:
+\begin{minted}{Lean}
+def Ant.eval_rhss (ant: Ant Φ) (env: Env): Ant bool :=
+    ant.map (λ ty, ty.eval env)
+    
+theorem A_sem_eq_π (gdt: Gdt):
+    (A gdt).eval_rhss = (π gdt).eval_rhss
+\end{minted}
+
+When only relying on semantic equivalence, care has to be taken when getting insights on $\mathcal{A}$ by studying $A$,
+as $\mathtt{can\_prove\_empty}$ does not have to be \textit{well defined}
+on refinement types modulo semantic equivalence. If two refinement types are semantically equal,
+$\mathtt{can\_prove\_empty}$ could be $\mathrm{true}$ for the former, but $\mathrm{false}$ for the latter type.
+A function $\mathtt{can\_prove\_empty}$ that is correct and has this well defined property is uncomputable if it returns $\mathtt{true}$ for the refinement type $\false$ - it would need to return $\mathtt{true}$ for all refinement types that are empty!
+Thus, $\mathtt{can\_prove\_empty}$ must operate on the refinements of $\mathcal{A}$.
+
+\section{Redundant RHSs Can Be Removed Without Changing Semantics}\label{sec:proofRedRemovable}
+
+Given a guard tree $gdt$ with disjoint RHSs
+and an annotated guard tree $Agdt$ that semantically equals $\mathtt{A}\;\mathtt{gdt}$,
+all redundant leaves reported by $\mathcal{R}$ (on $Agdt$, using a correct function $\mathtt{can\_prove\_empty}$) can be removed from $gdt$ without changing its semantic.
+We will later instantiate $\mathtt{Agdt}$ with $\mathcal{A}\;\mathtt{gdt}$.
+The indirection introduced by $\mathtt{Agdt}$ allows to use the simpler definition of $A$ while $\mathtt{can\_prove\_empty}$ still computes emptiness for refinement types in $\mathtt{Agdt}$ (see chapter \ref{chap:A_A} for why this is important).
+This internal statement forms the second part of the correctness property defined in chapter \ref{sec:formalizationSemanticRA} and is formalized as follows:
+
+\begin{minted}{Lean}
+theorem R_red_removable
+    (can_prove_empty: CorrectCanProveEmpty)
+    { gdt: Gdt } (gdt_disjoint: gdt.disjoint_rhss)
+    { Agdt: Ant Φ }
+    (ant_def: Agdt.mark_inactive_rhss = (A gdt).mark_inactive_rhss):
+        Gdt.eval_option (gdt.remove_rhss (
+            (R $ Agdt.map can_prove_empty.val).red.to_finset
+        ))
+        = gdt.eval
+\end{minted}
+
+The general idea is to focus on a particular but arbitrary environment $\mathrm{env}$:
+Reasoning about which RHSs can be removed while preserving semantics is much simpler when only considering a single environment.
+
+In fact, we can just evaluate the given guard tree on $\mathrm{env}$ and safely remove all RHSs except the one the evaluation ended with.
+We call RHSs that play no role in the evaluation on $\mathrm{env}$ \textit{inactive}, the resulting RHS is called \textit{active}.
+If the evaluation diverged however, the diverging bang guard must not be removed; thus, all RHSs behind the diverging bang operator except one can be removed. In this case, the bang guard is \textit{active} and all RHSs are inactive. Clearly, at most one node (RHS or bang guard) is active.
+
+The function $\mathtt{Gdt.mark\_inactive}$ directly computes a boolean annotated tree
+that marks inactive nodes for a given guard tree and environment.
+The definition of $\mathtt{Gdt.mark\_inactive}$ is very similar to the definition of the denotational semantic of guard trees - this helps proofs that bring these concepts together.
+This function equals the negation of the semantic of trees annotated with refinement types!
+
+It remains to relate the set of RHSs $r := \mathcal{R}(\mathcal{A}(\mathrm{gdt})).\mathrm{red}$
+to the RHSs that can be removed when focusing on a particular environment.
+
+Figure \ref{fig:proofOverview} sketches the proof idea.
+Thin arrows mark the data flow, fat arrows the flow of reasoning.
+
+\begin{figure}[htbp]
+    \caption{Proof Overview: Redundant RHSs can be removed without changing semantics.}
+    \label{fig:proofOverview}
+	\centering
+	\fontsize{8}{10}\selectfont
+    \centerline{
+        \includesvg[width = 490pt]{proof-overview}
+	}
+\end{figure}
+
+\subsubsection{Step 1: Defining $\mathrm{gdt}$ and $\mathcal{A}(\mathrm{gdt})$}
+
+We start with a guard tree $\mathrm{gdt}$ and its annotated tree $\mathcal{A}(\mathrm{gdt})$.
+
+As a detail in the formal proof, we actually use $\mathtt{Agdt}$ instead of $\mathcal{A}(\mathrm{gdt})$, but since $\mathrm{ant_2} := \mathcal{A}(\mathrm{gdt}).\mathrm{map}(\neg \circ \Phi.\mathrm{eval}_{\mathrm{env}})$
+only depends on the semantic of $\mathcal{A}(\mathrm{gdt})$ and $\mathrm{Agdt}$ has the same semantic, this does not change the proof idea.
+
+% ($\mathrm{ant}_3$ in the figure)
+
+\subsubsection{Step 2: Decomposing $\mathcal{R}$ into $R$ and $\mathrm{Ant.map}(\mathrm{can\_prove\_empty})$, Defining $\mathrm{ant}_1$}
+
+To better understand $\mathcal{R}$, we decompose $\mathcal{R}$, which takes an $\mathrm{Ant}\;\Phi$ and needs a function $\mathtt{can\_prove\_empty}$,
+into a function $R$ that takes an $\mathrm{Ant}\;\mathrm{bool}$
+and a function $f :=  \mathrm{map}(\mathrm{can\_prove\_empty})$ that computes an
+$\mathrm{Ant}\;\mathrm{bool}$ from an $\mathrm{Ant}\;\Phi$ so that $\mathcal{R} = R \circ f$.
+
+In figure \ref{fig:proofOverview}, $\mathrm{ant}_1 := f(\mathrm{gdt})$ represents the object that $R$ works on.
+Clearly, $\mathcal{R}(\mathcal{A}(\mathrm{gdt}))\mathrm{.red} = R(\mathrm{ant_1})\mathrm{.red}$.
+In the example, only the refinement type associated with leaf 1 is recognized as empty. It is also marked as redundant by $\mathcal{R}$/$R$.
+
+\subsubsection{Step 3: Defining $\mathrm{ant}_3$ and $\mathrm{ant}_2$}
+
+$\mathrm{ant}_3$ in figure \ref{fig:proofOverview} is a boolean annotated tree whose nodes indicate inactivity under $\mathrm{env}$ (true if they are inactive, otherwise false).
+It is much easier to reason about the effect of removing selected RHSs from this tree due to the closely related definitions of $\mathtt{Gdt.mark\_inactive}$ and $\mathtt{Gdt.eval}$, especially if the selection of RHSs is done by only looking at $\mathrm{ant}_3$.
+
+Is easy to relate $\mathrm{ant_1}$ with $\mathrm{ant_3}$ if we define $\mathrm{ant_2} := \mathcal{A}(\mathrm{gdt}).\mathrm{map}(\neg \circ \Phi.\mathrm{eval}_{\mathrm{env}})$ as the negation of the evaluation of each refinement type under $\mathrm{env}$.
+
+\subsubsection{Step 4: Relating $\mathrm{ant}_1$, $\mathrm{ant}_2$ and $\mathrm{ant}_3$}
+
+We can show that each boolean annotation in $\mathrm{ant_1}$ implies (``$\Rightarrow$'') the corresponding boolean annotation in $\mathrm{ant_2}$ pointwise (P1):
+If a refinement type is empty, it must not match any environment.
+
+We can also show $\mathrm{ant}_2 = \mathrm{ant}_3$ (P3), since a node is active under $\mathrm{env}$ if and only if the corresponding refinement type matches $\mathrm{env}$.
+
+\subsubsection{Step 5: Exploiting the Relationship}
+
+It is easy to show that any subset of RHSs $R(\mathrm{ant_3}).\mathrm{red}$ can be removed from $gdt$ without changing its semantic on $\mathrm{env}$.
+We hoped that $\mathcal{R}(\mathrm{ant_a}).\mathrm{red}$ would be a subset of $\mathcal{R}(\mathrm{ant_b}).\mathrm{red}$ if $\mathrm{ant_a} \Rightarrow \mathrm{ant_b}$ to complete the proof. However, this is not the case! See chapter \ref{chap:isRedundantSet} for a counterexample.
+
+To repair the proof idea, we defined a predicate $\mathtt{is\_redundant\_set}$ on sets of RHSs for a given boolean annotated tree.
+This predicate has the property that if $r$ is a redundant set in $\mathrm{ant_a}$ and if $\mathrm{ant_a} \Rightarrow \mathrm{ant_b}$,
+then $r$ is also a redundant set in $\mathrm{ant_b}$ (P3).
+
+We show that $R(\mathrm{ant_1}).\mathrm{red}$ is a redundant set (P2)
+and that redundant sets can be removed from guard trees without changing their semantic (P5).
+This finishes the proof!
+
+
+\subsection{$\mathtt{is\_redundant\_set}$}\label{chap:isRedundantSet}
+
+Given two boolean annotated trees $\mathrm{ant_a}$ and $\mathrm{ant_b}$ with $\mathrm{ant_a} \Rightarrow \mathrm{ant_b}$,
+we would like to transfer insights on $\mathrm{ant_a}$ to $\mathrm{ant_b}$ as stated in the previous chapter.
+
+To reason about the removal of redundant RHSs in context of a particular environment,
+we defined the predicate $\mathtt{is\_redundant\_set}$.
+
+\TODOI{do not read further. Work in progress!}
+
+This predicate has the property that if $r$ is a redundant set in $\mathrm{ant_a}$ and if $\mathrm{ant_a} \Rightarrow \mathrm{ant_b}$,
+then $r$ is also a redundant set in $\mathrm{ant_b}$ (P3).
+
+Later, it will turn out that if the boolean values of that tree indicate \textit{inactivity}, such a redundant set of RHSs can be removed from the guard tree without changing semantics (P5). A node is inactive for a given environment if evaluation does not stop on it.
+The predicate is defined as following:
+\begin{minted}{Lean}
+def Ant.critical_rhs_sets : Ant bool → finset (finset Rhs)
+| (Ant.rhs inactive n) := ∅
+| (Ant.diverge inactive tr) := tr.critical_rhs_sets ∪ if inactive
+    then ∅
+    else { tr.rhss }
+| (Ant.branch tr1 tr2) := tr1.critical_rhs_sets ∪ tr2.critical_rhs_sets
+
+def Ant.inactive_rhss : Ant bool → finset Rhs
+| (Ant.rhs inactive n) := if inactive then { n } else ∅
+| (Ant.diverge inactive tr) := tr.inactive_rhss
+| (Ant.branch tr1 tr2) := tr1.inactive_rhss ∪ tr2.inactive_rhss
+
+def Ant.is_redundant_set (a: Ant bool) (rhss: finset Rhs) :=
+    rhss ∩ a.rhss ⊆ a.inactive_rhss
+    ∧ ∀ c ∈ a.critical_rhs_sets, ∃ l ∈ c, l ∉ rhss
+\end{minted}
+
+A redundant set consists of RHSs that are annotated with $\mathtt{false}$ and avoid critical sets.
+If a diverge node is annotated with $\mathtt{true}$, all its RHSs form a critical set.
+Each critical set must have one RHS that is not contained in a given redundant set.
+This ensures that active diverge nodes do not disappear when a redundant set is removed from a guard tree.
+
+We show that all RHSs marked as redundant by $\mathcal{R}$ indeed form a redundant set (P2).
+We believe that $\mathcal{R}$ actually computes a largest redundant set given a boolean annotated tree.
+However, a largest redundant set is not unique! In fact, $R$ arbitrarily marks the first redundant RHS as inaccessible to avoid
+critical sets. It could equally do the same with the last redundant RHS.
+
+
+
+We designed redundant sets in a way that 
+
+\section{Accessible RHSs Must Be Detected as Accessible}\label{sec:proofAcc}
