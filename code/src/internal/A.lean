@@ -11,7 +11,7 @@ import .U
 variable [GuardModule]
 open GuardModule
 
-private lemma A_eq_𝒜' (gdt: Gdt) { acc: Φ → Φ } (acc_stable: stable acc) (acc_hom: hom acc):
+private lemma A_sem_eq_𝒜' (gdt: Gdt) { acc: Φ → Φ } (acc_stable: stable acc) (acc_hom: hom acc):
     ((A gdt).map acc).eval_rhss = (𝒜_acc acc gdt).eval_rhss :=
 begin
     ext env,
@@ -58,13 +58,23 @@ begin
     },
 end
 
-theorem A_eq_𝒜 (gdt: Gdt): (A gdt).eval_rhss = (𝒜 gdt).eval_rhss :=
+theorem A_sem_eq_𝒜 (gdt: Gdt): (A gdt).eval_rhss = (𝒜 gdt).eval_rhss :=
 begin
     unfold 𝒜,
-    have := A_eq_𝒜' gdt stable.id hom.id,
+    have := A_sem_eq_𝒜' gdt stable.id hom.id,
     simp [Ant.map_id] at this,
     exact this,
 end
+
+def my_gdt := Gdt.grd (Grd.tgrd (default TGrd))
+    (
+            (Gdt.rhs (default Rhs))
+        .branch
+            (Gdt.rhs (default Rhs))
+    )
+
+theorem A_neq_𝒜: (A my_gdt ≠ 𝒜 my_gdt) :=
+by simp [A, 𝒜, 𝒜_acc, my_gdt, Ant.map]
 
 @[simp]
 lemma A_rhss { gdt: Gdt }: (A gdt).rhss = gdt.rhss :=

@@ -5,6 +5,7 @@ class GuardModule :=
     -- Represents the result type of evaluating a guard tree.
     (Rhs : Type)
     [rhs_decidable: decidable_eq Rhs]
+    [rhs_inhabited: inhabited Rhs]
 
     -- Represents an environment type that is used to define a semantic for a guard tree.
     (Env : Type)
@@ -15,6 +16,7 @@ class GuardModule :=
     -- The semantic of guards is defined in a way that allows for direct reuse in
     -- so called refinement types.
     (TGrd : Type)
+    [tgrd_inhabited: inhabited TGrd]
 
     -- Describes a semantic for guards.
     -- None is returned if the guard fails. Guards can modify the environment.
@@ -23,6 +25,7 @@ class GuardModule :=
 
     -- Represents the type of variables that can be compared against bottom.
     (Var : Type)
+    [var_inhabited: inhabited Var]
 
     -- Checks whether a given var in env is bottom
     (is_bottom : Var → Env → bool)
@@ -31,6 +34,9 @@ variable [GuardModule]
 open GuardModule
 
 attribute [instance] GuardModule.rhs_decidable
+attribute [instance] GuardModule.rhs_inhabited
+attribute [instance] GuardModule.tgrd_inhabited
+attribute [instance] GuardModule.var_inhabited
 
 -- # Guard Trees
 -- ## Syntax
@@ -183,14 +189,14 @@ def CorrectCanProveEmpty := { g : Φ → bool // correct_can_prove_empty g }
 -- returns (accessible, inaccessible, redundant) rhss, given that `can_prove_empty` is correct.
 def ℛ : Ant Φ → list Rhs × list Rhs × list Rhs
 | (Ant.rhs ty n) := if can_prove_empty ty then ([], [], [n]) else ([n], [], [])
+| (Ant.branch tr1 tr2) :=
+    match (ℛ tr1, ℛ tr2) with
+    | ((k, n, m), (k', n', m')) := (k ++ k', n ++ n', m ++ m')
+    end
 | (Ant.diverge ty tr) := 
     match ℛ tr, can_prove_empty ty with
     | ([], [], m :: ms), ff := ([], [m], ms)
     | r, _ := r
-    end
-| (Ant.branch tr1 tr2) :=
-    match (ℛ tr1, ℛ tr2) with
-    | ((k, n, m), (k', n', m')) := (k ++ k', n ++ n', m ++ m')
     end
 
 def 𝒰𝒜_acc : (Φ → Φ) → Gdt → Φ × Ant Φ

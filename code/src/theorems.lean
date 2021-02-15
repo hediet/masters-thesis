@@ -45,7 +45,7 @@ begin
     set p := R (Ant.map can_prove_empty.val (𝒜 gdt)) with p_def,
     cases c,
 
-    have Agdt_def := eq.symm (Ant.mark_inactive_rhss_eq_of_eval_rhss_eq (A_eq_𝒜 gdt)),
+    have Agdt_def := eq.symm (Ant.mark_inactive_rhss_eq_of_eval_rhss_eq (A_sem_eq_𝒜 gdt)),
     
     split, {
         assume env rhs h,

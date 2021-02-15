@@ -85,7 +85,7 @@ def Ant.map_option { α β: Type } : (α → β) → option (Ant α) → option 
 | f none := none
 -- TODO: fmap?
 
-def Ant.eval_rhss (ant: Ant Φ) (env: Env) := ant.map (λ ty, ty.eval env)
+def Ant.eval_rhss (ant: Ant Φ) (env: Env): Ant bool := ant.map (λ ty, ty.eval env)
 
 def Ant.mark_inactive_rhss (ant: Ant Φ) (env: Env) := ant.map (λ ty, !(ty.eval env))
 
