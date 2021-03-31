@@ -34,6 +34,7 @@
 \newfontfamily{\freeserif}{DejaVu Sans}
 \newunicodechar{∈}{\freeserif{\smallin}}
 \newunicodechar{∧}{\freeserif{\land}}
+\newunicodechar{∨}{\freeserif{\lor}}
 \newunicodechar{∪}{\freeserif{\cup}}
 \newunicodechar{∘}{\freeserif{\circ}}
 \newunicodechar{ω}{\ensuremath{\mathcal{U}}}
@@ -49,7 +50,8 @@
 \newunicodechar{⊆}{\ensuremath{\subseteq}}
 \newunicodechar{∃}{\ensuremath{\exists}}
 \newunicodechar{≠}{\ensuremath{\neq}}
-
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
+\newunicodechar{Γ}{\ensuremath{\Rightarrow}}
 
 
 \defaultfontfeatures{Scale = MatchLowercase}
@@ -77,15 +79,25 @@
 	\begin{center}\Huge\textbf{\textsf{Zusammenfassung}}
 	\end{center}
 	\vfill
-
-	\todo{Deutsche Übersetzung einfügen}
+    Die in Lower Your Guards vorgestellten Algorithmen analysieren Pattern Matching Definitionen
+	und erkennen nicht abgedeckte Fälle, aber auch unzugängliche und redundante rechte Seiten.
+	
+	Ihre Implementierung in GHC entdeckte erfolgreich bisher unbekannte Fehler in Haskell Quellcode.
+    Während die empirische Validierung über einen große Menge von Haskell-Code die Behauptung der Korrektheit untermauert,
+    fehlt den Autoren eine präzise Formalisierung sowie ein Beweis für diese Behauptung.
+	
+	Diese Arbeit etabliert einen präzisen Begriff von Korrektheit und
+	präsentiert formale Beweise, dass diese Algorithmen tatsächlich korrekt sind.
+	Diese Beweise sind in Lean 3 formalisiert.
 
 	\vfill
 
-	The algorithms presented in Lower Your Guards \cite{10.1145/3408989} analyze pattern matching expressions and detect uncovered cases and inaccessible or redundant right hand sides.
-	They already have been implemented in the Glasgow Haskell Compiler and spotted previously unknown bugs in real world code.
-	While these algorithms have been validated empirically, their correctness has not been precisely defined nor proven yet.
-
+	The algorithms presented in Lower Your Guards analyze pattern matching definitions
+	and detect uncovered cases, but also inaccessible and redundant right hand sides.
+	
+	Their implementation in the GHC spotted previously unknown bugs in real world code.
+    While empirical validation over a large corpus of Haskell code corroborates the claim of correctness, the authors lack a precise formalization as well as a proof of that claim.
+	
 	This thesis establishes a precise notion of correctness and
 	presents formal proofs that these algorithms are indeed correct.
 	These proofs are formalized in Lean 3.
@@ -110,7 +122,7 @@
 	\pagestyle{empty}
 
 	\vspace{20mm}
-	Hiermit erkläre ich, \theauthor, dass ich die vorliegende Bachelorarbeit selbst\-ständig
+	Hiermit erkläre ich, \theauthor, dass ich die vorliegende Masterarbeit selbst\-ständig
 	verfasst habe und keine anderen als die angegebenen Quellen und Hilfsmittel
 	benutzt habe, die wörtlich oder inhaltlich übernommenen Stellen als solche kenntlich gemacht und
 	die Satzung des KIT zur Sicherung guter wissenschaftlicher Praxis beachtet habe.
@@ -125,6 +137,7 @@
 \pagestyle{empty}
 
 Ich danke meinen Betreuern Sebastian Graf und Sebastian Ullrich, die mich in jeglicher Hinsicht unterstützt haben.
+Außerdem will ich mich bei der Lean Community bedanken, die mir bei Fragen zu Lean viel geholfen hat.
 
 \pagestyle{fancy}
 

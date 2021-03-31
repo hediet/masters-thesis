@@ -1,12 +1,10 @@
-\chapter{Formalization}\label{sec:formalization}
+\chapter{Formal Definitions}\label{sec:formalization}
 
 Before any property of LYG can be proven or even stated in Lean, all relevant definitions must be formalized.
 Since nothing can be left vague in Lean, a lof of decisions had to be made to back up LYG by a fully defined model. 
 This chapter discusses these decisions.
 
-\section{Definitions}
-
-\subsection{Abstracting LYG: The Guard Module}
+\section{Abstracting LYG: The Guard Module}
 LYG does not specify an exact guard or expression syntax.
 Instead, the notation ``$...$'' is often used to indicate a sensible continuation to make guards powerful enough to model all Haskell constructs.
 This is rather problematic for a precise formalization and presented the first big challenge of this thesis.
@@ -34,9 +32,9 @@ def Result.bind { α β: Type } (f: α → Result β): Result α → Result β
 | Result.no_match := Result.no_match
 \end{minted}
 
-\subsubsection{Denotational Semantic for Guards}
+\subsubsection{Denotational Semantics for Guards}
 
-For some abstract environment type $\mathtt{Env}$, we would like to have a denotational semantic $\mathtt{Grd.eval}$ for guards $\mathtt{Grd}$:
+For some abstract environment type $\mathtt{Env}$, we would like to have a denotational semantics $\mathtt{Grd.eval}$ for guards $\mathtt{Grd}$:
 \begin{minted}{Lean}
 Grd.eval : Grd → Env → Result Env
 \end{minted}
@@ -44,21 +42,21 @@ Grd.eval : Grd → Env → Result Env
 Abstracting $\mathtt{Grd.eval}$ would unify all guard constructs available in Haskell and those used by LYG.
 However, LYG needs to recognize all guards that can lead to a diverged evaluation:
 Removing all RHSs behind such a guard would inevitably remove the guard itself.
-As this might change the semantic of the guard tree, LYG cannot mark all such RHSs as redundant unless there is a proof that the guard will never diverge.
+As this might change the semantics of the guard tree, LYG cannot mark all such RHSs as redundant unless there is a proof that the guard will never diverge.
 As a consequence, $\mathtt{Grd.eval}$ cannot be abstracted away.
 
-Instead, we explicitly distinguished between non-diverging (\textit{total}) $\mathtt{tgrd}$s and non-no-matching $\mathtt{bang}$ guards:
+Instead, we explicitly distinguish between non-diverging (\textit{total}) $\mathtt{tgrd}$s and possibly diverging $\mathtt{bang}$ guards:
 \begin{minted}{Lean}
 inductive Grd
 | tgrd (tgrd: TGrd)
 | bang (var: Var)
 \end{minted}
 
-While $\mathtt{TGrd}$s classically represent guards and $\mathtt{Grd}$s represent guards with side effects in this context,
+While $\mathtt{TGrd}$s classically represent guards and $\mathtt{Grd}$s represent guards with side effects (introduced by $\mathtt{bang}$ guards) in this context,
 we decided to follow the naming conventions of LYG and chose the name $\mathtt{TGrd}$ for side-effect free (non-diverging) guards
 rather than renaming $\mathtt{Grd}$.
 
-In order to define a denotational semantic on $\mathtt{Grd}$, we postulated the functions $\mathtt{tgrd\_eval}: \mathtt{TGrd} \to \mathtt{Env} \to \mathtt{option}\;\mathtt{Env}$ and $\mathtt{is\_bottom}: \mathtt{Var} \to \mathtt{Env} \to \mathtt{bool}$ as well as a type $\mathtt{Var}$ that represents variables. While $\mathtt{tgrd}$s can change the environment,
+In order to define a denotational semantics on $\mathtt{Grd}$, we postulated the functions $\mathtt{tgrd\_eval}: \mathtt{TGrd} \to \mathtt{Env} \to \mathtt{option}\;\mathtt{Env}$ and $\mathtt{is\_bottom}: \mathtt{Var} \to \mathtt{Env} \to \mathtt{bool}$ as well as a type $\mathtt{Var}$ that represents variables. While $\mathtt{tgrd}$s can change the environment,
 $\mathtt{bang}$ guards cannot:
 
 \begin{minted}{Lean}
@@ -75,7 +73,7 @@ def Grd.eval : Grd → Env → Result Env
 \end{minted}
 
 Alternatively,
-we can set $\mathtt{Var} := \mathtt{Env} → \mathtt{bool}$ and $\mathtt{TGrd} := \mathtt{Env} → \mathtt{bool}$ and replace $\mathtt{is\_bottom}$ and $\mathtt{tgrd\_eval}$ with $\mathtt{id}$,
+we could have set $\mathtt{Var} := \mathtt{Env} → \mathtt{bool}$ and $\mathtt{TGrd} := \mathtt{Env} → \mathtt{option}\;\mathtt{Env}$ and replace $\mathtt{is\_bottom}$ and $\mathtt{tgrd\_eval}$ with $\mathtt{id}$,
 yielding the following definition:
 \begin{minted}{Lean}
 inductive Grd'
@@ -101,13 +99,10 @@ We defined and opened a type class \textit{GuardModule} that describes the prese
 class GuardModule :=
     (Rhs : Type)
     [rhs_decidable: decidable_eq Rhs]
-    [rhs_inhabited: inhabited Rhs]
     (Env : Type)
     (TGrd : Type)
-    [tgrd_inhabited: inhabited TGrd]
     (tgrd_eval : TGrd → Env → option Env)
     (Var : Type)
-    [var_inhabited: inhabited Var]
     (is_bottom : Var → Env → bool)
 
 variable [GuardModule]
@@ -120,7 +115,7 @@ We also require most types to be inhabited so that we can construct module-indep
 
 All following definitions and theorems implicitly make use of this abstraction.
 
-\subsection{Guard Trees}\label{chap:formalGuardTrees}
+\section{Guard Trees}\label{chap:formalGuardTrees}
 
 \subsubsection{Syntax of Guard Trees}
 
@@ -133,9 +128,9 @@ inductive Gdt
 | grd (grd: Grd) (tr: Gdt)
 \end{minted}
 
-\subsubsection{Semantic of Guard Trees}
+\subsubsection{Semantics of Guard Trees}
 
-$\mathtt{Gdt.eval}$ defines a denotational semantic on guard trees, using the semantic of guards.
+$\mathtt{Gdt.eval}$ defines a denotational semantics on guard trees, using the semantics of guards.
 It returns the first RHS that matches a given environment. If a guard diverges, the entire evaluation diverges. Otherwise, if no RHSs matches, \textit{no-match} is returned.
 
 \begin{minted}{Lean}
@@ -197,7 +192,7 @@ def Gdt.remove_rhss : finset Rhs → Gdt → option Gdt
 | rhss (Gdt.grd grd tr) := Gdt.grd_option grd (tr.remove_rhss rhss)
 \end{minted}
 
-Finally, to deal with the semantic of empty guard trees,
+Finally, to deal with the semantics of empty guard trees,
 $\mathtt{Gdt.eval\_option}$ lifts $\mathtt{Gdt.eval}$ to $\mathtt{option\;Gdt}$:
 
 \begin{minted}{Lean}
@@ -206,11 +201,11 @@ def Gdt.eval_option : option Gdt → Env → Result
 | none env := Result.no_match
 \end{minted}
 
-\subsection{Refinement Types}
+\section{Refinement Types}
 \label{sec:formalizationRefinementTypes}
 
 Refinement types presented another challenge.
-Defining refinement types through a proper type system would have required to model some Haskell types.
+Defining refinement types through a proper type system would have required to model Haskell types.
 Instead, we tried to rely on the same abstractions used to define guard trees in hope that guard trees and refinement types can be related.
 
 In this formalization, a refinement type $\Phi$ denotes a predicate on environments:
@@ -222,14 +217,13 @@ def Φ.eval: Φ → Env → bool
 With a proper $\mathtt{GuardModule}$ instantiation, the environment can be used to not only carry runtime values, but also their type!
 A (well) typed environment can assist in proving a refinement type to be empty.
 
-
-\subsubsection{Variable Binding Rules}
+\subsubsection{Variable Scoping Rules / Incorrectness of $\mathcal{U}$}
 \label{sec:formalizationVariableBindingRules}
 
 Another problem that had to be solved was the formalization of the unconventional binding mechanism of refinement types through conjunctions, as described in chapter \ref{chap:bckgrndRefinementTypesBinding}.
 In particular, this causes $\mathcal{U}$ to be not correct (for some intuitive notion of correctness)
-with regards to the guard tree semantic we defined in chapter \ref{chap:formalGuardTrees}.
-While the following guard tree $gdt$ does not match for any environment, its uncovered refinement type $\Theta$ computed by $\mathcal{U}$ is empty (the empty vector does not match)!
+with regards to the guard tree semantics we defined in chapter \ref{chap:formalGuardTrees}.
+While the following guard tree $gdt$ does not match for $x = \mathtt{False}$, its uncovered refinement type $\Theta$ computed by $\mathcal{U}$ is empty due to the constraints $x \ntermeq \Conid{False}$ and $x \ntermeq \Conid{True}$ that refer to the same variable and thus represent a contradiction!
 
 \[
     \mathit{gdt} :=
@@ -237,39 +231,68 @@ While the following guard tree $gdt$ does not match for any environment, its unc
     \begin{forest}
     	grdtree
     	[
-    	[
-    		{$\grdlet{x}{\mathtt{False}}$}
     		[{$\grdlet{x}{\mathtt{True}},\, \grdcon{\mathtt{False}}{x}$} [1]]
-    		[{$\grdcon{\mathtt{False}}{x}$} [2]]
-    	]
+    		[{$\grdcon{\mathtt{True}}{x}$} [2]]
     	]
     \end{forest}
     }}
 \]
 \begin{align*}
-    \Theta := \mathcal{U}(\true, \mathit{gdt}) =& \reft{}{
-        (((\grdlet{x}{\Conid{False}} \andtheta \grdlet{x}{\Conid{True}}) \andtheta
-        x \ntermeq \Conid{False}) \andtheta x \ntermeq \Conid{False}
+    \Theta := \mathcal{U}(\true, \mathit{gdt}) =& \reft{ x{:}\ensuremath{\Conid{Bool}} }{
+        ((\grdlet{x}{\Conid{True}} \andtheta
+        x \ntermeq \Conid{False}) \andtheta x \ntermeq \Conid{True}
     } \\
-    =& \reft{}{
-        \grdlet{x}{\Conid{False}} \land (\grdlet{x}{\Conid{True}} \land
-        (x \ntermeq \Conid{False} \land x \ntermeq \Conid{False}))
+    =& \reft{ x{:}\ensuremath{\Conid{Bool}} }{
+        \grdlet{x}{\Conid{True}} \land
+        (x \ntermeq \Conid{False} \land x \ntermeq \Conid{True})
     }
 \end{align*}
 
-Shadowing is unproblematic for the semantic of guard trees though: If the first guard tree of a branch fails to match, its environment just before the failing guard is discarded and with it possible shadowing bindings.
-The second branch is always evaluated with the same environment that the first guard tree has been evaluated with.
+In the example, the let binding brings a variable $x$ into scope that shadows an outer variable.
+Due to the definition of $\mathcal{U}$ and the scoping rules of refinement types,
+this shadowing binding of $x$ overrides the outer variable $x$ in contexts where it is incorrect to do so.
 
-This imbalance between refinement types and the semantic of guard trees could be fixed by either adjusting the semantics of guard trees or by
-introducing a guard operator for refinement types with a restricted binding scope.
-However, if the semantic of guard trees would not undo the effect of no-matching branches to the environment,
-an inner let binding would prevent an inaccessible right hand side from being redundant. Even though it never matches, the let binding would always have an effect
-on the final environment and removing it would be observable!
+In particular, the term $\unc(\unc(\Theta, t_1), t_2)$ in the branch case of $\mathcal{U}$ is problematic:
+All bindings introduced in $\Theta$ should still be exposed by $\unc(\Theta, t_1)$ so that variables in $t_2$ are resolved correctly.
+However, variable definitions introduced in $t_1$ must not be visible to $t_2$ and thus must not be exposed by $\unc(\Theta, t_1)$!
+This is clearly violated by the term $\unc(\Theta \andtheta (\ctlet{x}{e}), t)$ that defines the let-case in $\mathcal{U}$ - it exposes both all bindings from $\Theta$ and the new binding $\ctlet{x}{e}$.
+
+Shadowing is unproblematic for the presented semantics of guard trees though: If the first guard tree of a branch fails to match, its environment just before the failing guard is discarded and with it possible shadowing bindings.
+The second branch is always evaluated with the same environment that the first guard tree has been evaluated with.
+This is consistent with Haskells semantics of pattern match expressions.
+
+There are several ways of how this problem can be addressed.
+\begin{itemize}
+    \item Replace the term $\unc(\unc(\Theta, t_1), t_2)$ in the definition of $\mathcal{U}$ with $\unc((\unc(\Theta, t_1) \cup \false) \andtheta \Theta, t_2)$.
+    
+        ``$\andtheta$'' stops at ``$\cup$'', so the $\cup$-operator acts as scope boundary.
+        To bring the variables defined by $\Theta$ into scope again, $\Theta$ is joined a second time, potentially causing a refinement type of exponential size.
+        While we believe that $\mathcal{U}$ is correct with this updated definition,
+        we decided against this solution as the construction to limit the scope feels like a band aid and is unnecessarily complex.
+    
+    \item Adjust the semantics of guard trees so that variables defined in a branch override shadowed variables in all later branches.
+    
+        We prove correctness of $\mathcal{U}$ as stated in LYG with this updated semantics of guard trees.
+        However, this semantics is not only very unconventional, but also dramatically increases the complexity
+        when reasoning about the effect of removing an inaccessible RHS.
+        
+        Since variable bindings introduced by guards that guard only inaccessible RHSs stay visible
+        until the evaluation ends (and are not only relevant for the inaccessible RHSs),
+        removing such guards almost always causes a different final environment.
+        In this sense, almost no inaccessible RHSs are redundant - which is not the intention of the analysis and clearly not the case for the GHC implementation of LYG. To make the analysis more meaningful, we could require each variable name to be unique.
+        With this assumption, such environment modification should have no impact on the evaluation result.
+        Due to the high complexity of this approach, we decided against it too.
+    
+    \item Limit the scope of variables in refinement types.
+    
+        A data constructor $\mathtt{Φ.tgrd\_in}:
+        \mathtt{TGrd} \to Φ \to Φ$ is introduced that limits the scope of the guard to the nested refinement type and any scoping behavior of the $\land$-operator is removed.
+        This simplifies the scoping mechanism, but requires to adapt $\mathcal{U}$, as done in chapter \ref{sec:formalizationUncoveredAnalysis}.
+        We chose this approach due to its clear modeling, in hope to reduce the complexity of the formal proofs.
+        
+\end{itemize}
 
 This problem does not arise in the GHC implementation of LYG as it uses a different encoding for refinement types.
-
-We introduced a data constructor $\mathtt{Φ.tgrd\_in}: \mathtt{TGrd} \to Φ \to Φ$ that limits the scope of the guard to the nested refinement type and removed any scoping behaviour of the $\land$-operator.
-This simplifies the scoping mechanism and allows to fix the problem of shadowing bindings in $\mathcal{U}$.
 
 \subsubsection{Syntax of Refinement Types}
 
@@ -291,9 +314,9 @@ Since the negation of a guard cannot bind variables,
 it does not need to have a nested refinement type that would see bound variables.
 The same applies to $\mathtt{var\_is\_bottom}$ and its negation.
 
-\subsubsection{Semantic of Refinement Types}
+\subsubsection{Semantics of Refinement Types}
 
-The semantic of refinement types is easily defined and implicitly uses the guard module:
+The semantics of refinement types is easily defined and implicitly uses the guard module:
 
 \begin{minted}{Lean}
 def Φ.eval: Φ → Env → bool
@@ -345,7 +368,7 @@ def CorrectCanProveEmpty := {
 }
 \end{minted}
 
-\subsection{$\mathcal{U}$ncovered Analysis}
+\section{Uncovered Analysis}
 \label{sec:formalizationUncoveredAnalysis}
 
 As discussed in chapter \ref{sec:formalizationRefinementTypes}, LYG's definition of
@@ -366,7 +389,8 @@ Equipped with the data constructor $\mathtt{Φ.tgrd\_in}$ we can fix the shadowi
 Instead of using $\Phi$ as accumulator type, our formalization uses the type $\Phi \to \Phi$:
 The new accumulator explicitly applies a context to a refinement type.
 This happens implicitly in LYG's definition through the use of $\Theta \andtheta \cdot$.
-Note that all occuring accumulator functions are homomorphic under the semantic of refinement types.
+
+Note that all occuring accumulator functions are homomorphic under the semantics of refinement types, i.e. $\mathtt{Gdt.eval}\;(f\;(a.\mathit{and}\;b)) = \mathtt{Gdt.eval}\;((f\;a).\mathit{and}\;(f\;b))$.
 We carefully make use of this to get formalized definitions of $\mathcal{U}$ and $\mathcal{A}$ that can be interleaved, as done in LYG.
 
 \begin{minted}{Lean}
@@ -382,7 +406,7 @@ def ω_acc : (Φ → Φ) → Gdt → Φ
 def ω : Gdt → Φ := ω_acc id
 \end{minted}
 
-\subsection{$\mathcal{R}$edundant / Inaccessible Analysis}
+\section{Redundant / Inaccessible Analysis}
 
 \subsubsection{Formalization of Annotated Trees}
 
@@ -484,7 +508,7 @@ def ρ : Ant Φ → list Rhs × list Rhs × list Rhs
     end
 \end{minted}
 
-\subsection{Interleaving $\mathcal{U}$ and $\mathcal{A}$}
+\section{Interleaving $\mathcal{U}$ and $\mathcal{A}$}
 \label{sec:formalizationInterleaving}
 
 Since $\mathcal{A}\mathtt{\_acc}$ and $\mathcal{U}\mathtt{\_acc}$ have
@@ -517,35 +541,47 @@ by induction gdt generalizing acc;
 \end{minted}
 
 
-\section{Correctness Statements}
+\chapter{Correctness Statements}
 \label{sec:formalizationCorrectnessStmts}
 
 As we have all the required definitions at this point, we can state and formalize what we expect of the presented pattern match analyses to be considered correct.
 We provide proofs for all correctness propositions on GitHub \cite{leanProof}. Chapter \ref{sec:proof} will discuss parts of these proofs in more detail.
 
-\subsection{Correctness of the $\mathcal{U}$ncovered Analysis}
+\section{Correctness of the Uncovered Analysis}
 \label{sec:formalizationSemanticU}
 
 $\unc$ should compute a refinement type that denotes exactly all values that are not covered by a given guard tree.
 This does not include values under which the execution diverges!
+
+The following theorem states correctness of $\mathcal{U}$ in Lean:
 
 \begin{minted}{Lean}
 theorem ω_semantic: ∀ gdt: Gdt, ∀ env: Env,
         (ω gdt).eval env ↔ (gdt.eval env = Result.no_match)
 \end{minted}
 
-As an obvious consequence, a guard tree always matches (or diverges) if and only if this refinement type is empty. If a correct function $\mathcal{G}$ or $\mathtt{can\_prove\_empty}$ proves emptiness of such a computed refinement type, there clearly are no uncovered cases. Otherwise, a warning of potential uncovered cases should be issued! Hence, this theorem implies correctness of the uncovered analysis:
+As an obvious consequence, a guard tree always matches (or diverges) if and only if the refinement type computed by $\mathcal{U}$ is empty.
+If a correct function $\mathcal{G}$ or $\mathtt{can\_prove\_empty}$ proves emptiness of such a computed refinement type, there are no uncovered cases by this theorem. Otherwise, a warning of potential uncovered cases should be issued!
+
+Hence, this theorem implies correctness of the uncovered analysis:
 The uncovered analysis should rather report a false positive than not detect an uncovered case.
 
 Note that this theorem carries over to all semantically equivalent definitions of $\mathcal{U}$.
 
-\subsection{Correctness of the $\mathcal{R}$edundant/Inaccessible Analysis}
+\subsection{Comparison to LYGs Notion Of Correctness}
+
+LYG states that ``[...] LYG will never fail to report uncovered clauses (no false negatives), but it may report false positives'' \cite{10.1145/3408989}.
+Our statement of $\mathcal{U}$s correctness is stronger:
+The function $\mathcal{U}$ computes a refinement type that covers exactly all environments that are not covered by the guard tree. If $\mathcal{G}$ is assumed to be correct and used to semi-decide whether the refinement type computed by $\mathcal{U}$ is empty,
+LYGs claim follows.
+
+\section{Correctness of the Redundant/Inaccessible Analysis}
 \label{sec:formalizationSemanticRA}
 
 For a given guard tree and a given correct function $\mathtt{can\_prove\_empty}$ (which corresponds to $\generate$ in LYG), $\red$
 should compute a triple $(a, i, r)$ of accessible, inaccessible and redundant right hand sides.
 Whenever the given guard tree evaluates to a RHS, this RHS must be accessible and neither inaccessible nor redundant.
-RHSs that are redundant can be removed without changing the semantic of the guard tree.
+RHSs that are redundant can be removed from the guard tree without changing the semantics of the guard tree.
 This expresses correctness of the redundant and inaccessible analysis.
 
 \begin{minted}{Lean}
@@ -568,3 +604,16 @@ theorem ρ_semantic:
 
 Note that redundant RHSs could be marked as inaccessible or even accessible instead without violating this theorem.
 The opposite is not true: Not all accessible RHSs can be marked as inaccessible and not all inaccessible RHSs can be marked as redundant - see chapters \ref{sec:intro} and \ref{sec:background} for counterexamples. However, we conjecture that $a$ contains no inaccessible and $i$ no redundant RHSs if $\mathtt{can\_prove\_empty}$ is both correct and complete.
+
+\subsection{Comparison to LYGs Notion Of Correctness}
+
+LYG states correctness of the redundant/inaccessible analysis as following:
+``Similarly, LYG will never report accessible clauses as
+redundant (no false positives), but it may fail to report clauses which are redundant when the code
+involved is too close to undecidable territory.'' \cite{10.1145/3408989}.
+Furthermore, LYG also states
+``A redundant equation can be removed from a
+function without changing its semantics, whereas an inaccessible equation cannot, [...]''.
+
+We both improved the precision of LYGs notion of correctness by formally defining every involved concept,
+but also made it more complete by stating that RHSs identified as redundant by LYG are indeed redundant.

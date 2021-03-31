@@ -26,7 +26,7 @@ An inaccessible RHS is never evaluated, but its removal might lead to observable
 This definition implies that redundant RHSs are inaccessible.
 
 As of listing \ref{lst:haskell}, LYG will mark RHS $3$ as inaccessible and RHS $4$ as redundant.
-This choice is somewhat arbitrary, as RHS $3$ could be marked as redundant and RHS $4$ as inaccessible as well, and will be discussed in more detail chapter \TODOI{ref}.
+This choice is somewhat arbitrary, as RHS $3$ could be marked as redundant and RHS $4$ as inaccessible as well, and will be discussed in more detail in chapter \ref{chap:isRedundantSet}.
 
 \subsection{Guard Trees}
 
@@ -77,7 +77,7 @@ Finally, \textit{bang guards} can stop the entire execution when the value of a 
 
 The evaluation of a guard tree selects the first right hand side that execution reaches.
 If the execution stops at a bang guard, the evaluation is said to \textit{diverge}, otherwise, if execution falls through, the evaluation ends with a \textit{no-match}.
-A formal semantic for guard trees will be defined in chapter \ref{chap:formalGuardTrees}.
+A formal semantics for guard trees will be defined in chapter \ref{chap:formalGuardTrees}.
 
 The transformation from Haskell pattern matches to guard trees is not of much interest for this thesis and can be found in LYG \cite{10.1145/3408989}.
 To preserve semantics, it is important that the transformation inserts bang guards whenever a variable is matched against a data constructor.
@@ -149,11 +149,11 @@ Their syntax is defined in figure \ref{fig:refinementTypes}.
     \begin{array}{lcl}
         \Phi \andtheta \varphi &=&
         \begin{cases}
-            \varphi_1 \wedge (\varphi_2 \andtheta \varphi) \; \textrm{if }\Phi = \varphi_1 \wedge \varphi_2 \\
+            \Phi_1 \wedge (\Phi_2 \andtheta \varphi) \; \textrm{if }\Phi = \Phi_1 \wedge \Phi_2 \\
             \Phi \wedge \varphi \; \textrm{otherwise} \\
         \end{cases}\\
         \reft{\Gamma}{\Phi} \andtheta \varphi &=&
-            \reft{\Gamma}{\varphi \andtheta \varphi}\\
+            \reft{\Gamma}{\Phi \andtheta \varphi}\\
         \reft{\Gamma}{\Phi_1} \uniontheta \reft{\Gamma}{\Phi_2} &=& \reft{\Gamma}{\Phi_1 \vee \Phi_2} \\
     \end{array}
     \]
@@ -191,7 +191,7 @@ This thesis just assumes that ``interesting'' computable and correct functions $
 so the details of $\generate$ as proposed by LYG do not matter.
 In general, all proposed correctness statements should allow for an empty function $\mathcal{G}$.
 
-\subsection{Uncovered Analysis}
+\subsection{$\mathcal{U}$ncovered Analysis}
 \label{chap:bckgrdUncoveredAnalysis}
 
 The goal of the uncovered analysis is to detect all cases that are not handled by a given guard tree.
@@ -233,7 +233,7 @@ They are made of RHSs, branches and bang nodes. Their syntax is defined in figur
 	\]
 \end{figure}
 
-\subsection{Redundant/Inaccessible Analysis}
+\subsection{$\mathcal{R}$edundant/Inaccessible Analysis}
 \label{chap:backgrdRedundantInaccAnalysis}
 
 The goal of the redundant/inaccessible analysis is to report as much RHSs
