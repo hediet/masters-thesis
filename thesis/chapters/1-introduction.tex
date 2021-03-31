@@ -14,7 +14,7 @@ In other words, the pattern match used to define $\mathtt{f}$ is not exhaustive,
 as the input $\mathtt{Case4}$ is uncovered.
 This is usually an oversight by the programmer and should be brought to their attention with an appropriate warning.
 
-Also, $\mathtt{f}$ will never evaluate to $3$ or $4$ - replacing these values with any other value would not change any observable behaviour of $\mathtt{f}$. Such right hand sides (\textit{RHS}s) are called \textit{inaccessible}.
+Also, $\mathtt{f}$ will never evaluate to $3$ or $4$ - replacing these values with any other value would not change any observable behavior of $\mathtt{f}$. Such right hand sides (\textit{RHS}s) are called \textit{inaccessible}.
 Inaccessible RHSs indicate a code smell and should be avoided too. Sometimes, such RHSs can simply be removed from the pattern.
 
 \begin{figure}[htbp]
@@ -42,7 +42,7 @@ is accessible. This could have fatal consequences: A programmer acting on such m
 might delete a RHS that is very much in use!
 
 As LYG does not give a complete characterization of correctness,
-we first want to establish a precise notion of correctness and then check that these algorithms indeed comply with it. At the very least, a verifying tool should be verified itself!
+we first want to establish a precise and complete notion of correctness and then check that these algorithms indeed comply with it. At the very least, a verifying tool should be verified itself!
 
 The large number of case distinctions made in the algorithms motivates the use of a theorem prover;
 a natural proof would not be very trustworthy due to the high technical demand and risk of missing edge cases.

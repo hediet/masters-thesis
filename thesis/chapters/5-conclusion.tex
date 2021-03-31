@@ -1,1 +1,19 @@
 \chapter{Conclusion}\label{sec:conclusion}
+
+We refined and formalized several correctness properties of LYG and successfully proved them in Lean.
+However, we parametrized these correctness properties over a correct function $\mathcal{G}$ that semi-decides emptiness of refinement types.
+While LYG defines such a function, we did not prove that it indeed is such a correct function $\mathcal{G}$.
+
+Even though these correctness properties look seemingly easy to prove, it turned out to be a very involved undertaking.
+After all, it took us 48 definitions and 143 lemmas and theorems to formalize these proofs in Lean!
+
+We believe that this complexity is caused by the amount of details required to describe LYG and the rigorousness of Lean.
+In fact, we discovered a minor flaw in LYG's definition of $\mathcal{U}$, buried in the details of the let binding semantics.
+Luckily, this flaw has no impact on the GHC implementation of LYG, as the implementation uses a different encoding of refinement types.
+Still, this flaw was not discovered in peer reviews of the LYG paper,
+showing that LYG's correctness is not obvious at all and making a strong point for verification, yet formal verification.
+
+Finally, as our proofs are formally verified by Lean, it is highly unlikely that LYG has any other flaws,
+except in the definition of the presented function $\mathcal{G}$ that we did not check.
+
+We can strongly recommend to use Lean for formal verification!
