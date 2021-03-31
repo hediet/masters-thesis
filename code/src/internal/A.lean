@@ -33,7 +33,7 @@ begin
             (hom.comp hom.and_right stable.and_right acc_hom acc_stable),
         rw ←gdt_ih_tr2,
 
-        simp [Ant.map, A, Ant.eval_rhss, Ant.map_associative, function.comp, Φ.eval, (acc_hom.1 _ _).2, U_eq_𝒰_acc acc_stable acc_hom],
+        simp [Ant.map, A, Ant.eval_rhss, Ant.map_associative, function.comp, Φ.eval, (acc_hom.1 _ _).2, U_eq_𝒰_acc acc_stable acc_hom, 𝒰],
     },
     case Gdt.grd {
         cases gdt_grd,        
@@ -66,15 +66,17 @@ begin
     exact this,
 end
 
-def my_gdt := Gdt.grd (Grd.tgrd (default TGrd))
-    (
-            (Gdt.rhs (default Rhs))
-        .branch
-            (Gdt.rhs (default Rhs))
-    )
-
-theorem A_neq_𝒜: (A my_gdt ≠ 𝒜 my_gdt) :=
-by simp [A, 𝒜, 𝒜_acc, my_gdt, Ant.map]
+theorem A_neq_𝒜 (r: Rhs) (g: TGrd): A ≠ 𝒜 :=
+begin
+    intro,
+    replace a := congr_fun a (Gdt.grd (Grd.tgrd g)
+        (
+                (Gdt.rhs r)
+            .branch
+                (Gdt.rhs r)
+        )),
+    finish [A, 𝒜, 𝒜_acc, Ant.map],
+end
 
 @[simp]
 lemma A_rhss { gdt: Gdt }: (A gdt).rhss = gdt.rhss :=

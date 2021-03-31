@@ -457,7 +457,7 @@ theorem R_red_removable
     { gdt: Gdt } (gdt_disjoint: gdt.disjoint_rhss)
     { Agdt: Ant Φ }
     (ant_def: Agdt.mark_inactive_rhss = (A gdt).mark_inactive_rhss):
-    Gdt.eval_option (gdt.remove_rhss ((R $ Agdt.map can_prove_empty.val).red.to_finset)) = gdt.eval :=
+    Gdt.eval_option (gdt.remove_rhss (R (Agdt.map can_prove_empty.val)).red.to_finset) = gdt.eval :=
 begin
     ext env:1,
     

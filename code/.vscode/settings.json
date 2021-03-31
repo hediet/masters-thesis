@@ -1,0 +1,8 @@
+{
+    "workbench.editorAssociations": [
+        {
+            "viewType": "hediet.vscode-drawio-text",
+            "filenamePattern": "*.svg"
+        }
+    ]
+}

@@ -121,7 +121,7 @@ begin
     },
 end
 
-lemma r_correct_1 (ant: Ant bool):
+lemma R_inacc_unon_R_red_subseteq_inactive (ant: Ant bool):
     (R ant).inacc.to_finset ∪ (R ant).red.to_finset ⊆ ant.inactive_rhss :=
 begin
     induction ant,
@@ -173,7 +173,7 @@ begin
         exact Gdt.rhs_mem_rhss_of_eval_rhs h,
     end,
 
-    have xxx := ant_def,
+    have ant_def_old := ant_def,
     rw ←gdt_mark_inactive_rhss_inactive_rhss_of_rhs_match gdt_disjoint at h,
     rw A_mark_inactive_rhss gdt env at ant_def,
     rw ←ant_def at h,
@@ -199,7 +199,7 @@ begin
 
     have x : rhs ∉ r.inacc ++ r.red :=
     begin
-        have := r_correct_1 (ant.map can_prove_empty.val),
+        have := R_inacc_unon_R_red_subseteq_inactive (ant.map can_prove_empty.val),
         rw finset.subset_iff at this,
         specialize @this rhs,
         rw r_def,
@@ -207,7 +207,7 @@ begin
     end,
     
     have ant_disjoint: (ant.map can_prove_empty.val).disjoint_rhss := begin
-        have x := Ant.disjoint_rhss_of_mark_inactive_rhss_eq xxx,
+        have x := Ant.disjoint_rhss_of_mark_inactive_rhss_eq ant_def_old,
         have y := Ant.disjoint_rhss_of_gdt_disjoint_rhss gdt_disjoint,
         simp [x, y],
     end,
