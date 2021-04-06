@@ -13,7 +13,8 @@ Luckily, this flaw has no impact on the GHC implementation of LYG, as the implem
 Still, this flaw was not discovered in peer reviews of the LYG paper,
 showing that LYG's correctness is not obvious at all and making a strong point for verification, yet formal verification.
 
-Finally, as our proofs are formally verified by Lean, it is highly unlikely that LYG has any other flaws,
+As our proofs are formally verified by Lean, it is highly unlikely that LYG as formalized by this thesis has any other flaws,
 except in the definition of the presented function $\mathcal{G}$ that we did not check.
+Nonetheless, our formally verified proofs alone cannot guarantee that our formalization correctly reflects LYG and that our chosen abstractions are general enough, as this is subject to human interpretation. We hope that our informal clarifications support our claim that they do.\\
 
-We can strongly recommend to use Lean for formal verification!
+We can strongly recommend to use Lean for formal verification and suggest to formally verify the correctness of $\mathcal{G}$ too!

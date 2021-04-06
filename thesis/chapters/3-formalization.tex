@@ -73,7 +73,7 @@ def Grd.eval : Grd → Env → Result Env
 \end{minted}
 
 Alternatively,
-we could have set $\mathtt{Var} := \mathtt{Env} → \mathtt{bool}$ and $\mathtt{TGrd} := \mathtt{Env} → \mathtt{option}\;\mathtt{Env}$ and replace $\mathtt{is\_bottom}$ and $\mathtt{tgrd\_eval}$ with $\mathtt{id}$,
+we could have set $\mathtt{Var} := \mathtt{Env} → \mathtt{bool}$ and $\mathtt{TGrd} := \mathtt{Env} → \mathtt{option}\;\mathtt{Env}$ and replaced $\mathtt{is\_bottom}$ and $\mathtt{tgrd\_eval}$ with $\mathtt{id}$,
 yielding the following definition:
 \begin{minted}{Lean}
 inductive Grd'
@@ -89,7 +89,7 @@ it could make implementing a correct function $\mathcal{G}$ impossible, as it ca
 \subsubsection{The Guard Module}
 
 In Lean, type classes provide an ideal mechanism to define such ambient abstractions.
-They can be opened, so that all members of the type class become implicitly available in all definitions and theorems.
+They can be opened so that all members of the type class become implicitly available in all definitions and theorems.
 Every implicit usage pulls the type class into its signature so that consumers can provide a concrete implementation of the type class.
 
 We defined and opened a type class \textit{GuardModule} that describes the presented abstraction:
@@ -221,7 +221,7 @@ A (well) typed environment can assist in proving a refinement type to be empty.
 \label{sec:formalizationVariableBindingRules}
 
 Another problem that had to be solved was the formalization of the unconventional binding mechanism of refinement types through conjunctions, as described in chapter \ref{chap:bckgrndRefinementTypesBinding}.
-In particular, this causes $\mathcal{U}$ to be not correct (for some intuitive notion of correctness)
+In particular, this causes $\mathcal{U}$ to be incorrect (for some intuitive notion of correctness)
 with regards to the guard tree semantics we defined in chapter \ref{chap:formalGuardTrees}.
 While the following guard tree $gdt$ does not match for $x = \mathtt{False}$, its uncovered refinement type $\Theta$ computed by $\mathcal{U}$ is empty due to the constraints $x \ntermeq \Conid{False}$ and $x \ntermeq \Conid{True}$ that refer to the same variable and thus represent a contradiction!
 
@@ -272,7 +272,7 @@ There are several ways of how this problem can be addressed.
     
     \item Adjust the semantics of guard trees so that variables defined in a branch override shadowed variables in all later branches.
     
-        We prove correctness of $\mathcal{U}$ as stated in LYG with this updated semantics of guard trees.
+        We managed to prove correctness of $\mathcal{U}$ as stated in LYG with this updated semantics of guard trees.
         However, this semantics is not only very unconventional, but also dramatically increases the complexity
         when reasoning about the effect of removing an inaccessible RHS.
         
@@ -353,7 +353,7 @@ def Φ.is_empty (ty: Φ): Prop := ∀ env: Env, ¬(ty.eval env)
 
 Instead of a partial function $\generate$ with $\generate(Φ) = \varnothing$ if and only if $Φ$ is empty,
 we define a total function $\mathtt{can\_prove\_empty}$ and a predicate $\mathtt{correct\_can\_prove\_empty}$ that ensures
-its correctness. This abstracts from the in this context unneeded generation of inhabitants. It also avoids dealing with partial functions, which are not supported by Lean.
+its correctness. This abstracts from the generation of inhabitants which are superfluous in this context. It also avoids dealing with partial functions, which are not directly supported by Lean.
 \begin{minted}{Lean}
 variable can_prove_empty: Φ → bool
 def correct_can_prove_empty : Prop :=
@@ -367,6 +367,8 @@ def CorrectCanProveEmpty := {
     // correct_can_prove_empty can_prove_empty
 }
 \end{minted}
+
+\newpage
 
 \section{Uncovered Analysis}
 \label{sec:formalizationUncoveredAnalysis}
@@ -385,12 +387,14 @@ LYG defined $\mathcal{U}$ as follows (see chapter \ref{chap:bckgrdUncoveredAnaly
 \end{array}
 \]
 
-Equipped with the data constructor $\mathtt{Φ.tgrd\_in}$ we can fix the shadowing problem problem and formalize $\mathcal{U}$ now.
-Instead of using $\Phi$ as accumulator type, our formalization uses the type $\Phi \to \Phi$:
+Equipped with the data constructor $\mathtt{Φ.tgrd\_in}$,
+we can fix the shadowing problem and formalize $\mathcal{U}$ now.
+Instead of using $\Phi$ as accumulator type, our formalization uses a function $\Phi \to \Phi$:
 The new accumulator explicitly applies a context to a refinement type.
 This happens implicitly in LYG's definition through the use of $\Theta \andtheta \cdot$.
 
-Note that all occuring accumulator functions are homomorphic under the semantics of refinement types, i.e. $\mathtt{Gdt.eval}\;(f\;(a.\mathit{and}\;b)) = \mathtt{Gdt.eval}\;((f\;a).\mathit{and}\;(f\;b))$.
+\overfullrule=0pt
+Note that all occuring accumulator functions are homomorphisms modulo the semantics of refinement types, i.e. $\mathtt{Gdt.eval}\;(f\;(a.\mathit{and}\;b)) = \mathtt{Gdt.eval}\;((f\;a).\mathit{and}\;(f\;b))$.
 We carefully make use of this to get formalized definitions of $\mathcal{U}$ and $\mathcal{A}$ that can be interleaved, as done in LYG.
 
 \begin{minted}{Lean}
@@ -406,6 +410,7 @@ def ω_acc : (Φ → Φ) → Gdt → Φ
 def ω : Gdt → Φ := ω_acc id
 \end{minted}
 
+\newpage
 \section{Redundant / Inaccessible Analysis}
 
 \subsubsection{Formalization of Annotated Trees}
@@ -413,7 +418,7 @@ def ω : Gdt → Φ := ω_acc id
 The formalization of annotated trees is straightforward.
 However, we allow arbitrary annotations rather than only accepting refinement types.
 This will become useful in formal proofs when we no longer care about
-the specific refinement types but only if they are empty.
+the specific refinement types, but only whether they are empty.
 
 \begin{minted}{Lean}
 inductive Ant (α: Type)
@@ -603,7 +608,7 @@ theorem ρ_semantic:
 \end{minted}
 
 Note that redundant RHSs could be marked as inaccessible or even accessible instead without violating this theorem.
-The opposite is not true: Not all accessible RHSs can be marked as inaccessible and not all inaccessible RHSs can be marked as redundant - see chapters \ref{sec:intro} and \ref{sec:background} for counterexamples. However, we conjecture that $a$ contains no inaccessible and $i$ no redundant RHSs if $\mathtt{can\_prove\_empty}$ is both correct and complete.
+The opposite is not true: Not all accessible RHSs can be marked as inaccessible and not all inaccessible RHSs can be marked as redundant - see chapters \ref{sec:intro} and \ref{sec:background} for counterexamples. However, we conjecture that $a$ contains no inaccessible and $i$ no redundant RHSs if $\mathtt{can\_prove\_empty}$ is both correct and complete (even though such a function is usually uncomputable).
 
 \subsection{Comparison to LYGs Notion Of Correctness}
 
@@ -617,3 +622,8 @@ function without changing its semantics, whereas an inaccessible equation cannot
 
 We both improved the precision of LYGs notion of correctness by formally defining every involved concept,
 but also made it more complete by stating that RHSs identified as redundant by LYG are indeed redundant.
+
+While the predecessor of LYG, ``GADTs Meet Their Match'' \cite{10.1145/2858949.2784748} (in short \textit{GMTM}),
+gives a formal statement about its correctness in theorem 1, it lacks a proof.
+Also, according to our understanding,
+GMTM's statement does not explicitly examine the effect of removing redundant right hand sides as we do.

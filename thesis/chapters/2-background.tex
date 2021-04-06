@@ -12,7 +12,7 @@ All definitions and some examples of this chapter are taken from LYG \cite{10.11
 
 \subsection{Inaccessible vs. Redundant RHSs}
 
-A closer look at figure \ref{lst:haskell} reveals that while both RHS 3 and 4 are inaccessible,
+A closer look at figure \ref{lst:haskell} reveals that, while both RHS 3 and 4 are inaccessible,
 the semantics of $\mathtt{f}$ changes if both are removed.
 This means that an automated refactoring cannot just remove all inaccessible leaves!
 
@@ -25,8 +25,8 @@ A redundant RHS can be removed from its pattern matching expression without any 
 An inaccessible RHS is never evaluated, but its removal might lead to observable changes.
 This definition implies that redundant RHSs are inaccessible.
 
-As of listing \ref{lst:haskell}, LYG will mark RHS $3$ as inaccessible and RHS $4$ as redundant.
-This choice is somewhat arbitrary, as RHS $3$ could be marked as redundant and RHS $4$ as inaccessible as well, and will be discussed in more detail in chapter \ref{chap:isRedundantSet}.
+As for listing \ref{lst:haskell}, LYG will mark RHS $3$ as inaccessible and RHS $4$ as redundant.
+This choice is somewhat arbitrary, as RHS $3$ could be marked as redundant and RHS $4$ as inaccessible as well, and will be discussed in more detail in chapter \ref{chap:isRedundantSet}. However, for the reasons mentioned above, not both RHSs can be marked as redundant.
 
 \subsection{Guard Trees}
 
@@ -34,14 +34,14 @@ For all analyses, LYG first transforms Haskell specific pattern match expression
 This transformation removes a lot of complexity, as many different Haskell constructs can be desugared
 to the same guard tree. Guard trees also simplify adapting LYG to other programming languages
 and they enable studying LYG mostly independent from Haskell.
-Their syntax is defined in figure \ref{fig:guardTrees}.
+Their syntax is defined in figure \ref{fig:guardTrees}. \textit{Con} refers to data constructors, \textit{TyCt} to type constraints.
 
 Guard trees (\textit{Gdt}s) are made of three elements: Uniquely numbered right hand sides, \textit{branches} and \textit{guarded trees}.
 Guarded trees refer to Haskell specific guards (\textit{Grd}) that control the execution.
 \textit{Let guards} can bind a term to a variable in a new lexical scope.
-\textit{pattern match guards} can destructure a value into variables if the pattern matches or otherwise prevent the
+\textit{Pattern match guards} can destructure a value into variables if the pattern matches or otherwise prevent the
 execution from entering the tree behind the guard.
-Finally, \textit{bang guards} can stop the entire execution when the value of a variable does not reduce to a head normal form.
+Finally, \textit{bang guards} can stop the entire execution when the value of a variable does not reduce to a head normal form (like $\mathtt{undefined}$).
 
 \begin{figure}[htbp]
 	\caption{Definition of Guard Trees}
@@ -59,7 +59,6 @@ Finally, \textit{bang guards} can stop the entire execution when the value of a 
 			\end{array} &
 			\begin{array}{rlcl}
 				\gamma \in & \TyCt & \Coloneqq & \tau_1 \typeeq \tau_2 \mid ...               \\
-				p \in      & \Pat  & \Coloneqq & \_ \mid K \; \overline{p} \mid ...           \\
 				g \in      & \Grd  & \Coloneqq & \grdlet{x:\tau}{e}                           \\
 				           &       & \mid      & \grdcon{\genconapp{K}{a}{\gamma}{y:\tau}}{x} \\
 				           &       & \mid      & \grdbang{x}                                  \\
@@ -128,7 +127,7 @@ This makes guard trees an ideal abstraction for the following analysis steps.
 
 \subsection{Refinement Types}
 
-\textit{Refinement types} describe vectors of values $x_1, ..., x_n$ that satisfy a given predicate $\Phi$.
+\textit{Refinement types} \cite{10.1145/113445.113468} describe vectors of values $x_1, ..., x_n$ that satisfy a given predicate $\Phi$.
 Their syntax is defined in figure \ref{fig:refinementTypes}.
 
 \begin{figure}[htbp]
@@ -166,27 +165,26 @@ $$
 		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ \true }                                                                                                           & \text{denotes} & \{ \bot, \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}} \}                       \\
 		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ x \ntermeq \bot }                                                                                                 & \text{denotes} & \{ \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}} \}                             \\
 		\reft{ x{:}\ensuremath{\Conid{Bool}}}{ x \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{True}}}{x} }                                                     & \text{denotes} & \{ \ensuremath{\Conid{True}} \}                                                         \\
-		\reft{ mx{:}\ensuremath{\Conid{Maybe}\;\Conid{Bool}}}{ mx \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{Just}\;\Varid{x}}}{mx}  } & \text{denotes} & \ensuremath{\Conid{Just}\;}\{ \ensuremath{\bot}, \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}}, \} \\
+		\reft{ mx{:}\ensuremath{\Conid{Maybe}\;\Conid{Bool}}}{ mx \ntermeq \bot \wedge \ctcon{\ensuremath{\Conid{Just}\;\Varid{x}}}{mx}  } & \text{denotes} & \ensuremath{\Conid{Just}\;}\{ \ensuremath{\bot}, \ensuremath{\Conid{True}}, \ensuremath{\Conid{False}} \} \\
 	\end{array}
 $$
 
 \subsection{Binding Mechanism Of Refinement Types}\label{chap:bckgrndRefinementTypesBinding}
 
-Refinement type literals, such as the let-literal or the pattern-match-literal can bind one or more variables.
+Refinement type literals, such as the let-literal or the pattern-match-literal, can bind one or more variables.
 Unconventionally however, a binding is in scope of a literal if and only if
 the binding literal is the left operand of a parent conjunction.
 
 Thus, $(\ctlet{x}{y} \land x \ntermeq \bot) \land x \ntermeq \bot$ is semantically equivalent to $y \ntermeq \bot \land x \ntermeq \bot$.
 Clearly, $\land$ is not associative!
 
-To utilize this behaviour, the operator $\andtheta$ replaces the rightmost operand of the top conjunction tree of the left argument (figure \ref{fig:refinementTypes}).
+To utilize this behavior, the operator $\andtheta$ replaces the rightmost operand of the top conjunction tree of the left argument (figure \ref{fig:refinementTypes}).
 
 \subsection{$\generate$enerating Inhabitants}
 LYG also describes a partial function $\generate$
 with $\generate(\Theta) = \varnothing \Rightarrow (\Theta \text{ denotes } \varnothing)$ for all refinement types $\Theta$.
-$\generate$ is used to $\generate$enerate inhabitants of a refinement type to build elaborate error messages
-and to get a guarantee that a refinement type is empty.
-A total correct function $\generate$ is uncomputable, since refinement types can make use of recursively defined functions!
+$\generate$ is used to $\generate$enerate inhabitants of a refinement type to build elaborate error messages, or, more importantly, to get a guarantee that a refinement type is empty.
+A total correct function $\generate$ is uncomputable, as there are expressions (making use of recursively defined functions) that match a certain data constructor if and only if a given turing machine halts!
 This thesis just assumes that ``interesting'' computable and correct functions $\generate$ exist,
 so the details of $\generate$ as proposed by LYG do not matter.
 In general, all proposed correctness statements should allow for an empty function $\mathcal{G}$.
@@ -199,7 +197,7 @@ Refinement types are used to capture the result of this analysis.
 
 The function $\unc(\reft{\Gamma}{\true}, \cdot)$ in figure \ref{fig:U}
 computes a refinement type that captures all uncovered values for a given guard tree.
-This refinement type is empty if and only if there are not any uncovered cases.
+This refinement type is empty if and only if there are no uncovered cases.
 If $\generate$ is used to test for emptiness, this already yields an algorithm to test for uncovered cases.
 It can be verified that the uncovered refinement type of the guard tree in
 figure \ref{fig:desugaringExample} ``semantically'' equals $\reft{ x_1{:}\ensuremath{\Conid{Case}}, \, x_2{:}\ensuremath{\Conid{Bool}}}{ x_1 \ntermeq \bot \andtheta x_1 \ntermeq \mathtt{Case1} \andtheta x_1 \ntermeq \mathtt{Case2} \andtheta x_1 \ntermeq \mathtt{Case3} }$ and denotes $x_1 = \mathtt{Case4}$.
@@ -219,10 +217,10 @@ figure \ref{fig:desugaringExample} ``semantically'' equals $\reft{ x_1{:}\ensure
 	\]
 \end{figure}
 
-\subsection{Annotated Guard Trees}
+\subsection{$\mathcal{A}$nnotated Guard Trees}
 
 \textit{Annotated guard trees} represent simplified guard trees that have been annotated with refinement types $\Theta$.
-They are made of RHSs, branches and bang nodes. Their syntax is defined in figure \ref{fig:annotatedGuardTree}.
+They are made of RHSs, branches and bang nodes. Their syntax is defined in figure \ref{fig:annotatedGuardTree}. Annotated guard trees are the result of the function $\mathcal{A}$, which is discussed in the next chapter. 
 
 \begin{figure}[htbp]
 	\caption{Definition of Annotated Guard Trees}
@@ -236,7 +234,7 @@ They are made of RHSs, branches and bang nodes. Their syntax is defined in figur
 \subsection{$\mathcal{R}$edundant/Inaccessible Analysis}
 \label{chap:backgrdRedundantInaccAnalysis}
 
-The goal of the redundant/inaccessible analysis is to report as much RHSs
+The goal of the redundant/inaccessible analysis is to report as many RHSs
 as possible that are redundant or inaccessible.
 This is done by annotating a guard tree with refinement types and then checking these refinement types for emptiness.
 If a RHS is associated with an empty refinement type, the RHS is inaccessible and in some circumstances even redundant.
@@ -368,7 +366,7 @@ It states that RHS 4 in \ref{lst:haskell} is redundant and can be removed, while
 
 Lean is an interactive theorem prover that is based on the calculus of inductive constructions \cite{leanWebsite} \cite{moura15} and is developed by Microsoft Research.
 It features dependent types, offers a high degree of automation through tactics and can also be used as a programming language.
-Due to the Curry-Howard isomorphism, writing functional definitions intended to be used in proofs,
+Due to the Curry-Howard isomorphism, writing function definitions intended to be used in proofs,
 writing proofs and writing proof-generating custom tactics is very similar.
 
 We use Lean 3 for this thesis and want to give a brief overview of its syntax. See \cite{leanDocs} for a detailed documentation.

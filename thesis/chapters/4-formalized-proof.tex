@@ -10,7 +10,7 @@ They include accumulator-free alternatives $\mathtt{U}$ and $\mathtt{A}$ for the
 %However, these alternatives might compute syntactically different refinement types that are only semantically equivalent to the source definition.
 %Since $\mathtt{can\_prove\_empty}$ might yield different results for refinement types that describe the same set of values, care needs to be taken.
 
-Correctness of $\mathtt{U}$ can be shown directly and this result can be transferred easily to $\mathcal{U}$ too, as $\mathcal{U}$'s correctness only depends on the semantic of the computed refinement type (see chapter \ref{sec:formalizationSemanticU}).
+Correctness of $\mathtt{U}$ can be shown directly, and this result can be transferred easily to $\mathcal{U}$ too, as $\mathcal{U}$'s correctness only depends on the semantic of the computed refinement type (see chapter \ref{sec:formalizationSemanticU}).
 It is much more difficult to show correctness of $\red$/$\mathcal{A}$ though, so we will discuss this in more detail.
 
 In chapter \ref{sec:proofRedRemovable}, we show that redundant RHSs can be removed without changing semantics.
@@ -111,7 +111,7 @@ theorem A_sem_eq_π (gdt: Gdt):
     (A gdt).eval_rhss = (π gdt).eval_rhss
 \end{minted}
 
-When only relying on semantical equivalence, care has to be taken when getting insights on $\mathcal{A}$ by studying $A$,
+When only relying on semantical equivalence, care has to be taken when getting insights into $\mathcal{A}$ by studying $A$,
 as $\mathtt{can\_prove\_empty}$ does not have to be \textit{well defined}
 on refinement types modulo semantical equivalence. If two refinement types are semantically equal,
 $\mathtt{can\_prove\_empty}$ could be $\mathrm{true}$ for the former, but $\mathrm{false}$ for the latter type.
@@ -196,7 +196,7 @@ $\mathcal{R}(\mathcal{A}(\mathrm{gdt}))\mathrm{.red} = \{ \mathtt{RHS\;1} \}$, a
 $\mathrm{ant}_3$ in figure \ref{fig:proofOverview} is a boolean annotated tree whose nodes indicate inactivity under $\mathrm{env}$ (true if they are inactive, otherwise false).
 It is much easier to reason about the effect of removing selected RHSs from this tree due to the closely related definitions of $\mathtt{Gdt.mark\_inactive}$ and $\mathtt{Gdt.eval}$, especially if the selection of RHSs is done by only looking at $\mathrm{ant}_3$.
 
-Is easy to relate $\mathrm{ant_1}$ with $\mathrm{ant_3}$ if we define $\mathrm{ant_2} := \mathcal{A}(\mathrm{gdt}).\mathrm{map}(\neg \circ \Phi.\mathrm{eval}_{\mathrm{env}})$ as the negation of the evaluation of each refinement type under $\mathrm{env}$.
+It is easy to relate $\mathrm{ant_1}$ with $\mathrm{ant_3}$ if we define $\mathrm{ant_2} := \mathcal{A}(\mathrm{gdt}).\mathrm{map}(\neg \circ \Phi.\mathrm{eval}_{\mathrm{env}})$ as the negation of the evaluation of each refinement type under $\mathrm{env}$.
 
 \subsubsection{Step 4: Relating $\mathrm{ant}_1$, $\mathrm{ant}_2$ and $\mathrm{ant}_3$}
 
@@ -221,7 +221,7 @@ This finishes the proof!
 \subsection{Generalization of $R(\_).\mathrm{red}$}\label{chap:isRedundantSet}
 
 Given two boolean annotated trees $\mathrm{ant_a}$ and $\mathrm{ant_b}$ with $\mathrm{ant_a} \Rightarrow \mathrm{ant_b}$,
-we would like to transfer insights on redundant sets in $\mathrm{ant_a}$ to $\mathrm{ant_b}$ as stated in the previous chapter.
+we would like to transfer insights into redundant sets in $\mathrm{ant_a}$ to $\mathrm{ant_b}$ as stated in the previous chapter.
 
 \subsubsection{$R$ is not suitable}
 
@@ -282,16 +282,16 @@ This counterexample can easily be verified with Lean, a proof is included in \ci
 
 This issue is caused by the freedom of how \textit{critical sets} of RHSs can be avoided and that $R$ does not always consider this freedom.
 A set of RHSs is critical if removing all its RHSs necessarily also removes a bang guard associated with a non-empty refinement type.
-Clearly, a set of redundant right hand sides must not contain a critical set - otherwise, a possibly active bang guard might be removed!
+Clearly, a set of redundant right hand sides must not contain a critical set - otherwise, a possibly active bang guard might be removed. This could be observable and would contradict the definition of a redundant set to not cause observable side effects on removal!
 
 Hence, if all RHSs behind a possibly active bang guard are inaccessible (as in $\mathrm{ant}_b$ in the counterexample), not all of them can be marked as redundant.
 In such cases, $R$ marks all RHSs as redundant except the first.
-However, $R$ could have excluded the second RHS instead, which would equally avoid the critical set caused by the bang guard!
-If the second RHS is not inaccessible (as in $\mathrm{ant}_a$ in the counterexample), $R$ does not have to exclude a RHS and marks the first as redundant. In this case, $R$ makes use of the freedom of how critical sets can be avoided by using an active RHS instead of just the first RHS as witness.
+However, $R$ could have also excluded any other RHS instead (i.e. the second one in the example), which would equally avoid the critical set caused by the bang guard!
+If such a RHS is not inaccessible (as in $\mathrm{ant}_a$ in the counterexample), $R$ does not have to exclude any inaccessible RHS from being redundant (and thus marks the first as redundant in the example). In this case, $R$ makes use of the freedom of how critical sets can be avoided by cleverly using an active RHS instead of just the first RHS as witness.
 
 \subsubsection{Definition of $\mathtt{is\_redundant\_set}$}
 
-To overcome this issue, we generalize $R(\_).\mathrm{red}$ to a precidate $\mathtt{is\_redundant\_set}$ as follows:
+To overcome this issue, we generalize $R(\_).\mathrm{red}$ to a predicate $\mathtt{is\_redundant\_set}$ as follows:
 
 \begin{minted}{Lean}
 def Ant.critical_rhs_sets : Ant bool → finset (finset Rhs)
@@ -446,4 +446,4 @@ lemma is_redundant_set_monotone' { a b: Ant bool } (h: a Γ b):
 \end{minted}
 
 We can use this fact and the previous lemmas to show that $\mathit{rhs}$ must be an active RHS in $\mathtt{ant.map\;can\_prove\_empty.val}$.
-This closes the proof.
+This completes the proof.
